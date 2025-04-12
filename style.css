@@ -1,0 +1,164 @@
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 1em;
+}
+
+.add-task, .controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.add-task input[type="text"] {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    padding: 10px 15px;
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #4cae4c;
+}
+
+#startRestButton {
+    background-color: #f0ad4e;
+}
+#startRestButton:hover {
+    background-color: #ec971f;
+}
+#clearHistoryButton {
+    background-color: #d9534f;
+    margin-top: 10px;
+}
+#clearHistoryButton:hover {
+    background-color: #c9302c;
+}
+
+
+.current-activity {
+    background-color: #e9f5e9;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.current-activity h2 {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+    font-size: 1.2em;
+}
+
+#currentTaskName {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.timer {
+    font-size: 2em;
+    font-weight: bold;
+    color: #337ab7;
+    margin-top: 5px;
+}
+
+.task-list-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.task-list-section li {
+    background: #f9f9f9;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-left 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-list-section li:hover {
+    background-color: #efefef;
+}
+
+.task-list-section li.active {
+    background-color: #dff0d8; /* Light green background */
+    border-left: 5px solid #5cb85c; /* Green border */
+    font-weight: bold;
+}
+
+.task-list-section li button {
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8em;
+}
+.task-list-section li button:hover {
+     background-color: #c9302c;
+}
+
+.history-section, .metrics-section {
+    margin-top: 30px;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+#historyLog p {
+    margin: 5px 0;
+    padding: 3px 0;
+    border-bottom: 1px dashed #eee;
+    font-size: 0.9em;
+}
+#historyLog p:last-child {
+    border-bottom: none;
+}
+
+#taskMetrics div {
+    margin-bottom: 5px;
+}
+
+/* 来源： */
+/* 1. https://help.aliyun.com/zh/oss/use-cases/add-signatures-on-the-client-by-using-javascript-and-upload-data-to-oss */
+/* 2. https://github.com/gaurav20161/maven-web-app */
+/* 3. https://github.com/ShHaWkK/Temps_Donne */
+/* 4. https://www.scribd.com/document/799517331/Kca-021-Wt-Ut-23-24-Sol-Fin */
+/* 5. https://github.com/robin0R/todo-list */
+/* 6. https://github.com/DelNyal/NCC_WEB */
+/* 7. https://github.com/DustinDiazLopez/stopwatch-react-ui */
+/* 8. https://github.com/Ali-Herrera/todo-auth */
