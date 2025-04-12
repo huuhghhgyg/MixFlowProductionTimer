@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>个人任务计时器</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 </head>
 <body>
     <div class="container">
@@ -29,6 +31,13 @@
             <h2>任务列表</h2>
             <ul id="taskList">
                 </ul>
+        </div>
+
+        <div class="gantt-section">
+            <h2>任务时间轴</h2>
+            <div class="chart-container">
+                <canvas id="ganttChart"></canvas>
+            </div>
         </div>
 
         <div class="history-section">

@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyLogDiv = document.getElementById('historyLog');
     const taskMetricsDiv = document.getElementById('taskMetrics');
     const clearHistoryButton = document.getElementById('clearHistoryButton');
+    const ganttChartCanvas = document.getElementById('ganttChart');
+    let ganttChart = null; // 用于存储图表实例
 
     // --- State Variables ---
     let tasks = []; // Array of task objects { id, name }
@@ -25,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderHistory();
     calculateAndRenderMetrics();
     updateCurrentActivityDisplay(); // Update display based on loaded state
+    initGanttChart();
 
     // --- Event Listeners ---
     addTaskButton.addEventListener('click', addTask);
@@ -277,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(timerInterval); // Ensure timer stops
             timerInterval = null;
         }
+        updateGanttChart(); // 在更新当前活动后更新甘特图
     }
 
     function renderHistory() {
@@ -300,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
          // Scroll to bottom
          historyLogDiv.scrollTop = historyLogDiv.scrollHeight;
+         updateGanttChart(); // 在更新历史记录后更新甘特图
     }
 
     function calculateAndRenderMetrics() {
@@ -403,6 +408,159 @@ document.addEventListener('DOMContentLoaded', () => {
                  // updateCurrentActivityDisplay will call startTimer if needed.
              }
         }
+    }
+
+    // 初始化甘特图
+    function initGanttChart() {
+        // 如果已存在图表实例，先销毁它
+        if (ganttChart) {
+            ganttChart.destroy();
+            ganttChart = null;
+        }
+
+        const ctx = ganttChartCanvas.getContext('2d');
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
+
+        ganttChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                datasets: []
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'hour',
+                            displayFormats: {
+                                hour: 'HH:mm'
+                            },
+                            tooltipFormat: 'HH:mm'
+                        },
+                        min: todayStart.getTime(),
+                        max: todayEnd.getTime(),
+                        position: 'top',
+                        ticks: {
+                            maxRotation: 0,
+                            source: 'auto',
+                            autoSkip: true,
+                            maxTicksLimit: 24
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                const timeRange = context[0].raw.x;
+                                return `${new Date(timeRange[0]).toLocaleTimeString()} - ${new Date(timeRange[1]).toLocaleTimeString()}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 更新甘特图数据
+    function updateGanttChart() {
+        if (!ganttChart) {
+            initGanttChart();
+        }
+
+        const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
+        
+        // 过滤今天的记录
+        const todayHistory = sortedHistory.filter(entry => {
+            const entryDate = new Date(entry.timestamp);
+            return entryDate >= todayStart && entryDate <= todayEnd;
+        });
+
+        const datasets = [];
+        let currentStart = null;
+        let currentTask = null;
+
+        todayHistory.forEach(entry => {
+            if (entry.type === 'start' || entry.type === 'start_rest') {
+                currentStart = entry.timestamp;
+                currentTask = entry;
+            } else if ((entry.type === 'stop' || entry.type === 'stop_rest') && currentStart) {
+                const color = entry.taskId === REST_ID ? '#f0ad4e' : '#5cb85c';
+                datasets.push({
+                    label: entry.taskName,
+                    data: [{
+                        x: [new Date(currentStart), new Date(entry.timestamp)],
+                        y: entry.taskName
+                    }],
+                    backgroundColor: color,
+                    borderColor: color,
+                    borderWidth: 1,
+                    borderSkipped: false,
+                    borderRadius: 2
+                });
+                currentStart = null;
+            }
+        });
+
+        // 如果有正在进行的任务，添加到图表
+        if (activeEntry) {
+            const color = activeEntry.taskId === REST_ID ? '#f0ad4e' : '#5cb85c';
+            const now = new Date();
+            // 确保不超过今天结束时间
+            const endTime = now > todayEnd ? todayEnd : now;
+            datasets.push({
+                label: activeEntry.taskName,
+                data: [{
+                    x: [new Date(activeEntry.startTime), endTime],
+                    y: activeEntry.taskName
+                }],
+                backgroundColor: color,
+                borderColor: color,
+                borderWidth: 1,
+                borderSkipped: false,
+                borderRadius: 2
+            });
+        }
+
+        // 更新图表配置以确保合适的时间范围和刻度
+        ganttChart.options.scales.x = {
+            type: 'time',
+            time: {
+                unit: 'hour',
+                displayFormats: {
+                    hour: 'HH:mm'
+                },
+                tooltipFormat: 'HH:mm'
+            },
+            min: todayStart.getTime(),
+            max: todayEnd.getTime(),
+            position: 'top',
+            ticks: {
+                maxRotation: 0,
+                source: 'auto',
+                autoSkip: true,
+                maxTicksLimit: 24 // 限制最大刻度数量
+            }
+        };
+
+        ganttChart.data.datasets = datasets;
+        ganttChart.update('none'); // 使用 'none' 模式更新以提高性能
     }
 });
 
