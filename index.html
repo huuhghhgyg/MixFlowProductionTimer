@@ -4,56 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>任务时间管理器</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <header>
+        <header class="app-header">
             <h1>任务时间管理器</h1>
         </header>
 
-        <section class="add-task card">
-            <input type="text" id="newTaskInput" placeholder="输入新任务名称..." aria-label="新任务名称">
-            <button id="addTaskButton">添加任务</button>
-        </section>
+        <div class="surface add-task">
+            <div class="text-field">
+                <input type="text" id="newTaskInput" placeholder=" ">
+                <label>输入新任务名称</label>
+            </div>
+            <button class="button-filled" id="addTaskButton">
+                <span class="material-symbols-rounded">add</span>
+                添加任务
+            </button>
+        </div>
 
-        <section class="current-activity card">
+        <div class="surface current-activity">
             <div class="activity-content">
                 <h2>当前活动</h2>
-                <p id="currentTaskName">-- 无 --</p>
-                <p class="timer" id="currentTimer">00:00:00</p>
-                <button id="startRestButton">开始休息</button>
+                <div class="activity-details">
+                    <p id="currentTaskName">-- 无活动 --</p>
+                    <div class="timer" id="currentTimer">00:00:00</div>
+                    <button class="button-tonal" id="startRestButton">
+                        <span class="material-symbols-rounded">coffee</span>
+                        开始休息
+                    </button>
+                </div>
             </div>
-        </section>
+        </div>
 
-        <section class="task-list-section card">
-            <h2>任务列表</h2>
-            <ul id="taskList" role="list"></ul>
-        </section>
+        <div class="main-grid">
+            <div class="surface task-list-section">
+                <header class="section-header">
+                    <h2>任务列表</h2>
+                </header>
+                <div class="task-list" id="taskList"></div>
+            </div>
 
-        <section class="gantt-section card">
+            <div class="surface metrics-section">
+                <header class="section-header">
+                    <h2>任务统计</h2>
+                </header>
+                <div id="taskMetrics"></div>
+            </div>
+        </div>
+
+        <div class="surface gantt-section">
             <header class="section-header">
                 <h2>任务时间轴</h2>
-                <div class="chart-controls">
-                    <button id="clearDataButton" class="danger-button">清除所有数据</button>
-                </div>
             </header>
             <div id="ganttChart"></div>
-        </section>
+        </div>
 
-        <section class="history-section card">
+        <div class="surface history-section">
             <header class="section-header">
                 <h2>活动日志</h2>
+                <div class="button-group">
+                    <button class="button-tonal" id="clearHistoryButton">
+                        <span class="material-symbols-rounded">history</span>
+                        清除历史记录
+                    </button>
+                    <button class="button-filled error" id="clearDataButton">
+                        <span class="material-symbols-rounded">delete_forever</span>
+                        清除所有数据
+                    </button>
+                </div>
             </header>
-            <div id="historyLog" role="log"></div>
-            <button id="clearHistoryButton">清除历史记录</button>
-        </section>
-
-        <section class="metrics-section card">
-            <h2>任务统计</h2>
-            <div id="taskMetrics"></div>
-        </section>
+            <div id="historyLog"></div>
+        </div>
     </div>
 
     <script src="script.js"></script>

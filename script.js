@@ -1,16 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
-    const newTaskInput = document.getElementById('newTaskInput');
-    const addTaskButton = document.getElementById('addTaskButton');
-    const startRestButton = document.getElementById('startRestButton');
-    const taskListUl = document.getElementById('taskList');
-    const currentTaskNameSpan = document.getElementById('currentTaskName');
-    const currentTimerSpan = document.getElementById('currentTimer');
-    const historyLogDiv = document.getElementById('historyLog');
-    const taskMetricsDiv = document.getElementById('taskMetrics');
-    const clearHistoryButton = document.getElementById('clearHistoryButton');
+    const newTaskInput = document.querySelector('#newTaskInput');
+    const addTaskButton = document.querySelector('#addTaskButton');
+    const startRestButton = document.querySelector('#startRestButton');
+    const taskList = document.querySelector('#taskList');
+    const currentTaskNameSpan = document.querySelector('#currentTaskName');
+    const currentTimerSpan = document.querySelector('#currentTimer');
+    const historyLogDiv = document.querySelector('#historyLog');
+    const taskMetricsDiv = document.querySelector('#taskMetrics');
+    const clearHistoryButton = document.querySelector('#clearHistoryButton');
     const ganttChartCanvas = document.getElementById('ganttChart');
-    const clearDataButton = document.getElementById('clearDataButton');
+    const clearDataButton = document.querySelector('#clearDataButton');
     let ganttChart = null;
 
     // --- State Variables ---
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners ---
     addTaskButton.addEventListener('click', addTask);
-    newTaskInput.addEventListener('keypress', (e) => {
+    newTaskInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             addTask();
         }
@@ -47,14 +47,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Use event delegation for task list items
-    taskListUl.addEventListener('click', (e) => {
-        if (e.target && e.target.nodeName === 'LI') {
-            const taskId = e.target.dataset.taskId;
-            startTask(taskId);
-        } else if (e.target && e.target.classList.contains('delete-task-btn')) {
-            const taskId = e.target.dataset.taskId;
+    taskList.addEventListener('click', (e) => {
+        const taskItem = e.target.closest('.task-item');
+        const deleteButton = e.target.closest('.delete-button');
+        
+        if (deleteButton) {
+            const taskId = deleteButton.getAttribute('data-task-id');
             deleteTask(taskId);
-            e.stopPropagation(); // Prevent li click event from firing
+            e.stopPropagation();
+        } else if (taskItem || e.target.parentElement?.classList.contains('task-item')) {
+            const item = taskItem || e.target.parentElement;
+            const taskId = item.getAttribute('data-task-id');
+            startTask(taskId);
         }
     });
 
@@ -205,18 +209,17 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCurrentActivityDisplay();
     }
 
-     function clearHistory() {
-        if (confirm('确定要清除所有历史记录吗？此操作不可撤销。')) {
+    function clearHistory() {
+        if (confirm('确定要清除历史记录吗？此操作不会删除任务列表，但会清空所有活动记录。')) {
+            // 如果有活动任务，先停止
             if (activeEntry) {
-                alert('请先停止当前活动再清除历史记录！');
-                return;
+                stopCurrentActivity();
             }
             history = [];
-            activeEntry = null; // Ensure no active entry if somehow left
             saveState();
             renderHistory();
             calculateAndRenderMetrics();
-            updateCurrentActivityDisplay(); // Reset display
+            updateCurrentActivityDisplay();
         }
     }
 
@@ -253,69 +256,90 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Rendering Functions ---
 
     function renderTasks() {
-        taskListUl.innerHTML = ''; // Clear existing list
+        taskList.innerHTML = '';
         tasks.forEach(task => {
-            const li = document.createElement('li');
-            li.textContent = task.name;
-            li.dataset.taskId = task.id; // Store task ID on the element
+            const taskItem = document.createElement('div');
+            taskItem.className = 'task-item';
+            taskItem.setAttribute('data-task-id', task.id);
+            
+            const taskName = document.createElement('span');
+            taskName.textContent = task.name;
+            
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'button-tonal delete-button';
+            deleteButton.innerHTML = '<span class="material-symbols-rounded">delete</span>';
+            deleteButton.setAttribute('data-task-id', task.id);
+            
+            taskItem.appendChild(taskName);
+            taskItem.appendChild(deleteButton);
+
             if (activeEntry && activeEntry.taskId === task.id) {
-                li.classList.add('active');
+                taskItem.classList.add('active');
             }
 
-             // Add delete button to each task item
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = '删除';
-            deleteButton.classList.add('delete-task-btn');
-            deleteButton.dataset.taskId = task.id; // Add task ID to button for easy deletion
-            li.appendChild(deleteButton);
-
-
-            taskListUl.appendChild(li);
+            taskList.appendChild(taskItem);
         });
     }
 
     function updateCurrentActivityDisplay() {
         if (activeEntry) {
             currentTaskNameSpan.textContent = activeEntry.taskName;
-            // Timer is updated by its own interval function
-            if (!timerInterval) { // Ensure timer starts if loaded active state
-                 startTimer();
+            if (!timerInterval) {
+                startTimer();
             }
+            // 当正在休息时才禁用休息按钮
+            startRestButton.disabled = activeEntry.taskId === REST_ID;
         } else {
-            currentTaskNameSpan.textContent = '-- 无 --';
+            currentTaskNameSpan.textContent = '-- 无活动 --';
             currentTimerSpan.textContent = '00:00:00';
-            clearInterval(timerInterval); // Ensure timer stops
+            clearInterval(timerInterval);
             timerInterval = null;
+            startRestButton.disabled = false;
         }
-        updateGanttChart(); // 在更新当前活动后更新甘特图
+        updateGanttChart();
     }
 
     function renderHistory() {
-        historyLogDiv.innerHTML = ''; // Clear existing log
-        // Sort history by timestamp for chronological order
+        historyLogDiv.innerHTML = '';
         const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
 
         sortedHistory.forEach(entry => {
             const p = document.createElement('p');
             const time = new Date(entry.timestamp).toLocaleTimeString();
-            let actionText = '';
+            let icon = '';
             switch (entry.type) {
-                case 'start': actionText = '开始任务'; break;
-                case 'stop': actionText = '停止任务'; break;
-                case 'start_rest': actionText = '开始休息'; break;
-                case 'stop_rest': actionText = '结束休息'; break;
-                default: actionText = entry.type;
+                case 'start': 
+                    icon = 'play_arrow';
+                    break;
+                case 'stop': 
+                    icon = 'stop';
+                    break;
+                case 'start_rest': 
+                    icon = 'coffee';
+                    break;
+                case 'stop_rest': 
+                    icon = 'coffee'; // 移除 _off 后缀
+                    break;
+                default: 
+                    icon = 'info';
             }
-            p.textContent = `[${time}] ${actionText}: ${entry.taskName}`;
+            
+            const actionText = entry.type.startsWith('start') ? 
+                (entry.type === 'start_rest' ? '开始休息' : '开始任务') :
+                (entry.type === 'stop_rest' ? '结束休息' : '停止任务');
+
+            p.innerHTML = `
+                <span class="material-symbols-rounded">${icon}</span>
+                <span>[${time}] ${actionText}: ${entry.taskName}</span>
+            `;
             historyLogDiv.appendChild(p);
         });
-         // Scroll to bottom
-         historyLogDiv.scrollTop = historyLogDiv.scrollHeight;
-         updateGanttChart(); // 在更新历史记录后更新甘特图
+        historyLogDiv.scrollTop = historyLogDiv.scrollHeight;
+        updateGanttChart();
     }
 
     function calculateAndRenderMetrics() {
-        taskMetricsDiv.innerHTML = ''; // Clear previous metrics
+        taskMetricsDiv.innerHTML = '';
         const taskTimes = {}; // { taskId: totalMilliseconds }
         let totalRestMs = 0;
 
@@ -358,22 +382,22 @@ document.addEventListener('DOMContentLoaded', () => {
          }
 
 
-        // Display Metrics
-         const metricsTitle = document.createElement('h3');
-         metricsTitle.textContent = '总时长统计:';
-         taskMetricsDiv.appendChild(metricsTitle);
-
-        tasks.forEach(task => {
-            const totalMs = taskTimes[task.id] || 0;
-            const timeStr = formatMilliseconds(totalMs);
-            const div = document.createElement('div');
-            div.textContent = `${task.name}: ${timeStr}`;
-            taskMetricsDiv.appendChild(div);
-        });
-
+        // 首先显示总休息时间
         const restDiv = document.createElement('div');
         restDiv.textContent = `总休息时间: ${formatMilliseconds(totalRestMs)}`;
         taskMetricsDiv.appendChild(restDiv);
+
+        // 将任务时间转换为数组并按时间降序排序
+        const taskTimeArray = tasks.map(task => ({
+            name: task.name,
+            time: taskTimes[task.id] || 0
+        })).sort((a, b) => b.time - a.time);
+
+        taskTimeArray.forEach(taskTime => {
+            const div = document.createElement('div');
+            div.textContent = `${taskTime.name}: ${formatMilliseconds(taskTime.time)}`;
+            taskMetricsDiv.appendChild(div);
+        });
 
     }
 
@@ -565,10 +589,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 清除所有数据
     function clearAllData() {
         if (confirm('确定要清除所有数据吗？此操作将清除所有任务、历史记录和统计信息，且不可恢复。')) {
-            if (activeEntry) {
-                alert('请先停止当前活动再清除数据！');
-                return;
+            // 如果有活动任务，先停止计时器
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
             }
+
             tasks = [];
             history = [];
             activeEntry = null;
@@ -578,6 +604,9 @@ document.addEventListener('DOMContentLoaded', () => {
             renderHistory();
             calculateAndRenderMetrics();
             updateCurrentActivityDisplay();
+
+            // 自动开始休息模式
+            startRest();
         }
     }
 
