@@ -51,6 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ganttChart) {
             ganttChart.resize();
         }
+        // 添加对时钟显示的更新
+        updateFullscreenDisplay();
     });
 
     fullscreenToggle.addEventListener('click', toggleFullscreen);
@@ -726,7 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updatePageTitle(taskName) {
         if (taskName) {
-            document.title = `MFPT | ${taskName}`;
+            document.title = `MFPT - ${taskName}`;
         } else {
             document.title = 'Mixed-Flow Production Timer';
         }
