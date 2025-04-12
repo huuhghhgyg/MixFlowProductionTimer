@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearHistoryButton = document.getElementById('clearHistoryButton');
     const ganttChartCanvas = document.getElementById('ganttChart');
     const clearDataButton = document.getElementById('clearDataButton');
-    const timeRangeSelect = document.getElementById('timeRangeSelect');
     let ganttChart = null;
 
     // --- State Variables ---
@@ -40,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     startRestButton.addEventListener('click', startRest);
     clearHistoryButton.addEventListener('click', clearHistory);
-    timeRangeSelect.addEventListener('change', updateGanttChart);
     clearDataButton.addEventListener('click', clearAllData);
     window.addEventListener('resize', () => {
         if (ganttChart) {
@@ -435,23 +433,28 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const timeRange = getTimeRange();
-        const { startTime, endTime } = timeRange;
+        const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
         
-        const filteredHistory = [...history].filter(entry => {
-            const entryTime = new Date(entry.timestamp);
-            return entryTime >= startTime && entryTime <= endTime;
-        }).sort((a, b) => a.timestamp - b.timestamp);
+        // 如果没有历史记录，显示最近1小时的范围
+        if (sortedHistory.length === 0) {
+            const endTime = new Date();
+            const startTime = new Date(endTime.getTime() - 60 * 60 * 1000);
+            return;
+        }
+
+        // 获取数据中最早和最晚的时间
+        const startTime = new Date(sortedHistory[0].timestamp);
+        const endTime = activeEntry ? new Date() : new Date(sortedHistory[sortedHistory.length - 1].timestamp);
 
         const tasks = new Set();
-        filteredHistory.forEach(entry => tasks.add(entry.taskName));
+        sortedHistory.forEach(entry => tasks.add(entry.taskName));
         const taskList = Array.from(tasks);
 
         const series = [];
         let currentStart = null;
         let currentTask = null;
 
-        filteredHistory.forEach(entry => {
+        sortedHistory.forEach(entry => {
             if (entry.type === 'start' || entry.type === 'start_rest') {
                 currentStart = entry.timestamp;
                 currentTask = entry;
@@ -465,11 +468,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         new Date(entry.timestamp),
                         entry.taskId === REST_ID ? '休息' : entry.taskName
                     ],
-                    itemStyle: {
-                        normal: {
-                            color: entry.taskId === REST_ID ? '#f0ad4e' : '#5cb85c'
-                        }
-                    }
+                    itemStyle: entry.taskId === REST_ID ? {
+                        color: '#ff9800'
+                    } : undefined
                 });
                 currentStart = null;
             }
@@ -487,19 +488,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     now,
                     activeEntry.taskId === REST_ID ? '休息' : activeEntry.taskName
                 ],
-                itemStyle: {
-                    normal: {
-                        color: activeEntry.taskId === REST_ID ? '#f0ad4e' : '#5cb85c'
-                    }
-                }
+                itemStyle: activeEntry.taskId === REST_ID ? {
+                    color: '#ff9800'
+                } : undefined
             });
         }
 
         const option = {
-            title: {
-                text: '任务时间线',
-                left: 'center'
-            },
             tooltip: {
                 formatter: function (params) {
                     const startTime = new Date(params.value[1]).toLocaleTimeString();
@@ -511,59 +506,29 @@ document.addEventListener('DOMContentLoaded', () => {
                             持续：${duration}分钟`;
                 }
             },
-            dataZoom: [{
-                type: 'slider',
-                filterMode: 'weakFilter',
-                showDataShadow: false,
-                top: 400,
-                height: 10,
-                borderColor: 'transparent',
-                backgroundColor: '#e2e2e2',
-                handleIcon: 'M10.7,11.9H9.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4h1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7v-1.2h6.6z M13.3,22H6.7v-1.2h6.6z M13.3,19.6H6.7v-1.2h6.6z', // jshint ignore:line
-                handleSize: 20,
-                handleStyle: {
-                    color: '#fff',
-                    shadowBlur: 3,
-                    shadowColor: 'rgba(0, 0, 0, 0.6)',
-                    shadowOffsetX: 2,
-                    shadowOffsetY: 2
+            dataZoom: [
+                {
+                    type: 'slider',
+                    xAxisIndex: 0,
+                    startValue: startTime,
+                    endValue: endTime
+                },
+                {
+                    type: 'inside',
+                    xAxisIndex: 0
                 }
-            }, {
-                type: 'inside',
-                filterMode: 'weakFilter'
-            }],
+            ],
             grid: {
                 height: 200
             },
             xAxis: {
                 type: 'time',
                 position: 'top',
-                splitLine: {
-                    lineStyle: {
-                        color: ['#E9E9E9']
-                    }
-                },
-                axisLine: { show: false },
-                axisTick: { show: false },
-                axisLabel: {
-                    formatter: function (value) {
-                        const date = new Date(value);
-                        return date.getHours().toString().padStart(2, '0') + ':' +
-                               date.getMinutes().toString().padStart(2, '0');
-                    }
-                },
                 min: startTime,
                 max: endTime
             },
             yAxis: {
-                data: taskList,
-                axisTick: { show: false },
-                axisLine: { show: false },
-                splitLine: {
-                    lineStyle: {
-                        color: ['#E9E9E9']
-                    }
-                }
+                data: taskList
             },
             series: [{
                 type: 'custom',
@@ -576,7 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const rectShape = {
                         x: start[0],
                         y: start[1] - height / 2,
-                        width: end[0] - start[0],
+                        width: Math.max(end[0] - start[0], 1),
                         height: height
                     };
                     
@@ -595,33 +560,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         ganttChart.setOption(option);
-    }
-
-    // 获取时间范围
-    function getTimeRange() {
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        let startTime, endTime;
-
-        switch (timeRangeSelect.value) {
-            case 'week':
-                startTime = new Date(today);
-                startTime.setDate(today.getDate() - today.getDay());
-                endTime = new Date(startTime);
-                endTime.setDate(startTime.getDate() + 7);
-                break;
-            case 'month':
-                startTime = new Date(today.getFullYear(), today.getMonth(), 1);
-                endTime = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-                break;
-            default: // today
-                startTime = today;
-                endTime = new Date(today);
-                endTime.setDate(today.getDate() + 1);
-                break;
-        }
-        
-        return { startTime, endTime };
     }
 
     // 清除所有数据

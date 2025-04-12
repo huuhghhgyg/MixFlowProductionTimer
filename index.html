@@ -3,73 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人任务计时器</title>
+    <title>任务时间管理器</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>个人任务计时器</h1>
+        <header>
+            <h1>任务时间管理器</h1>
+        </header>
 
-        <div class="add-task">
-            <input type="text" id="newTaskInput" placeholder="输入新任务名称...">
+        <section class="add-task card">
+            <input type="text" id="newTaskInput" placeholder="输入新任务名称..." aria-label="新任务名称">
             <button id="addTaskButton">添加任务</button>
-        </div>
+        </section>
 
-        <div class="controls">
-             <button id="startRestButton">开始休息</button>
-        </div>
-
-        <div class="current-activity">
-            <h2>当前活动</h2>
-            <p id="currentTaskName">-- 无 --</p>
-            <p class="timer" id="currentTimer">00:00:00</p>
-        </div>
-
-        <div class="task-list-section">
-            <h2>任务列表</h2>
-            <ul id="taskList">
-                </ul>
-        </div>
-
-        <div class="gantt-section">
-            <h2>任务时间轴</h2>
-            <div class="chart-controls">
-                <select id="timeRangeSelect">
-                    <option value="today">今天</option>
-                    <option value="week">本周</option>
-                    <option value="month">本月</option>
-                </select>
-                <button id="clearDataButton" class="danger-button">清除所有数据</button>
+        <section class="current-activity card">
+            <div class="activity-content">
+                <h2>当前活动</h2>
+                <p id="currentTaskName">-- 无 --</p>
+                <p class="timer" id="currentTimer">00:00:00</p>
+                <button id="startRestButton">开始休息</button>
             </div>
-            <div class="chart-container" id="ganttChart"></div>
-        </div>
+        </section>
 
-        <div class="history-section">
-            <h2>活动日志 (可视化基础)</h2>
-            <div id="historyLog">
+        <section class="task-list-section card">
+            <h2>任务列表</h2>
+            <ul id="taskList" role="list"></ul>
+        </section>
+
+        <section class="gantt-section card">
+            <header class="section-header">
+                <h2>任务时间轴</h2>
+                <div class="chart-controls">
+                    <button id="clearDataButton" class="danger-button">清除所有数据</button>
                 </div>
-             <button id="clearHistoryButton">清除历史记录</button>
-        </div>
+            </header>
+            <div id="ganttChart"></div>
+        </section>
 
-        <div class="metrics-section">
+        <section class="history-section card">
+            <header class="section-header">
+                <h2>活动日志</h2>
+            </header>
+            <div id="historyLog" role="log"></div>
+            <button id="clearHistoryButton">清除历史记录</button>
+        </section>
+
+        <section class="metrics-section card">
             <h2>任务统计</h2>
-            <div id="taskMetrics">
-                </div>
-        </div>
-
+            <div id="taskMetrics"></div>
+        </section>
     </div>
 
     <script src="script.js"></script>
 </body>
 </html>
-
-<!-- 来源： -->
-<!-- 1. https://help.aliyun.com/zh/oss/use-cases/add-signatures-on-the-client-by-using-javascript-and-upload-data-to-oss -->
-<!-- 2. https://github.com/gaurav20161/maven-web-app -->
-<!-- 3. https://github.com/ShHaWkK/Temps_Donne -->
-<!-- 4. https://www.scribd.com/document/799517331/Kca-021-Wt-Ut-23-24-Sol-Fin -->
-<!-- 5. https://github.com/robin0R/todo-list -->
-<!-- 6. https://github.com/DelNyal/NCC_WEB -->
-<!-- 7. https://github.com/DustinDiazLopez/stopwatch-react-ui -->
-<!-- 8. https://github.com/Ali-Herrera/todo-auth -->
