@@ -1,17 +1,42 @@
 :root {
-    /* 亮色模式 - 莫奈风格的棕色调色板 */
-    --md-sys-color-primary: #8B4513; /* 暖棕色 */
+    /* 主色调系统 */
+    --md-sys-color-primary: #B95E20;
     --md-sys-color-on-primary: #FFFFFF;
-    --md-sys-color-primary-container: #F5DEB3; /* 温暖的小麦色 */
-    --md-sys-color-on-primary-container: #3E2723; /* 深棕色 */
-    --md-sys-color-surface: #FFFFFF;
-    --md-sys-color-surface-variant: #FFF8DC; /* 玉米丝色 */
-    --md-sys-color-on-surface: #3E2723;
-    --md-sys-color-on-surface-variant: #5D4037;
-    --md-sys-color-outline: #D7CCC8;
-    --md-sys-color-error: #DC2626;
-    --md-sys-color-error-container: #FEE2E2;
+    --md-sys-color-primary-container: #FFDBCA;
+    --md-sys-color-on-primary-container: #3A1800;
+    
+    /* 次要色调系统 */
+    --md-sys-color-secondary: #A08C7D;
+    --md-sys-color-on-secondary: #FFFFFF;
+    --md-sys-color-secondary-container: #FFDBCA;
+    --md-sys-color-on-secondary-container: #2C160A;
+    
+    /* 三次色调系统 */
+    --md-sys-color-tertiary: #705D50;
+    --md-sys-color-on-tertiary: #FFFFFF;
+    --md-sys-color-tertiary-container: #FFDBCA;
+    --md-sys-color-on-tertiary-container: #291807;
+    
+    /* 错误色调系统 */
+    --md-sys-color-error: #B3261E;
     --md-sys-color-on-error: #FFFFFF;
+    --md-sys-color-error-container: #F9DEDC;
+    --md-sys-color-on-error-container: #410E0B;
+    
+    /* 表面色调系统 */
+    --md-sys-color-surface: #FFF8F6;
+    --md-sys-color-on-surface: #201A18;
+    --md-sys-color-surface-variant: #F4DED4;
+    --md-sys-color-on-surface-variant: #52443D;
+    
+    /* 轮廓色 */
+    --md-sys-color-outline: #85746B;
+    --md-sys-color-outline-variant: #D7C2B9;
+
+    /* 字体相关 */
+    --md-sys-typescale-display-large: 3.5rem;
+    --md-sys-typescale-display-medium: 2.8rem;
+    --md-sys-typescale-body: 0.875rem;
     
     /* 状态层不透明度 */
     --md-state-layer-hover: 0.08;
@@ -47,12 +72,17 @@
 }
 
 body {
-    font-family: "Google Sans Text", system-ui, -apple-system, sans-serif;
+    font-family: "Google Sans Text", "Google Sans", system-ui;
     background-color: var(--md-sys-color-surface);
     color: var(--md-sys-color-on-surface);
     line-height: 1.5;
     margin: 0;
     padding: 24px;
+}
+
+h1, h2, .display-text {
+    font-family: "Google Sans Display", "Google Sans", system-ui;
+    letter-spacing: -0.02em;
 }
 
 .container {
@@ -484,6 +514,121 @@ md-filled-tonal-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+.fullscreen-mode {
+    position: fixed;
+    inset: 0;
+    background: var(--md-sys-color-surface);
+    z-index: 1000;
+    display: none;
+    padding: 24px;
+    font-family: "Google Sans", "Google Sans Text", system-ui;
+}
+
+.fullscreen-mode.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.fullscreen-mode .timer {
+    position: fixed;
+    left: 48px;
+    bottom: 120px;
+    font-size: 8rem;
+    font-weight: 300;
+    color: var(--md-sys-color-primary);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    margin: 0;
+    line-height: 1;
+}
+
+.task-chips {
+    position: fixed;
+    bottom: 32px;
+    left: 48px;
+    right: 48px;
+    display: flex;
+    gap: 8px;  /* 修改为8px */
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding: 0 8px; /* 添加一些内边距 */
+}
+
+.task-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 16px;
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface);
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    font-size: 0.875rem;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+    outline: none;
+    box-sizing: border-box; /* 确保padding不会影响整体尺寸 */
+}
+
+.task-chip::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.task-chip:hover {
+    border-color: var(--md-sys-color-on-surface);
+}
+
+.task-chip:hover::before {
+    opacity: var(--md-state-layer-hover);
+}
+
+.task-chip:active::before {
+    opacity: var(--md-state-layer-pressed);
+}
+
+.task-chip.active {
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    border-color: transparent;
+}
+
+.task-chip .material-symbols-rounded {
+    font-size: 18px;
+    width: 18px; /* 确保图标有固定宽度 */
+    height: 18px;
+}
+
+.fullscreen-toggle {
+    position: fixed;
+    right: 24px;
+    top: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    color: var(--md-sys-color-on-surface-variant);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    z-index: 1001;
+    background: transparent;
+}
+
+.fullscreen-toggle:hover {
+    background: var(--md-sys-color-surface-variant);
 }
 
 /* 来源： */

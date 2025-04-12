@@ -13,6 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearDataButton = document.querySelector('#clearDataButton');
     let ganttChart = null;
 
+    const fullscreenMode = document.querySelector('.fullscreen-mode');
+    const fullscreenToggle = document.querySelector('.fullscreen-toggle');
+    const fullscreenTimer = document.querySelector('.fullscreen-mode .timer');
+    const taskChips = document.querySelector('.task-chips');
+
     // --- State Variables ---
     let tasks = []; // Array of task objects { id, name }
     let history = []; // Array of history entries { id, taskId, taskName, type: 'start'/'stop'/'start_rest'/'stop_rest', timestamp }
@@ -43,6 +48,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', () => {
         if (ganttChart) {
             ganttChart.resize();
+        }
+    });
+
+    fullscreenToggle.addEventListener('click', toggleFullscreen);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'f' || e.key === 'F') {
+            toggleFullscreen();
         }
     });
 
@@ -250,6 +262,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         currentTimerSpan.textContent =
             `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        
+        updateFullscreenDisplay(); // 添加这一行
     }
 
 
@@ -297,6 +311,11 @@ document.addEventListener('DOMContentLoaded', () => {
             startRestButton.disabled = false;
         }
         updateGanttChart();
+
+        if (fullscreenMode.classList.contains('active')) {
+            renderTaskChips();
+            updateFullscreenDisplay();
+        }
     }
 
     function renderHistory() {
@@ -535,7 +554,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     type: 'slider',
                     xAxisIndex: 0,
                     startValue: startTime,
-                    endValue: endTime
+                    endValue: endTime,
+                    borderColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline').trim(),
+                    selectedDataBackground: {
+                        lineStyle: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
+                        },
+                        areaStyle: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary-container').trim()
+                        }
+                    },
+                    fillerColor: 'rgba(185, 94, 32, 0.1)', // --md-sys-color-primary with opacity
+                    handleStyle: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
+                    }
                 },
                 {
                     type: 'inside',
@@ -549,10 +581,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: 'time',
                 position: 'top',
                 min: startTime,
-                max: endTime
+                max: endTime,
+                axisLine: {
+                    lineStyle: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline').trim()
+                    }
+                },
+                axisLabel: {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
+                }
             },
             yAxis: {
-                data: taskList
+                data: taskList,
+                axisLine: {
+                    lineStyle: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline').trim()
+                    }
+                },
+                axisLabel: {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
+                }
             },
             series: [{
                 type: 'custom',
@@ -569,10 +617,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         height: height
                     };
                     
+                    const isRest = api.value(3) === '休息';
                     return {
                         type: 'rect',
                         shape: rectShape,
-                        style: api.style()
+                        style: {
+                            fill: isRest ? 
+                                getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-secondary').trim() :
+                                getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim(),
+                            ...api.style()
+                        }
                     };
                 },
                 encode: {
@@ -608,6 +662,49 @@ document.addEventListener('DOMContentLoaded', () => {
             // 自动开始休息模式
             startRest();
         }
+    }
+
+    function toggleFullscreen() {
+        const isFullscreen = fullscreenMode.classList.contains('active');
+        fullscreenMode.classList.toggle('active');
+        fullscreenToggle.querySelector('.material-symbols-rounded').textContent = 
+            isFullscreen ? 'fullscreen' : 'fullscreen_exit';
+        
+        if (!isFullscreen) {
+            renderTaskChips();
+            updateFullscreenDisplay();
+        }
+    }
+
+    function renderTaskChips() {
+        taskChips.innerHTML = '';
+        // 添加休息选项
+        const restChip = document.createElement('div');
+        restChip.className = 'task-chip' + (activeEntry?.taskId === REST_ID ? ' active' : '');
+        restChip.innerHTML = `
+            <span class="material-symbols-rounded">coffee</span>
+            休息
+            ${activeEntry?.taskId === REST_ID ? '<span class="material-symbols-rounded">done</span>' : ''}
+        `;
+        restChip.addEventListener('click', startRest);
+        taskChips.appendChild(restChip);
+
+        // 添加所有任务
+        tasks.forEach(task => {
+            const chip = document.createElement('div');
+            chip.className = 'task-chip' + (activeEntry?.taskId === task.id ? ' active' : '');
+            chip.innerHTML = `
+                ${task.name}
+                ${activeEntry?.taskId === task.id ? '<span class="material-symbols-rounded">done</span>' : ''}
+            `;
+            chip.addEventListener('click', () => startTask(task.id));
+            taskChips.appendChild(chip);
+        });
+    }
+
+    function updateFullscreenDisplay() {
+        if (!fullscreenMode.classList.contains('active')) return;
+        fullscreenTimer.textContent = currentTimerSpan.textContent;
     }
 
     // 初始化
