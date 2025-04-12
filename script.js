@@ -10,7 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const taskMetricsDiv = document.getElementById('taskMetrics');
     const clearHistoryButton = document.getElementById('clearHistoryButton');
     const ganttChartCanvas = document.getElementById('ganttChart');
-    let ganttChart = null; // 用于存储图表实例
+    const clearDataButton = document.getElementById('clearDataButton');
+    const timeRangeSelect = document.getElementById('timeRangeSelect');
+    let ganttChart = null;
 
     // --- State Variables ---
     let tasks = []; // Array of task objects { id, name }
@@ -38,6 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     startRestButton.addEventListener('click', startRest);
     clearHistoryButton.addEventListener('click', clearHistory);
+    timeRangeSelect.addEventListener('change', updateGanttChart);
+    clearDataButton.addEventListener('click', clearAllData);
+    window.addEventListener('resize', () => {
+        if (ganttChart) {
+            ganttChart.resize();
+        }
+    });
 
     // Use event delegation for task list items
     taskListUl.addEventListener('click', (e) => {
@@ -412,164 +421,228 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初始化甘特图
     function initGanttChart() {
-        // 如果已存在图表实例，先销毁它
         if (ganttChart) {
-            ganttChart.destroy();
-            ganttChart = null;
+            ganttChart.dispose();
         }
-
-        const ctx = ganttChartCanvas.getContext('2d');
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-        const todayEnd = new Date();
-        todayEnd.setHours(23, 59, 59, 999);
-
-        ganttChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                datasets: []
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                indexAxis: 'y',
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'hour',
-                            displayFormats: {
-                                hour: 'HH:mm'
-                            },
-                            tooltipFormat: 'HH:mm'
-                        },
-                        min: todayStart.getTime(),
-                        max: todayEnd.getTime(),
-                        position: 'top',
-                        ticks: {
-                            maxRotation: 0,
-                            source: 'auto',
-                            autoSkip: true,
-                            maxTicksLimit: 24
-                        }
-                    },
-                    y: {
-                        beginAtZero: true
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            title: function(context) {
-                                const timeRange = context[0].raw.x;
-                                return `${new Date(timeRange[0]).toLocaleTimeString()} - ${new Date(timeRange[1]).toLocaleTimeString()}`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
+        ganttChart = echarts.init(document.getElementById('ganttChart'));
+        updateGanttChart();
     }
 
     // 更新甘特图数据
     function updateGanttChart() {
         if (!ganttChart) {
             initGanttChart();
+            return;
         }
 
-        const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-        const todayEnd = new Date();
-        todayEnd.setHours(23, 59, 59, 999);
+        const timeRange = getTimeRange();
+        const { startTime, endTime } = timeRange;
         
-        // 过滤今天的记录
-        const todayHistory = sortedHistory.filter(entry => {
-            const entryDate = new Date(entry.timestamp);
-            return entryDate >= todayStart && entryDate <= todayEnd;
-        });
+        const filteredHistory = [...history].filter(entry => {
+            const entryTime = new Date(entry.timestamp);
+            return entryTime >= startTime && entryTime <= endTime;
+        }).sort((a, b) => a.timestamp - b.timestamp);
 
-        const datasets = [];
+        const tasks = new Set();
+        filteredHistory.forEach(entry => tasks.add(entry.taskName));
+        const taskList = Array.from(tasks);
+
+        const series = [];
         let currentStart = null;
         let currentTask = null;
 
-        todayHistory.forEach(entry => {
+        filteredHistory.forEach(entry => {
             if (entry.type === 'start' || entry.type === 'start_rest') {
                 currentStart = entry.timestamp;
                 currentTask = entry;
             } else if ((entry.type === 'stop' || entry.type === 'stop_rest') && currentStart) {
-                const color = entry.taskId === REST_ID ? '#f0ad4e' : '#5cb85c';
-                datasets.push({
-                    label: entry.taskName,
-                    data: [{
-                        x: [new Date(currentStart), new Date(entry.timestamp)],
-                        y: entry.taskName
-                    }],
-                    backgroundColor: color,
-                    borderColor: color,
-                    borderWidth: 1,
-                    borderSkipped: false,
-                    borderRadius: 2
+                const taskIndex = taskList.indexOf(entry.taskName);
+                series.push({
+                    name: entry.taskName,
+                    value: [
+                        taskIndex,
+                        new Date(currentStart),
+                        new Date(entry.timestamp),
+                        entry.taskId === REST_ID ? '休息' : entry.taskName
+                    ],
+                    itemStyle: {
+                        normal: {
+                            color: entry.taskId === REST_ID ? '#f0ad4e' : '#5cb85c'
+                        }
+                    }
                 });
                 currentStart = null;
             }
         });
 
-        // 如果有正在进行的任务，添加到图表
+        // 添加当前活动的任务
         if (activeEntry) {
-            const color = activeEntry.taskId === REST_ID ? '#f0ad4e' : '#5cb85c';
             const now = new Date();
-            // 确保不超过今天结束时间
-            const endTime = now > todayEnd ? todayEnd : now;
-            datasets.push({
-                label: activeEntry.taskName,
-                data: [{
-                    x: [new Date(activeEntry.startTime), endTime],
-                    y: activeEntry.taskName
-                }],
-                backgroundColor: color,
-                borderColor: color,
-                borderWidth: 1,
-                borderSkipped: false,
-                borderRadius: 2
+            const taskIndex = taskList.indexOf(activeEntry.taskName);
+            series.push({
+                name: activeEntry.taskName,
+                value: [
+                    taskIndex,
+                    new Date(activeEntry.startTime),
+                    now,
+                    activeEntry.taskId === REST_ID ? '休息' : activeEntry.taskName
+                ],
+                itemStyle: {
+                    normal: {
+                        color: activeEntry.taskId === REST_ID ? '#f0ad4e' : '#5cb85c'
+                    }
+                }
             });
         }
 
-        // 更新图表配置以确保合适的时间范围和刻度
-        ganttChart.options.scales.x = {
-            type: 'time',
-            time: {
-                unit: 'hour',
-                displayFormats: {
-                    hour: 'HH:mm'
-                },
-                tooltipFormat: 'HH:mm'
+        const option = {
+            title: {
+                text: '任务时间线',
+                left: 'center'
             },
-            min: todayStart.getTime(),
-            max: todayEnd.getTime(),
-            position: 'top',
-            ticks: {
-                maxRotation: 0,
-                source: 'auto',
-                autoSkip: true,
-                maxTicksLimit: 24 // 限制最大刻度数量
-            }
+            tooltip: {
+                formatter: function (params) {
+                    const startTime = new Date(params.value[1]).toLocaleTimeString();
+                    const endTime = new Date(params.value[2]).toLocaleTimeString();
+                    const duration = Math.floor((params.value[2] - params.value[1]) / 1000 / 60);
+                    return `${params.value[3]}<br/>
+                            开始：${startTime}<br/>
+                            结束：${endTime}<br/>
+                            持续：${duration}分钟`;
+                }
+            },
+            dataZoom: [{
+                type: 'slider',
+                filterMode: 'weakFilter',
+                showDataShadow: false,
+                top: 400,
+                height: 10,
+                borderColor: 'transparent',
+                backgroundColor: '#e2e2e2',
+                handleIcon: 'M10.7,11.9H9.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4h1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7v-1.2h6.6z M13.3,22H6.7v-1.2h6.6z M13.3,19.6H6.7v-1.2h6.6z', // jshint ignore:line
+                handleSize: 20,
+                handleStyle: {
+                    color: '#fff',
+                    shadowBlur: 3,
+                    shadowColor: 'rgba(0, 0, 0, 0.6)',
+                    shadowOffsetX: 2,
+                    shadowOffsetY: 2
+                }
+            }, {
+                type: 'inside',
+                filterMode: 'weakFilter'
+            }],
+            grid: {
+                height: 200
+            },
+            xAxis: {
+                type: 'time',
+                position: 'top',
+                splitLine: {
+                    lineStyle: {
+                        color: ['#E9E9E9']
+                    }
+                },
+                axisLine: { show: false },
+                axisTick: { show: false },
+                axisLabel: {
+                    formatter: function (value) {
+                        const date = new Date(value);
+                        return date.getHours().toString().padStart(2, '0') + ':' +
+                               date.getMinutes().toString().padStart(2, '0');
+                    }
+                },
+                min: startTime,
+                max: endTime
+            },
+            yAxis: {
+                data: taskList,
+                axisTick: { show: false },
+                axisLine: { show: false },
+                splitLine: {
+                    lineStyle: {
+                        color: ['#E9E9E9']
+                    }
+                }
+            },
+            series: [{
+                type: 'custom',
+                renderItem: function (params, api) {
+                    const categoryIndex = api.value(0);
+                    const start = api.coord([api.value(1), categoryIndex]);
+                    const end = api.coord([api.value(2), categoryIndex]);
+                    const height = api.size([0, 1])[1] * 0.6;
+                    
+                    const rectShape = {
+                        x: start[0],
+                        y: start[1] - height / 2,
+                        width: end[0] - start[0],
+                        height: height
+                    };
+                    
+                    return {
+                        type: 'rect',
+                        shape: rectShape,
+                        style: api.style()
+                    };
+                },
+                encode: {
+                    x: [1, 2],
+                    y: 0
+                },
+                data: series
+            }]
         };
 
-        ganttChart.data.datasets = datasets;
-        ganttChart.update('none'); // 使用 'none' 模式更新以提高性能
+        ganttChart.setOption(option);
     }
-});
 
-// 来源：
-// 1. https://help.aliyun.com/zh/oss/use-cases/add-signatures-on-the-client-by-using-javascript-and-upload-data-to-oss
-// 2. https://github.com/gaurav20161/maven-web-app
-// 3. https://github.com/ShHaWkK/Temps_Donne
-// 4. https://www.scribd.com/document/799517331/Kca-021-Wt-Ut-23-24-Sol-Fin
-// 5. https://github.com/robin0R/todo-list
-// 6. https://github.com/DelNyal/NCC_WEB
-// 7. https://github.com/DustinDiazLopez/stopwatch-react-ui
-// 8. https://github.com/Ali-Herrera/todo-auth
+    // 获取时间范围
+    function getTimeRange() {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        let startTime, endTime;
+
+        switch (timeRangeSelect.value) {
+            case 'week':
+                startTime = new Date(today);
+                startTime.setDate(today.getDate() - today.getDay());
+                endTime = new Date(startTime);
+                endTime.setDate(startTime.getDate() + 7);
+                break;
+            case 'month':
+                startTime = new Date(today.getFullYear(), today.getMonth(), 1);
+                endTime = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                break;
+            default: // today
+                startTime = today;
+                endTime = new Date(today);
+                endTime.setDate(today.getDate() + 1);
+                break;
+        }
+        
+        return { startTime, endTime };
+    }
+
+    // 清除所有数据
+    function clearAllData() {
+        if (confirm('确定要清除所有数据吗？此操作将清除所有任务、历史记录和统计信息，且不可恢复。')) {
+            if (activeEntry) {
+                alert('请先停止当前活动再清除数据！');
+                return;
+            }
+            tasks = [];
+            history = [];
+            activeEntry = null;
+            localStorage.clear();
+            
+            renderTasks();
+            renderHistory();
+            calculateAndRenderMetrics();
+            updateCurrentActivityDisplay();
+        }
+    }
+
+    // 初始化
+    initGanttChart();
+});
