@@ -95,6 +95,9 @@ h1, h2, .display-text {
 .app-header {
     text-align: center;
     margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 h1 {
@@ -413,7 +416,7 @@ md-filled-button {
 
 md-filled-tonal-button {
     --md-filled-tonal-button-container-color: var(--md-sys-color-secondary-container);
-    --md-filled-tonal-button-hover-state-layer-color: var(--md-sys-color-on-secondary-container);
+    --md-filled-tonal-button-hover-state-layer-color: var (--md-sys-color-on-secondary-container);
 }
 
 .danger {
@@ -513,8 +516,23 @@ md-filled-tonal-button {
         position: fixed;
         left: 16px;
         bottom: 96px;
-        font-size: 3.5rem; /* 减小字体大小 */
-        font-weight: 300;
+        font-size: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        line-height: 1.2;
+        gap: 4px;
+    }
+
+    .fullscreen-mode .timer br + :not(br) {
+        margin-left: 8px;  /* 给冒号后的数字添加一点缩进 */
+    }
+
+    .fullscreen-mode .timer::before {
+        content: attr(data-time);
+        visibility: hidden;
+        height: 0;
+        pointer-events: none;
     }
 
     .task-chips {
@@ -809,6 +827,26 @@ md-filled-tonal-button {
 #stopActivityButton:disabled {
     opacity: 0.38;
     cursor: not-allowed;
+}
+
+.display-large {
+    font-family: "Google Sans Display", system-ui;
+    font-size: var(--md-sys-typescale-display-large);
+    font-weight: 400;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    margin: 0;
+    color: var(--md-sys-color-on-surface);
+}
+
+.headline-small {
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0;
+    color: var(--md-sys-color-on-surface-variant);
+    margin: 0;
+    opacity: 0.9;
 }
 
 /* 来源： */

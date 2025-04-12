@@ -159,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderHistory();
         updateCurrentActivityDisplay();
         startTimer();
+        updatePageTitle(task.name);
     }
 
     function startRest() {
@@ -193,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderHistory();
         updateCurrentActivityDisplay();
         startTimer();
+        updatePageTitle('休息中');
     }
 
     function stopCurrentActivity() {
@@ -221,6 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderHistory();
         calculateAndRenderMetrics(); // Update metrics after stopping
         updateCurrentActivityDisplay();
+        updatePageTitle();
     }
 
     function clearHistory() {
@@ -251,10 +254,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateTimerDisplay(startTime) {
-        if (!activeEntry) { // Handle case where activity stopped between intervals
-             currentTimerSpan.textContent = '00:00:00';
-             return;
+        if (!activeEntry) {
+            currentTimerSpan.textContent = '00:00:00';
+            updateFullscreenDisplay();
+            return;
         }
+
         const now = Date.now();
         const elapsedMs = now - startTime;
         const seconds = Math.floor(elapsedMs / 1000);
@@ -262,12 +267,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const minutes = Math.floor((seconds % 3600) / 60);
         const remainingSeconds = seconds % 60;
 
-        currentTimerSpan.textContent =
-            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
-        
-        updateFullscreenDisplay(); // 添加这一行
+        const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        currentTimerSpan.textContent = timeStr;
+        updateFullscreenDisplay();
     }
 
+    function updateFullscreenDisplay() {
+        if (!fullscreenMode.classList.contains('active')) return;
+        
+        // 在移动设备上使用换行显示但保留冒号
+        if (window.innerWidth <= 768) {
+            const timeStr = currentTimerSpan.textContent;
+            const [hours, minutes, seconds] = timeStr.split(':');
+            fullscreenTimer.innerHTML = `${hours}:<br>${minutes}:<br>${seconds}`;
+        } else {
+            fullscreenTimer.textContent = currentTimerSpan.textContent;
+        }
+    }
 
     // --- Rendering Functions ---
 
@@ -708,9 +724,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function updateFullscreenDisplay() {
-        if (!fullscreenMode.classList.contains('active')) return;
-        fullscreenTimer.textContent = currentTimerSpan.textContent;
+    function updatePageTitle(taskName) {
+        if (taskName) {
+            document.title = `MFPT | ${taskName}`;
+        } else {
+            document.title = 'Mixed-Flow Production Timer';
+        }
     }
 
     // 初始化
