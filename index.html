@@ -12,7 +12,7 @@
 <body>
     <div class="container">
         <header class="app-header">
-            <h1>任务时间管理器</h1>
+            <h1>任务时间管理</h1>
         </header>
 
         <div class="surface add-task">
@@ -32,10 +32,16 @@
                 <div class="activity-details">
                     <p id="currentTaskName">-- 无活动 --</p>
                     <div class="timer" id="currentTimer">00:00:00</div>
-                    <button class="button-tonal" id="startRestButton">
-                        <span class="material-symbols-rounded">coffee</span>
-                        开始休息
-                    </button>
+                    <div class="activity-buttons">
+                        <button class="button-tonal" id="stopActivityButton">
+                            <span class="material-symbols-rounded">stop</span>
+                            停止计时
+                        </button>
+                        <button class="button-tonal" id="startRestButton">
+                            <span class="material-symbols-rounded">coffee</span>
+                            开始休息
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

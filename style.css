@@ -364,7 +364,8 @@ button:active::before {
     position: relative;
     overflow: hidden;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .task-item span {
@@ -373,6 +374,7 @@ button:active::before {
     white-space: nowrap;
     flex: 1;
     margin-right: 8px;
+    color: var(--md-sys-color-on-surface);
 }
 
 .task-item::before {
@@ -459,6 +461,167 @@ md-filled-tonal-button {
 
     .button-group button {
         width: 100%;
+    }
+
+    body {
+        padding: 12px;
+    }
+    
+    .container {
+        gap: 16px;
+    }
+
+    .surface {
+        padding: 16px;
+        border-radius: var(--md-radius-medium);
+    }
+    
+    .add-task {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .text-field {
+        width: 100%;
+    }
+
+    .main-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .timer {
+        font-size: 2.5rem;
+    }
+    
+    button {
+        width: 100%;
+        height: 48px; /* 在移动设备上增加点击区域 */
+    }
+
+    .button-group {
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+    }
+
+    #ganttChart {
+        height: 200px;
+    }
+
+    .fullscreen-mode .timer {
+        position: fixed;
+        left: 16px;
+        bottom: 96px;
+        font-size: 3.5rem; /* 减小字体大小 */
+        font-weight: 300;
+    }
+
+    .task-chips {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        padding: 0;
+    }
+
+    .task-chip {
+        height: 40px; /* 增加触摸区域 */
+        padding: 0 20px;
+    }
+
+    #historyLog {
+        max-height: 200px;
+    }
+
+    #taskMetrics {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .section-header {
+        position: sticky;
+        top: 0;
+        background: var(--md-sys-color-surface);
+        z-index: 1;
+        padding: 8px 0;
+        margin-bottom: 12px;
+    }
+
+    .activity-buttons {
+        flex-direction: row; /* 保持水平排列 */
+        gap: 8px;
+    }
+
+    .activity-buttons button {
+        flex: 1;
+        min-width: 0;
+        padding: 0 16px;
+    }
+
+    .task-item {
+        padding: 16px;
+        min-height: 48px; /* 确保在移动设备上有足够的点击区域 */
+    }
+
+    .task-item span {
+        font-size: 1rem;
+    }
+
+    .task-item .delete-button {
+        opacity: 0.75; /* 在移动设备上始终显示删除按钮 */
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* 针对更小屏幕的优化 */
+@media (max-width: 380px) {
+    body {
+        padding: 8px;
+    }
+
+    .surface {
+        padding: 12px;
+    }
+
+    .fullscreen-mode .timer {
+        font-size: 2.5rem; /* 进一步减小字体大小 */
+        left: 12px;
+        bottom: 88px;
+    }
+
+    .task-chip {
+        height: 36px;
+        padding: 0 16px;
+        font-size: 0.813rem;
+    }
+
+    .task-chip .material-symbols-rounded {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* 添加横屏模式的优化 */
+@media (max-height: 600px) and (orientation: landscape) {
+    .fullscreen-mode .timer {
+        position: fixed;
+        left: 24px;
+        bottom: 88px;
+        font-size: 2.75rem; /* 横屏模式下的字体大小 */
+    }
+
+    .task-chips {
+        bottom: 24px;
+    }
+
+    #ganttChart {
+        height: 160px;
+    }
+
+    .main-grid {
+        gap: 12px;
     }
 }
 
@@ -629,6 +792,23 @@ md-filled-tonal-button {
 
 .fullscreen-toggle:hover {
     background: var(--md-sys-color-surface-variant);
+}
+
+.activity-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+#stopActivityButton {
+    background-color: var(--md-sys-color-error-container);
+    color: var(--md-sys-color-on-error-container);
+}
+
+#stopActivityButton:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
 }
 
 /* 来源： */

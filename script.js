@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const newTaskInput = document.querySelector('#newTaskInput');
     const addTaskButton = document.querySelector('#addTaskButton');
     const startRestButton = document.querySelector('#startRestButton');
+    const stopActivityButton = document.querySelector('#stopActivityButton');
     const taskList = document.querySelector('#taskList');
     const currentTaskNameSpan = document.querySelector('#currentTaskName');
     const currentTimerSpan = document.querySelector('#currentTimer');
@@ -43,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     startRestButton.addEventListener('click', startRest);
+    stopActivityButton.addEventListener('click', stopCurrentActivity);
     clearHistoryButton.addEventListener('click', clearHistory);
     clearDataButton.addEventListener('click', clearAllData);
     window.addEventListener('resize', () => {
@@ -301,6 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!timerInterval) {
                 startTimer();
             }
+            // 当活动存在时启用停止按钮
+            stopActivityButton.disabled = false;
             // 当正在休息时才禁用休息按钮
             startRestButton.disabled = activeEntry.taskId === REST_ID;
         } else {
@@ -308,6 +312,8 @@ document.addEventListener('DOMContentLoaded', () => {
             currentTimerSpan.textContent = '00:00:00';
             clearInterval(timerInterval);
             timerInterval = null;
+            // 当没有活动时禁用停止按钮
+            stopActivityButton.disabled = true;
             startRestButton.disabled = false;
         }
         updateGanttChart();
