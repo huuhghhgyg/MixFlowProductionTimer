@@ -95,6 +95,7 @@ h1, h2, .display-text {
 .app-header {
     text-align: center;
     margin-bottom: 32px;
+    margin-top: 56px; /* 添加上边距，为全屏按钮留出空间 */
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -592,6 +593,10 @@ md-filled-tonal-button {
 
     .check-icon {
         font-size: 16px;
+    }
+
+    .app-header {
+        margin-top: 64px; /* 移动设备上增加更多空间，因为按钮更大 */
     }
 }
 
