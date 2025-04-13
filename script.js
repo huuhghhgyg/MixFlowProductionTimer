@@ -548,8 +548,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         entry.taskId === REST_ID ? '休息' : entry.taskName
                     ],
                     itemStyle: entry.taskId === REST_ID ? {
-                        color: '#ff9800'
-                    } : undefined
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-secondary').trim()
+                    } : {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
+                    }
                 });
                 currentStart = null;
             }
@@ -568,8 +570,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     activeEntry.taskId === REST_ID ? '休息' : activeEntry.taskName
                 ],
                 itemStyle: activeEntry.taskId === REST_ID ? {
-                    color: '#ff9800'
-                } : undefined
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-secondary').trim()
+                } : {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
+                }
             });
         }
 
@@ -600,9 +604,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary-container').trim()
                         }
                     },
-                    fillerColor: 'rgba(185, 94, 32, 0.1)', // --md-sys-color-primary with opacity
+                    fillerColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-surface-variant').trim(),
                     handleStyle: {
                         color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
+                    },
+                    textStyle: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
                     }
                 },
                 {
@@ -625,6 +632,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 axisLabel: {
                     color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline-variant').trim()
+                    }
                 }
             },
             yAxis: {
@@ -636,6 +648,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 axisLabel: {
                     color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline-variant').trim()
+                    }
                 }
             },
             series: [{
