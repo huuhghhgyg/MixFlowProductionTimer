@@ -385,9 +385,10 @@ document.addEventListener('DOMContentLoaded', () => {
         taskMetricsDiv.innerHTML = '';
         const taskTimes = {}; // { taskId: totalMilliseconds }
         let totalRestMs = 0;
+        let totalTimeMs = 0;
 
         const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
-        let currentStarts = {}; // { taskId: startTime } for active tasks/rest
+        let currentStarts = {};
 
         sortedHistory.forEach(entry => {
             if (entry.type === 'start' || entry.type === 'start_rest') {
@@ -424,21 +425,32 @@ document.addEventListener('DOMContentLoaded', () => {
              }
          }
 
+        // 计算总时间（包括休息时间）
+        totalTimeMs = totalRestMs;
+        Object.values(taskTimes).forEach(time => {
+            totalTimeMs += time;
+        });
 
         // 首先显示总休息时间
+        const restPercent = totalTimeMs > 0 ? (totalRestMs / totalTimeMs * 100) : 0;
         const restDiv = document.createElement('div');
         restDiv.textContent = `总休息时间: ${formatMilliseconds(totalRestMs)}`;
+        restDiv.style.setProperty('--progress', `${restPercent}%`);
+        restDiv.style.setProperty('--bar-color', 'var(--md-sys-color-secondary)');
         taskMetricsDiv.appendChild(restDiv);
 
         // 将任务时间转换为数组并按时间降序排序
         const taskTimeArray = tasks.map(task => ({
             name: task.name,
-            time: taskTimes[task.id] || 0
+            time: taskTimes[task.id] || 0,
+            percent: totalTimeMs > 0 ? ((taskTimes[task.id] || 0) / totalTimeMs * 100) : 0
         })).sort((a, b) => b.time - a.time);
 
         taskTimeArray.forEach(taskTime => {
             const div = document.createElement('div');
             div.textContent = `${taskTime.name}: ${formatMilliseconds(taskTime.time)}`;
+            div.style.setProperty('--progress', `${taskTime.percent}%`);
+            div.style.setProperty('--bar-color', 'var(--md-sys-color-primary)');
             taskMetricsDiv.appendChild(div);
         });
 

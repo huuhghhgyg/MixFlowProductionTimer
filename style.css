@@ -246,6 +246,33 @@ md-list-item.active {
     border-radius: var(--md-radius-small);
     font-size: 0.875rem;
     color: var(--md-sys-color-on-surface-variant);
+    position: relative;
+    overflow: hidden;
+}
+
+#taskMetrics div::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: var(--progress, 0%);
+    background-color: var(--bar-color, var(--md-sys-color-primary));
+    opacity: 0.12;
+    transition: width 0.3s ease-in-out;
+    z-index: 0;
+}
+
+#taskMetrics div {
+    position: relative;
+    z-index: 1;
+}
+
+/* 移除之前添加的样式 */
+#taskMetrics .metric-item,
+#taskMetrics .metric-label,
+#taskMetrics .metric-bar {
+    display: none;
 }
 
 #historyLog {
