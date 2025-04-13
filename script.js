@@ -37,6 +37,18 @@ document.addEventListener('DOMContentLoaded', () => {
     initGanttChart();
 
     // --- Event Listeners ---
+    // 添加页面可见性变化监听器
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            // 页面变为可见时更新显示
+            updateCurrentActivityDisplay();
+            calculateAndRenderMetrics();
+            if (ganttChart) {
+                updateGanttChart();
+            }
+        }
+    });
+
     addTaskButton.addEventListener('click', addTask);
     newTaskInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
