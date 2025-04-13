@@ -706,9 +706,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const restChip = document.createElement('div');
         restChip.className = 'task-chip' + (activeEntry?.taskId === REST_ID ? ' active' : '');
         restChip.innerHTML = `
-            <span class="material-symbols-rounded">coffee</span>
-            休息
-            ${activeEntry?.taskId === REST_ID ? '<span class="material-symbols-rounded">done</span>' : ''}
+            <div class="chip-content">
+                <span class="material-symbols-rounded">coffee</span>
+                <span class="chip-text">休息</span>
+                ${activeEntry?.taskId === REST_ID ? '<span class="material-symbols-rounded check-icon">done</span>' : ''}
+            </div>
         `;
         restChip.addEventListener('click', startRest);
         taskChips.appendChild(restChip);
@@ -718,8 +720,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const chip = document.createElement('div');
             chip.className = 'task-chip' + (activeEntry?.taskId === task.id ? ' active' : '');
             chip.innerHTML = `
-                ${task.name}
-                ${activeEntry?.taskId === task.id ? '<span class="material-symbols-rounded">done</span>' : ''}
+                <div class="chip-content">
+                    <span class="chip-text">${task.name}</span>
+                    ${activeEntry?.taskId === task.id ? '<span class="material-symbols-rounded check-icon">done</span>' : ''}
+                </div>
             `;
             chip.addEventListener('click', () => startTask(task.id));
             taskChips.appendChild(chip);

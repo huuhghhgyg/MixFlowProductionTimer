@@ -535,18 +535,6 @@ md-filled-tonal-button {
         pointer-events: none;
     }
 
-    .task-chips {
-        left: 16px;
-        right: 16px;
-        bottom: 16px;
-        padding: 0;
-    }
-
-    .task-chip {
-        height: 40px; /* 增加触摸区域 */
-        padding: 0 20px;
-    }
-
     #historyLog {
         max-height: 200px;
     }
@@ -590,9 +578,23 @@ md-filled-tonal-button {
         width: 40px;
         height: 40px;
     }
+
+    .task-chip {
+        height: 36px;
+        padding: 0 12px;
+        min-width: 64px;
+        /* 移除 max-width 限制 */
+    }
+
+    .chip-content {
+        gap: 6px;
+    }
+
+    .check-icon {
+        font-size: 16px;
+    }
 }
 
-/* 针对更小屏幕的优化 */
 @media (max-width: 380px) {
     body {
         padding: 8px;
@@ -607,19 +609,7 @@ md-filled-tonal-button {
         left: 12px;
         bottom: 88px;
     }
-
-    .task-chip {
-        height: 36px;
-        padding: 0 16px;
-        font-size: 0.813rem;
     }
-
-    .task-chip .material-symbols-rounded {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
-    }
-}
 
 /* 添加横屏模式的优化 */
 @media (max-height: 600px) and (orientation: landscape) {
@@ -729,16 +719,16 @@ md-filled-tonal-button {
     position: fixed;
     bottom: 32px;
     left: 48px;
-    right: 48px;
+    right: 0;
     display: flex;
     gap: 8px;  /* 修改为8px */
     justify-content: flex-start;
     overflow-x: auto;
-    padding: 0 8px; /* 添加一些内边距 */
 }
 
 .task-chip {
     display: inline-flex;
+    flex: none;
     align-items: center;
     gap: 8px;
     height: 32px;
@@ -752,7 +742,7 @@ md-filled-tonal-button {
     white-space: nowrap;
     font-size: 0.875rem;
     position: relative;
-    overflow: hidden;
+    overflow: visible; /* 修改为 visible */
     user-select: none;
     outline: none;
     box-sizing: border-box; /* 确保padding不会影响整体尺寸 */
@@ -847,4 +837,32 @@ md-filled-tonal-button {
     color: var(--md-sys-color-on-surface-variant);
     margin: 0;
     opacity: 0.9;
+}
+
+.chip-content {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    width: max-content; /* 改为 max-content */
+    position: relative;
+}
+
+.chip-text {
+    flex: 0 0 auto; /* 修改为不压缩 */
+    white-space: nowrap;
+    overflow: visible; /* 修改为 visible */
+}
+
+.chip-text:not(.material-symbols-rounded) {
+    overflow: visible;
+    text-overflow: clip;
+    min-width: 0;
+}
+
+.check-icon {
+    font-size: 18px;
+    opacity: 0.8;
+    margin-left: auto;
+    flex-shrink: 0;
 }
