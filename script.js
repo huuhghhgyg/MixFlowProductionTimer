@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearDataButton.addEventListener('click', clearAllData);
     window.addEventListener('resize', () => {
         if (ganttChart) {
-            ganttChart.resize();
+            updateGanttChart(); // 不仅仅是resize，而是完全更新
         }
         // 添加对时钟显示的更新
         updateFullscreenDisplay();
@@ -541,6 +541,17 @@ document.addEventListener('DOMContentLoaded', () => {
         sortedHistory.forEach(entry => tasks.add(entry.taskName));
         const taskList = Array.from(tasks);
 
+        // 动态计算甘特图高度
+        const isMobile = window.innerWidth <= 768;
+        const itemHeight = isMobile ? 24 : 40; // 移动端使用更小的高度
+        const minHeight = isMobile ? 200 : 300; // 最小高度
+        const titleHeight = 40; // 标题和坐标轴的高度
+        const calculatedHeight = Math.max(minHeight, taskList.length * itemHeight + titleHeight);
+        
+        // 更新甘特图容器高度
+        ganttChartCanvas.style.height = `${calculatedHeight}px`;
+        ganttChart.resize();
+
         const series = [];
         let currentStart = null;
         let currentTask = null;
@@ -607,6 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     xAxisIndex: 0,
                     startValue: startTime,
                     endValue: endTime,
+                    height: isMobile ? 20 : 30, // 移动端减小滑块高度
                     borderColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline').trim(),
                     selectedDataBackground: {
                         lineStyle: {
@@ -617,12 +629,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     },
                     fillerColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-surface-variant').trim(),
+                    handleSize: isMobile ? 15 : 20, // 移动端减小手柄大小
                     handleStyle: {
                         color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
                     },
                     textStyle: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
-                    }
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim(),
+                        fontSize: isMobile ? 10 : 12 // 移动端减小字体大小
+                    },
+                    showDetail: !isMobile // 在移动端隐藏详细信息
                 },
                 {
                     type: 'inside',
@@ -630,22 +645,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             ],
             grid: {
-                height: 200
+                top: isMobile ? 40 : 60,
+                bottom: isMobile ? 30 : 40,
+                left: isMobile ? 60 : 80, // 确保有足够空间显示任务名
+                right: isMobile ? 10 : 20
             },
             xAxis: {
                 type: 'time',
                 position: 'top',
                 min: startTime,
                 max: endTime,
-                axisLine: {
-                    lineStyle: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline').trim()
-                    }
-                },
                 axisLabel: {
-                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim(),
+                    fontSize: isMobile ? 10 : 12,
+                    formatter: function (value) {
+                        // 在移动端使用更简短的时间格式
+                        const date = new Date(value);
+                        if (isMobile) {
+                            return date.getHours() + ':' + String(date.getMinutes()).padStart(2, '0');
+                        }
+                        return date.toLocaleTimeString();
+                    },
+                    interval: isMobile ? 'auto' : 0 // 移动端自动计算间隔
                 },
                 splitLine: {
+                    show: !isMobile, // 在移动端隐藏分隔线
                     lineStyle: {
                         color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline-variant').trim()
                     }
@@ -653,17 +677,17 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             yAxis: {
                 data: taskList,
-                axisLine: {
-                    lineStyle: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline').trim()
-                    }
-                },
                 axisLabel: {
-                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
-                },
-                splitLine: {
-                    lineStyle: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline-variant').trim()
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim(),
+                    fontSize: isMobile ? 10 : 12,
+                    width: isMobile ? 50 : 80,
+                    overflow: 'truncate',
+                    formatter: function (value) {
+                        // 如果文本过长，在移动端截断显示
+                        if (isMobile && value.length > 6) {
+                            return value.substr(0, 6) + '...';
+                        }
+                        return value;
                     }
                 }
             },
@@ -673,7 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const categoryIndex = api.value(0);
                     const start = api.coord([api.value(1), categoryIndex]);
                     const end = api.coord([api.value(2), categoryIndex]);
-                    const height = api.size([0, 1])[1] * 0.6;
+                    const height = api.size([0, 1])[1] * (isMobile ? 0.5 : 0.6); // 移动端使用更小的高度比例
                     
                     const rectShape = {
                         x: start[0],
