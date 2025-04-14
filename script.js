@@ -526,17 +526,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
         
-        // 如果没有历史记录，显示最近1小时的范围
         if (sortedHistory.length === 0) {
             const endTime = new Date();
-            const startTime = new Date(endTime.getTime() - 60 * 60 * 1000);
+            const startTime = new Date(endTime.getTime() - 60 * 60 * 1000); // 显示最近1小时
             return;
         }
 
-        // 获取数据中最早和最晚的时间
-        const startTime = new Date(sortedHistory[0].timestamp);
-        const endTime = activeEntry ? new Date() : new Date(sortedHistory[sortedHistory.length - 1].timestamp);
+        // 获取所有历史记录的时间范围
+        const historyStartTime = new Date(sortedHistory[0].timestamp);
+        const historyEndTime = activeEntry ? new Date() : new Date(sortedHistory[sortedHistory.length - 1].timestamp);
 
+        // 获取今天开始时间
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // 查找今天最早的任务时间作为默认选中范围的开始
+        const todayEarliestEntry = sortedHistory.find(entry => entry.timestamp >= today.getTime());
+        const zoomStartTime = todayEarliestEntry ? new Date(todayEarliestEntry.timestamp) : today;
+        const zoomEndTime = historyEndTime;
+
+        // 获取任务列表
         const tasks = new Set();
         sortedHistory.forEach(entry => tasks.add(entry.taskName));
         const taskList = Array.from(tasks);
@@ -616,8 +625,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 {
                     type: 'slider',
                     xAxisIndex: 0,
-                    startValue: startTime,
-                    endValue: endTime,
+                    startValue: zoomStartTime, // 默认选中今天的范围
+                    endValue: zoomEndTime,
                     height: isMobile ? 20 : 30, // 移动端减小滑块高度
                     borderColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline').trim(),
                     selectedDataBackground: {
@@ -641,7 +650,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 {
                     type: 'inside',
-                    xAxisIndex: 0
+                    xAxisIndex: 0,
+                    startValue: zoomStartTime,
+                    endValue: zoomEndTime
                 }
             ],
             grid: {
@@ -653,8 +664,8 @@ document.addEventListener('DOMContentLoaded', () => {
             xAxis: {
                 type: 'time',
                 position: 'top',
-                min: startTime,
-                max: endTime,
+                min: historyStartTime, // 坐标轴显示全部历史范围
+                max: historyEndTime,
                 axisLabel: {
                     color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim(),
                     fontSize: isMobile ? 10 : 12,
