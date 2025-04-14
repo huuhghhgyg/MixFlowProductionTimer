@@ -612,6 +612,7 @@ md-filled-tonal-button {
     .task-item {
         padding: 16px;
         min-height: 48px; /* 确保在移动设备上有足够的点击区域 */
+        padding-right: 12px; /* 给删除按钮留出更多空间 */
     }
 
     .task-item span {
@@ -619,9 +620,31 @@ md-filled-tonal-button {
     }
 
     .task-item .delete-button {
-        opacity: 0.75; /* 在移动设备上始终显示删除按钮 */
-        width: 40px;
+        opacity: 1; /* 移动端始终显示删除按钮 */
+        padding: 8px;
+        margin: -8px; /* 增加点击区域 */
+        min-width: 40px; /* 确保有足够的点击区域 */
+        min-height: 40px;
+    }
+
+    .task-item .delete-button .material-symbols-rounded {
+        font-size: 20px; /* 调整图标大小 */
+    }
+
+    /* 删除按钮样式覆盖 */
+    .task-item .delete-button {
+        width: 40px; /* 固定宽度 */
         height: 40px;
+        padding: 8px;
+        margin: -8px;
+        min-width: 40px;
+        min-height: 40px;
+        border-radius: 20px; /* 保持圆形 */
+        background: transparent;
+    }
+
+    .task-item .delete-button .material-symbols-rounded {
+        font-size: 20px;
     }
 
     .task-chip {
@@ -642,6 +665,62 @@ md-filled-tonal-button {
     .app-header {
         margin-top: 64px; /* 移动设备上增加更多空间，因为按钮更大 */
     }
+
+    .section-header {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        position: sticky;
+        top: 0;
+        background: var(--md-sys-color-surface);
+        z-index: 1;
+        padding: 12px 0;
+        margin-bottom: 12px;
+    }
+
+    .history-section .section-header {
+        grid-template-columns: 1fr;
+    }
+
+    .history-section .button-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .history-section .button-group button {
+        width: 100%;
+        height: 40px;
+        padding: 0 12px;
+        font-size: 0.875rem;
+    }
+
+    .history-section .button-group button .material-symbols-rounded {
+        font-size: 1.25rem;
+    }
+
+    #historyLog {
+        margin-top: 8px;
+        max-height: 250px;
+    }
+
+    #historyLog p {
+        padding: 10px;
+        font-size: 0.8125rem;
+    }
+
+    .button-group {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .button-group button {
+        flex: 1;
+        min-width: calc(50% - 4px);
+        white-space: nowrap;
+    }
 }
 
 @media (max-width: 380px) {
@@ -658,7 +737,21 @@ md-filled-tonal-button {
         left: 12px;
         bottom: 88px;
     }
+
+    .history-section .button-group {
+        grid-template-columns: 1fr;
     }
+
+    .history-section .button-group button {
+        height: 36px;
+        font-size: 0.8125rem;
+    }
+
+    #historyLog p {
+        padding: 8px;
+        font-size: 0.75rem;
+    }
+}
 
 /* 添加横屏模式的优化 */
 @media (max-height: 600px) and (orientation: landscape) {
@@ -744,6 +837,11 @@ md-filled-tonal-button {
     display: none;
     padding: 24px;
     font-family: "Google Sans", "Google Sans Text", system-ui;
+}
+
+/* 当全屏模式激活时隐藏body滚动条 */
+body:has(.fullscreen-mode.active) {
+    overflow: hidden;
 }
 
 .fullscreen-mode.active {
