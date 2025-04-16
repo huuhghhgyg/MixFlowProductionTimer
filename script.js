@@ -19,6 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const fullscreenTimer = document.querySelector('.fullscreen-mode .timer');
     const taskChips = document.querySelector('.task-chips');
 
+    // 日期选择器初始化
+    const ganttDatePicker = document.getElementById('ganttDatePicker');
+    ganttDatePicker.valueAsDate = new Date();
+
+    // 热力图初始化
+    const workloadHeatmap = echarts.init(document.getElementById('workloadHeatmap'));
+
     // --- State Variables ---
     let tasks = []; // Array of task objects { id, name }
     let history = []; // Array of history entries { id, taskId, taskName, type: 'start'/'stop'/'start_rest'/'stop_rest', timestamp }
@@ -65,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // 添加对时钟显示的更新
         updateFullscreenDisplay();
+        workloadHeatmap.resize();
     });
 
     fullscreenToggle.addEventListener('click', toggleFullscreen);
@@ -89,6 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const taskId = item.getAttribute('data-task-id');
             startTask(taskId);
         }
+    });
+
+    // 当日期选择器变化时更新甘特图
+    ganttDatePicker.addEventListener('change', () => {
+        updateGanttChart();
     });
 
     // --- Core Functions ---
@@ -483,7 +496,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveState() {
         localStorage.setItem('personalKanbanTasks', JSON.stringify(tasks));
         localStorage.setItem('personalKanbanHistory', JSON.stringify(history));
-        localStorage.setItem('personalKanbanActiveEntry', JSON.stringify(activeEntry)); // Save active state too
+        localStorage.setItem('personalKanbanActiveEntry', JSON.stringify(activeEntry));
+        updateHeatmap(); // 每次保存状态时更新热力图
     }
 
     function loadState() {
@@ -520,182 +534,261 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 更新甘特图数据
     function updateGanttChart() {
+        const selectedDate = ganttDatePicker.valueAsDate;
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // 筛选当天的任务记录
+        const dayTasks = history.filter(record => {
+            const recordDate = new Date(record.timestamp);
+            return recordDate >= startOfDay && recordDate <= endOfDay;
+        });
+
         if (!ganttChart) {
             initGanttChart();
             return;
         }
 
-        const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
+        // 获取排序后的历史记录
+        const sortedHistory = [...dayTasks].sort((a, b) => a.timestamp - b.timestamp);
         
+        // 如果没有数据，显示空状态
         if (sortedHistory.length === 0) {
-            const endTime = new Date();
-            const startTime = new Date(endTime.getTime() - 60 * 60 * 1000); // 显示最近1小时
+            const option = {
+                graphic: [{
+                    type: 'text',
+                    left: 'center',
+                    top: 'middle',
+                    style: {
+                        text: '当前日期没有任务记录',
+                        fontSize: 14,
+                        fill: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
+                    }
+                }],
+                grid: {
+                    show: false
+                },
+                xAxis: { show: false },
+                yAxis: { show: false }
+            };
+            ganttChart.setOption(option, true);
             return;
         }
 
-        // 获取所有历史记录的时间范围
-        const historyStartTime = new Date(sortedHistory[0].timestamp);
-        const historyEndTime = activeEntry ? new Date() : new Date(sortedHistory[sortedHistory.length - 1].timestamp);
+        // 计算时间轴范围
+        let timeRange = {
+            start: new Date(sortedHistory[0].timestamp),
+            end: new Date(sortedHistory[sortedHistory.length - 1].timestamp)
+        };
 
-        // 获取今天开始时间
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        // 查找今天最早的任务时间作为默认选中范围的开始
-        const todayEarliestEntry = sortedHistory.find(entry => entry.timestamp >= today.getTime());
-        const zoomStartTime = todayEarliestEntry ? new Date(todayEarliestEntry.timestamp) : today;
-        const zoomEndTime = historyEndTime;
+        // 如果当前有活动任务且是今天的，将结束时间延伸到现在
+        if (activeEntry && new Date(activeEntry.startTime).toDateString() === selectedDate.toDateString()) {
+            timeRange.end = new Date();
+        }
 
-        // 获取任务列表
+        // 在时间范围前后各添加一些边距（30分钟）
+        timeRange.start = new Date(timeRange.start.getTime());
+        timeRange.end = new Date(timeRange.end.getTime() + 10);
+
+        // 确保时间范围不超出当天
+        if (timeRange.start < startOfDay) timeRange.start = startOfDay;
+        if (timeRange.end > endOfDay) timeRange.end = endOfDay;
+
+        // 获取任务列表（包括当前活动任务）
         const tasks = new Set();
         sortedHistory.forEach(entry => tasks.add(entry.taskName));
+        if (activeEntry && new Date(activeEntry.startTime).toDateString() === selectedDate.toDateString()) {
+            tasks.add(activeEntry.taskName);
+        }
         const taskList = Array.from(tasks);
 
         // 动态计算甘特图高度
         const isMobile = window.innerWidth <= 768;
-        const itemHeight = isMobile ? 24 : 40; // 移动端使用更小的高度
-        const minHeight = isMobile ? 200 : 300; // 最小高度
-        const titleHeight = 40; // 标题和坐标轴的高度
+        const itemHeight = isMobile ? 24 : 40;
+        const minHeight = isMobile ? 200 : 300;
+        const titleHeight = 40;
         const calculatedHeight = Math.max(minHeight, taskList.length * itemHeight + titleHeight);
         
         // 更新甘特图容器高度
         ganttChartCanvas.style.height = `${calculatedHeight}px`;
         ganttChart.resize();
 
+        // 构建系列数据
         const series = [];
         let currentStart = null;
         let currentTask = null;
 
+        // 处理历史记录中的任务
         sortedHistory.forEach(entry => {
             if (entry.type === 'start' || entry.type === 'start_rest') {
+                // 如果已经有未结束的任务，先结束它
+                if (currentStart && currentTask) {
+                    const taskIndex = taskList.indexOf(currentTask.taskName);
+                    if (taskIndex !== -1) {
+                        series.push({
+                            name: currentTask.taskName,
+                            value: [
+                                taskIndex,
+                                new Date(currentStart),
+                                new Date(entry.timestamp),
+                                currentTask.taskId === REST_ID ? '休息' : currentTask.taskName
+                            ],
+                            itemStyle: currentTask.taskId === REST_ID ? {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-secondary').trim()
+                            } : {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
+                            }
+                        });
+                    }
+                }
                 currentStart = entry.timestamp;
                 currentTask = entry;
-            } else if ((entry.type === 'stop' || entry.type === 'stop_rest') && currentStart) {
-                const taskIndex = taskList.indexOf(entry.taskName);
+            } else if ((entry.type === 'stop' || entry.type === 'stop_rest') && currentStart && currentTask) {
+                const taskIndex = taskList.indexOf(currentTask.taskName);
+                if (taskIndex !== -1) {
+                    series.push({
+                        name: currentTask.taskName,
+                        value: [
+                            taskIndex,
+                            new Date(currentStart),
+                            new Date(entry.timestamp),
+                            currentTask.taskId === REST_ID ? '休息' : currentTask.taskName
+                        ],
+                        itemStyle: currentTask.taskId === REST_ID ? {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-secondary').trim()
+                        } : {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
+                        }
+                    });
+                }
+                currentStart = null;
+                currentTask = null;
+            }
+        });
+
+        // 添加当前活动的任务
+        if (activeEntry && new Date(activeEntry.startTime).toDateString() === selectedDate.toDateString()) {
+            const taskIndex = taskList.indexOf(activeEntry.taskName);
+            if (taskIndex !== -1) {
                 series.push({
-                    name: entry.taskName,
+                    name: activeEntry.taskName,
                     value: [
                         taskIndex,
-                        new Date(currentStart),
-                        new Date(entry.timestamp),
-                        entry.taskId === REST_ID ? '休息' : entry.taskName
+                        new Date(activeEntry.startTime),
+                        new Date(),
+                        activeEntry.taskId === REST_ID ? '休息' : activeEntry.taskName
                     ],
-                    itemStyle: entry.taskId === REST_ID ? {
+                    itemStyle: activeEntry.taskId === REST_ID ? {
                         color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-secondary').trim()
                     } : {
                         color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
                     }
                 });
-                currentStart = null;
             }
-        });
-
-        // 添加当前活动的任务
-        if (activeEntry) {
-            const now = new Date();
-            const taskIndex = taskList.indexOf(activeEntry.taskName);
-            series.push({
-                name: activeEntry.taskName,
-                value: [
-                    taskIndex,
-                    new Date(activeEntry.startTime),
-                    now,
-                    activeEntry.taskId === REST_ID ? '休息' : activeEntry.taskName
-                ],
-                itemStyle: activeEntry.taskId === REST_ID ? {
-                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-secondary').trim()
-                } : {
-                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
-                }
-            });
         }
 
+        // 更新图表配置
         const option = {
+            animation: false, // 禁用动画以提高性能
             tooltip: {
                 formatter: function (params) {
                     const startTime = new Date(params.value[1]).toLocaleTimeString();
                     const endTime = new Date(params.value[2]).toLocaleTimeString();
                     const duration = Math.floor((params.value[2] - params.value[1]) / 1000 / 60);
+                    const hours = Math.floor(duration / 60);
+                    const minutes = duration % 60;
+                    const durationText = hours > 0 
+                        ? `${hours}小时${minutes}分钟`
+                        : `${minutes}分钟`;
                     return `${params.value[3]}<br/>
                             开始：${startTime}<br/>
                             结束：${endTime}<br/>
-                            持续：${duration}分钟`;
+                            持续：${durationText}`;
                 }
             },
-            dataZoom: [
-                {
-                    type: 'slider',
-                    xAxisIndex: 0,
-                    startValue: zoomStartTime, // 默认选中今天的范围
-                    endValue: zoomEndTime,
-                    height: isMobile ? 20 : 30, // 移动端减小滑块高度
-                    borderColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline').trim(),
-                    selectedDataBackground: {
-                        lineStyle: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
-                        },
-                        areaStyle: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary-container').trim()
-                        }
-                    },
-                    fillerColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-surface-variant').trim(),
-                    handleSize: isMobile ? 15 : 20, // 移动端减小手柄大小
-                    handleStyle: {
+            dataZoom: [{
+                type: 'slider',
+                xAxisIndex: 0,
+                startValue: timeRange.start,
+                endValue: timeRange.end,
+                height: isMobile ? 20 : 30,
+                borderColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline').trim(),
+                selectedDataBackground: {
+                    lineStyle: {
                         color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
                     },
-                    textStyle: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim(),
-                        fontSize: isMobile ? 10 : 12 // 移动端减小字体大小
-                    },
-                    showDetail: !isMobile // 在移动端隐藏详细信息
+                    areaStyle: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary-container').trim()
+                    }
                 },
-                {
-                    type: 'inside',
-                    xAxisIndex: 0,
-                    startValue: zoomStartTime,
-                    endValue: zoomEndTime
-                }
-            ],
+                fillerColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-surface-variant').trim(),
+                handleSize: isMobile ? 15 : 20,
+                handleStyle: {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
+                },
+                textStyle: {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim(),
+                    fontSize: isMobile ? 10 : 12
+                },
+                showDetail: !isMobile,
+                rangeMode: ['value', 'value']
+            }, {
+                type: 'inside',
+                xAxisIndex: 0,
+                startValue: timeRange.start,
+                endValue: timeRange.end
+            }],
             grid: {
                 top: isMobile ? 40 : 60,
                 bottom: isMobile ? 30 : 40,
-                left: isMobile ? 60 : 80, // 确保有足够空间显示任务名
-                right: isMobile ? 10 : 20
+                left: isMobile ? 60 : 80,
+                right: isMobile ? 10 : 20,
+                containLabel: true
             },
             xAxis: {
                 type: 'time',
                 position: 'top',
-                min: historyStartTime, // 坐标轴显示全部历史范围
-                max: historyEndTime,
+                min: timeRange.start,
+                max: timeRange.end,
+                axisLine: {
+                    lineStyle: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline-variant').trim()
+                    }
+                },
                 axisLabel: {
                     color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim(),
                     fontSize: isMobile ? 10 : 12,
                     formatter: function (value) {
-                        // 在移动端使用更简短的时间格式
                         const date = new Date(value);
-                        if (isMobile) {
-                            return date.getHours() + ':' + String(date.getMinutes()).padStart(2, '0');
-                        }
-                        return date.toLocaleTimeString();
+                        return isMobile
+                            ? `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`
+                            : date.toLocaleTimeString();
                     },
-                    interval: isMobile ? 'auto' : 0 // 移动端自动计算间隔
+                    interval: isMobile ? 'auto' : 0
                 },
                 splitLine: {
-                    show: !isMobile, // 在移动端隐藏分隔线
+                    show: !isMobile,
                     lineStyle: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline-variant').trim()
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline-variant').trim(),
+                        opacity: 0.3
                     }
                 }
             },
             yAxis: {
                 data: taskList,
+                axisLine: {
+                    lineStyle: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline-variant').trim()
+                    }
+                },
                 axisLabel: {
                     color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim(),
                     fontSize: isMobile ? 10 : 12,
                     width: isMobile ? 50 : 80,
                     overflow: 'truncate',
                     formatter: function (value) {
-                        // 如果文本过长，在移动端截断显示
                         if (isMobile && value.length > 6) {
                             return value.substr(0, 6) + '...';
                         }
@@ -709,25 +802,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     const categoryIndex = api.value(0);
                     const start = api.coord([api.value(1), categoryIndex]);
                     const end = api.coord([api.value(2), categoryIndex]);
-                    const height = api.size([0, 1])[1] * (isMobile ? 0.5 : 0.6); // 移动端使用更小的高度比例
+                    const height = Math.min(api.size([0, 1])[1] * 0.6, 30);
                     
-                    const rectShape = {
-                        x: start[0],
-                        y: start[1] - height / 2,
-                        width: Math.max(end[0] - start[0], 1),
-                        height: height
-                    };
-                    
-                    const isRest = api.value(3) === '休息';
                     return {
                         type: 'rect',
-                        shape: rectShape,
-                        style: {
-                            fill: isRest ? 
+                        shape: {
+                            x: start[0],
+                            y: start[1] - height / 2,
+                            width: Math.max(end[0] - start[0], 2),
+                            height: height
+                        },
+                        style: api.style({
+                            fill: api.value(3) === '休息' ? 
                                 getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-secondary').trim() :
-                                getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim(),
-                            ...api.style()
-                        }
+                                getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
+                        })
                     };
                 },
                 encode: {
@@ -738,7 +827,151 @@ document.addEventListener('DOMContentLoaded', () => {
             }]
         };
 
-        ganttChart.setOption(option);
+        ganttChart.setOption(option, true);
+    }
+
+    function updateHeatmap() {
+        // 获取过去365天的数据
+        const today = new Date();
+        const yearAgo = new Date();
+        yearAgo.setFullYear(today.getFullYear() - 1);
+
+        // 初始化日期数据
+        const dateData = new Map();
+        for (let d = new Date(yearAgo); d <= today; d.setDate(d.getDate() + 1)) {
+            dateData.set(d.toISOString().split('T')[0], 0);
+        }
+
+        // 计算每天的工作时长（分钟）
+        const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
+        let currentStarts = {};
+
+        sortedHistory.forEach(entry => {
+            const date = new Date(entry.timestamp).toISOString().split('T')[0];
+            
+            if (entry.type === 'start' || entry.type === 'start_rest') {
+                currentStarts[entry.taskId] = entry.timestamp;
+            } else if (entry.type === 'stop' || entry.type === 'stop_rest') {
+                const startTime = currentStarts[entry.taskId];
+                if (startTime) {
+                    const duration = (entry.timestamp - startTime) / (1000 * 60); // 转换为分钟
+                    if (dateData.has(date)) {
+                        dateData.set(date, (dateData.get(date) || 0) + duration);
+                    }
+                    delete currentStarts[entry.taskId];
+                }
+            }
+        });
+
+        // 添加当前活动的时长
+        if (activeEntry) {
+            const now = Date.now();
+            const date = new Date(now).toISOString().split('T')[0];
+            const duration = (now - activeEntry.startTime) / (1000 * 60);
+            if (dateData.has(date)) {
+                dateData.set(date, (dateData.get(date) || 0) + duration);
+            }
+        }
+
+        // 转换为ECharts数据格式
+        const heatmapData = Array.from(dateData).map(([date, value]) => {
+            return [date, Math.round(value)];
+        });
+
+        const option = {
+            tooltip: {
+                position: 'top',
+                formatter: function (params) {
+                    const date = new Date(params.data[0]);
+                    const minutes = params.data[1];
+                    const hours = Math.floor(minutes / 60);
+                    const remainingMinutes = minutes % 60;
+                    return `${date.toLocaleDateString()}<br/>工作时长: ${hours}小时${remainingMinutes}分钟`;
+                }
+            },
+            visualMap: {
+                min: 0,
+                max: Math.max(...Array.from(dateData.values())),
+                calculable: true,
+                orient: 'horizontal',
+                left: 'center',
+                bottom: '0%',
+                textStyle: {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
+                },
+                inRange: {
+                    color: [
+                        getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-surface-variant').trim(),
+                        getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary-container').trim(),
+                        getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
+                    ]
+                }
+            },
+            calendar: {
+                top: 30,
+                left: 30,
+                right: 30,
+                cellSize: ['auto', 20],
+                range: [yearAgo.toISOString().split('T')[0], today.toISOString().split('T')[0]],
+                itemStyle: {
+                    borderWidth: 1, // 保留日期方块的边框
+                    borderColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline-variant').trim(),
+                    borderRadius: 4,
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-surface-variant').trim()
+                },
+                splitLine: {
+                    show: false // 隐藏月份分割线
+                },
+                orient: 'horizontal', // 水平排列
+                dayLabel: {
+                    firstDay: 1, // 从周一开始
+                    nameMap: ['日', '一', '二', '三', '四', '五', '六'],
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
+                },
+                monthLabel: {
+                    show: true,
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
+                },
+                yearLabel: {
+                    show: false
+                },
+                silent: false // 确保事件可以被触发
+            },
+            series: {
+                type: 'heatmap',
+                coordinateSystem: 'calendar',
+                data: heatmapData,
+                emphasis: {
+                    itemStyle: {
+                        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim(),
+                        borderWidth: 2
+                    }
+                }
+            }
+        };
+
+        workloadHeatmap.setOption(option);
+        
+        // 移除旧的事件监听器
+        workloadHeatmap.off('mouseover');
+        workloadHeatmap.off('mouseout');
+        
+        // 添加新的事件监听器
+        workloadHeatmap.on('mouseover', function(params) {
+            if (params.componentType === 'series') {
+                const selectedDate = new Date(params.data[0]);
+                if (!isNaN(selectedDate.getTime())) { // 确保日期有效
+                    ganttDatePicker.valueAsDate = selectedDate;
+                    updateGanttChart();
+                }
+            }
+        });
+
+        workloadHeatmap.on('mouseout', function() {
+            const today = new Date();
+            ganttDatePicker.valueAsDate = today;
+            updateGanttChart();
+        });
     }
 
     // 清除所有数据
@@ -815,6 +1048,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // 修改保存任务记录的函数，添加热力图更新
+    function saveTaskHistory() {
+        localStorage.setItem('taskHistory', JSON.stringify(history));
+        updateGanttChart();
+        updateHeatmap();
+    }
+
     // 初始化
     initGanttChart();
+    updateHeatmap();
 });

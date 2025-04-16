@@ -74,8 +74,20 @@
         <div class="surface gantt-section">
             <header class="section-header">
                 <h2>任务时间轴</h2>
+                <div class="date-selector">
+                    <input type="date" id="ganttDatePicker">
+                </div>
             </header>
             <div id="ganttChart"></div>
+        </div>
+
+        <div class="surface heatmap-section">
+            <header class="section-header">
+                <h2>工作时长热力图</h2>
+            </header>
+            <div class="heatmap-scroll-container">
+                <div id="workloadHeatmap"></div>
+            </div>
         </div>
 
         <div class="surface history-section">
