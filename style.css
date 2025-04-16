@@ -1045,24 +1045,48 @@ body:has(.fullscreen-mode.active) {
 }
 
 .heatmap-section {
-    margin-top: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .heatmap-scroll-container {
     width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
+    height: 360px;
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.heatmap-section.collapsed .heatmap-scroll-container {
+    height: 0;
+}
+
+.toggle-heatmap {
+    padding: 8px;
+    height: 36px;
+    min-width: 36px;
+}
+
+.toggle-heatmap .material-symbols-rounded {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.heatmap-section.collapsed .toggle-heatmap .material-symbols-rounded {
+    transform: rotate(-90deg);
 }
 
 #workloadHeatmap {
-    width: 800px; /* 设置固定最小宽度以确保可以显示完整的年度数据 */
+    width: 800px;
     height: 280px;
     padding: 16px;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.heatmap-section.collapsed #workloadHeatmap {
+    opacity: 0;
 }
 
 @media (min-width: 800px) {
     #workloadHeatmap {
-        width: 100%; /* 在较大屏幕上自适应宽度 */
+        width: 100%;
     }
 }

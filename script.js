@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const fullscreenToggle = document.querySelector('.fullscreen-toggle');
     const fullscreenTimer = document.querySelector('.fullscreen-mode .timer');
     const taskChips = document.querySelector('.task-chips');
+    const toggleHeatmapBtn = document.querySelector('.toggle-heatmap');
+    const heatmapSection = document.querySelector('.heatmap-section');
 
     // 日期选择器初始化
     const ganttDatePicker = document.getElementById('ganttDatePicker');
@@ -102,6 +104,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // 当日期选择器变化时更新甘特图
     ganttDatePicker.addEventListener('change', () => {
         updateGanttChart();
+    });
+
+    toggleHeatmapBtn.addEventListener('click', () => {
+        heatmapSection.classList.toggle('collapsed');
+        const isExpanded = !heatmapSection.classList.contains('collapsed');
+        toggleHeatmapBtn.querySelector('.material-symbols-rounded').textContent = 
+            isExpanded ? 'expand_less' : 'expand_more';
+        
+        // 如果展开了，需要重新渲染热力图以确保显示正确
+        if (isExpanded) {
+            workloadHeatmap.resize();
+            updateHeatmap();
+        }
     });
 
     // --- Core Functions ---
