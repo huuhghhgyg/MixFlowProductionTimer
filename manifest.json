@@ -1,0 +1,38 @@
+{
+    "name": "Mixed-Flow Production Timer",
+    "short_name": "MFPT",
+    "description": "源自TPS的平準化理念，让工作节奏更均衡的任务计时工具",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#FFF8F6",
+    "theme_color": "#B95E20",
+    "icons": [
+        {
+            "src": "assets/icons/favicon-16x16.png",
+            "sizes": "16x16",
+            "type": "image/png"
+        },
+        {
+            "src": "assets/icons/favicon-32x32.png",
+            "sizes": "32x32",
+            "type": "image/png"
+        },
+        {
+            "src": "assets/icons/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "assets/icons/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "assets/icons/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
