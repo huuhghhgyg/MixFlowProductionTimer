@@ -69,7 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fullscreenToggle.addEventListener('click', toggleFullscreen);
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'f' || e.key === 'F') {
+        if (e.altKey && (e.key === 'f' || e.key === 'F')) {
+            e.preventDefault(); // 防止触发浏览器的默认行为
             toggleFullscreen();
         }
     });
