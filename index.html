@@ -120,19 +120,17 @@
         <span class="material-symbols-rounded">fullscreen</span>
     </button>
 
-    <script src="script.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful');
-                    })
-                    .catch(err => {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
-            });
-        }
+    <!-- Scripts -->
+    <script type="module">
+        import UI from './assets/js/ui.js';
+        import appState from './assets/js/core.js';
+        import Charts from './assets/js/charts.js';
+        import Timer from './assets/js/timer.js';
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            UI.init();
+        });
     </script>
 </body>
 </html>

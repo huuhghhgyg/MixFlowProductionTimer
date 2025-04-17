@@ -215,6 +215,21 @@ md-outlined-text-field {
     margin-bottom: 16px;
 }
 
+.date-selector {
+    margin-left: 8px;
+}
+
+.date-selector input[type="date"] {
+    padding: 6px 12px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 6px;
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    font-family: inherit;
+    font-size: 0.875rem;
+    height: 32px;
+}
+
 md-list {
     --md-list-container-color: transparent;
 }
@@ -589,12 +604,31 @@ md-filled-tonal-button {
     }
 
     .section-header {
+        display: flex;
+        gap: 8px;
         position: sticky;
         top: 0;
         background: var(--md-sys-color-surface);
         z-index: 1;
-        padding: 8px 0;
+        padding: 12px 0;
         margin-bottom: 12px;
+    }
+
+    .heatmap-section .section-header {
+        display: flex;
+        gap: 8px;
+        grid-template-columns: 1fr auto;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .toggle-heatmap {
+        height: 36px;
+        min-width: 36px;
+        padding: 0;
+        margin: 0;
+        background-color: var(--md-sys-color-surface-variant);
+        border-radius: 6px;  /* 移动端稍微调小圆角 */
     }
 
     .activity-buttons {
@@ -721,6 +755,60 @@ md-filled-tonal-button {
         flex: 1;
         min-width: calc(50% - 4px);
         white-space: nowrap;
+    }
+
+    .heatmap-scroll-container {
+        height: 340px;
+        margin: 0 -16px; /* 延伸到容器边缘 */
+        padding: 0 16px; /* 添加内边距保持视觉一致性 */
+        width: calc(100% + 32px); /* 补偿负边距 */
+    }
+
+    #workloadHeatmap {
+        height: 330px;
+        min-width: 720px; /* 调整移动端最小宽度 */
+        padding: 0;
+    }
+
+    .heatmap-section .section-header h2 {
+        font-size: 1.25rem;
+        margin: 0;
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .toggle-heatmap {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+    }
+
+    .gantt-section .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        grid-template-columns: none;
+    }
+
+    .gantt-section .section-header h2 {
+        margin: 0;
+        flex: none;
+    }
+
+    .date-selector {
+        flex-shrink: 0;
+    }
+
+    .date-selector input[type="date"] {
+        width: auto;
+        min-width: 120px;
+        height: 32px;
+        padding: 4px 8px;
     }
 }
 
@@ -1033,6 +1121,7 @@ body:has(.fullscreen-mode.active) {
 
 .date-selector {
     margin-left: auto;
+    flex-shrink: 0;
 }
 
 .date-selector input[type="date"] {
@@ -1040,7 +1129,7 @@ body:has(.fullscreen-mode.active) {
     border: 1px solid var(--outline);
     border-radius: 8px;
     background: var(--surface);
-    color: var(--on-surface);
+    color: var (--on-surface);
     font-family: 'Google Sans Text', sans-serif;
 }
 
@@ -1050,9 +1139,11 @@ body:has(.fullscreen-mode.active) {
 
 .heatmap-scroll-container {
     width: 100%;
-    height: 360px;
+    height: 380px;
     transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch; /* 在 iOS 上提供更好的滚动体验 */
 }
 
 .heatmap-section.collapsed .heatmap-scroll-container {
@@ -1063,10 +1154,15 @@ body:has(.fullscreen-mode.active) {
     padding: 8px;
     height: 36px;
     min-width: 36px;
+    border-radius: 8px;  /* 改回圆角矩形 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .toggle-heatmap .material-symbols-rounded {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 20px;
 }
 
 .heatmap-section.collapsed .toggle-heatmap .material-symbols-rounded {
@@ -1074,9 +1170,10 @@ body:has(.fullscreen-mode.active) {
 }
 
 #workloadHeatmap {
-    width: 800px;
-    height: 280px;
-    padding: 16px;
+    width: 100%;
+    min-width: 800px;
+    height: 370px;
+    padding: 0;
     opacity: 1;
     transition: opacity 0.2s ease;
 }
@@ -1085,8 +1182,74 @@ body:has(.fullscreen-mode.active) {
     opacity: 0;
 }
 
-@media (min-width: 800px) {
-    #workloadHeatmap {
-        width: 100%;
-    }
+.heatmap-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.toggle-heatmap {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    padding: 0;
+    margin: 0;
+    border-radius: 8px;  /* 改回圆角矩形 */
+    background-color: var(--md-sys-color-surface-variant);
+    flex-shrink: 0;
+}
+
+.toggle-heatmap .material-symbols-rounded {
+    font-size: 20px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.heatmap-section.collapsed .toggle-heatmap .material-symbols-rounded {
+    transform: rotate(-90deg);
+}
+
+.gantt-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.gantt-section .section-header h2 {
+    margin: 0;
+    flex: none;
+}
+
+.date-selector {
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+
+.date-selector input[type="date"] {
+    padding: 4px 8px;
+    height: 32px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 6px;
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    font-family: inherit;
+    font-size: 0.875rem;
+}
+
+.gantt-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.gantt-section .section-header h2 {
+    margin: 0;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
