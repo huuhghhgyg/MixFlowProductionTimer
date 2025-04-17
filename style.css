@@ -427,8 +427,11 @@ button:active::before {
     position: relative;
     overflow: hidden;
     cursor: pointer;
-    transition: all 0.2s ease;
     color: var(--md-sys-color-on-surface-variant);
+    /* 添加过渡效果 */
+    transition: all 0.15s ease-in-out;
+    /* 统一边框 */
+    border: 1px solid transparent;
 }
 
 .task-item span {
@@ -453,10 +456,10 @@ button:active::before {
     opacity: var(--md-state-layer-hover);
 }
 
+/* 合并为一个active选择器 */
 .task-item.active {
     background-color: var(--md-sys-color-primary-container);
     color: var(--md-sys-color-on-primary-container);
-    border-color: transparent;
 }
 
 .task-item .delete-button {
@@ -1243,5 +1246,70 @@ body:has(.fullscreen-mode.active) {
     #workloadHeatmap {
         min-width: 720px; /* 移动端下稍微减小最小宽度 */
         max-width: none; /* 移动端下去掉最大宽度限制 */
+    }
+}
+
+.history-section {
+    margin-top: 24px;
+}
+
+.history-section .section-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;  /* 居中对齐 */
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.history-section .section-header h2 {
+    align-self: flex-start;  /* 标题左对齐 */
+}
+
+.history-section .button-group {
+    display: flex;
+    gap: 8px;
+    justify-content: center;  /* 按钮居中 */
+}
+
+.history-section .button-group button {
+    width: auto;  /* 取消固定宽度 */
+    min-width: 140px;  /* 设置最小宽度 */
+}
+
+.history-section #historyLog {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin-top: 16px;
+}
+
+/* 自定义滚动条样式 */
+.history-section #historyLog::-webkit-scrollbar {
+    width: 8px;
+}
+
+.history-section #historyLog::-webkit-scrollbar-track {
+    background: var(--md-sys-color-surface-variant);
+    border-radius: 4px;
+}
+
+.history-section #historyLog::-webkit-scrollbar-thumb {
+    background: var(--md-sys-color-outline);
+    border-radius: 4px;
+}
+
+.history-section #historyLog::-webkit-scrollbar-thumb:hover {
+    background: var(--md-sys-color-primary);
+}
+
+@media (max-width: 768px) {
+    .history-section .button-group {
+        width: 100%;
+    }
+    
+    .history-section .button-group button {
+        flex: 1;
+        width: 100%;
+        min-width: 0;  /* 移动端取消最小宽度限制 */
     }
 }

@@ -150,7 +150,7 @@ class UI {
 
     initializeState() {
         this.renderTasks();
-        this.renderHistory();
+        this.renderHistory(); // 确保这一行存在且被调用
         this.calculateAndRenderMetrics();
         this.updateCurrentActivityDisplay();
     }
@@ -159,6 +159,7 @@ class UI {
     updateUI() {
         this.updateCurrentActivityDisplay();
         this.calculateAndRenderMetrics();
+        this.renderHistory(); // 增加这行，确保活动日志随状态更新
         Charts.updateGanttChart();
         this.updateFullscreenDisplay();
     }
@@ -173,6 +174,7 @@ class UI {
         appState.addTask(taskName);
         this.newTaskInput.value = '';
         this.renderTasks();
+        this.renderHistory(); // 添加这行
     }
 
     deleteTask(taskId) {
@@ -182,6 +184,7 @@ class UI {
         appState.deleteTask(taskId);
         this.renderTasks();
         this.calculateAndRenderMetrics();
+        this.renderHistory(); // 添加这行
     }
 
     startTask(taskId) {
@@ -189,6 +192,20 @@ class UI {
         const task = tasks.find(t => t.id === taskId);
         if (!task) return;
 
+        // 先更新任务列表的视觉状态
+        this.renderTasks();
+        
+        // 立即设置活动状态
+        const allTasks = this.taskList.querySelectorAll('.task-item');
+        allTasks.forEach(item => {
+            if (item.getAttribute('data-task-id') === taskId) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
+        // 启动任务
         appState.startTask(taskId, task.name);
         this.updateUI();
         this.updatePageTitle(task.name);
@@ -211,11 +228,7 @@ class UI {
 
     clearHistory() {
         if (confirm('确定要清除历史记录吗？此操作不会删除任务列表，但会清空所有活动记录。')) {
-            const activeEntry = appState.getActiveEntry();
-            if (activeEntry) {
-                this.stopCurrentActivity();
-            }
-            appState.clearAllData();
+            appState.clearHistory(); // 使用新的clearHistory方法
             this.updateUI();
         }
     }
@@ -259,7 +272,16 @@ class UI {
     renderHistory() {
         this.historyLogDiv.innerHTML = '';
         const history = appState.getHistory();
-        const sortedHistory = [...history].sort((a, b) => b.timestamp - a.timestamp);
+        const sortedHistory = [...history].sort((a, b) => {
+            // 首先按时间戳倒序排列
+            const timeCompare = b.timestamp - a.timestamp;
+            if (timeCompare !== 0) return timeCompare;
+            
+            // 如果时间戳相同，确保"结束"事件排在"开始"事件之前
+            if (a.type.startsWith('stop') && b.type.startsWith('start')) return -1;
+            if (a.type.startsWith('start') && b.type.startsWith('stop')) return 1;
+            return 0;
+        });
 
         sortedHistory.forEach(entry => {
             const p = document.createElement('p');

@@ -83,6 +83,14 @@ class AppState {
         this.saveData();
     }
 
+    clearHistory() {
+        if (this.activeEntry) {
+            this.stopTask(this.activeEntry.taskId);
+        }
+        this.history = [];
+        this.saveData();
+    }
+
     clearAllData() {
         if (this.activeEntry) {
             this.stopTask(this.activeEntry.taskId);
