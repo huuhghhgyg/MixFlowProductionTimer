@@ -38,24 +38,6 @@ class Charts {
             this.updateGanttChart();
         });
 
-        // 监听热力图折叠/展开
-        const toggleHeatmapBtn = document.querySelector('.toggle-heatmap');
-        const heatmapSection = document.querySelector('.heatmap-section');
-        
-        toggleHeatmapBtn?.addEventListener('click', () => {
-            heatmapSection.classList.toggle('collapsed');
-            const isExpanded = !heatmapSection.classList.contains('collapsed');
-            toggleHeatmapBtn.querySelector('.material-symbols-rounded').textContent = 
-                isExpanded ? 'expand_less' : 'expand_more';
-            
-            if (isExpanded) {
-                setTimeout(() => {
-                    this.workloadHeatmap?.resize();
-                    this.updateHeatmap();
-                }, 300);
-            }
-        });
-
         // 设置热力图事件监听器
         if (this.workloadHeatmap) {
             // 移除旧的事件监听器
@@ -168,8 +150,8 @@ class Charts {
 
         // 动态计算甘特图高度
         const isMobile = window.innerWidth <= 768;
-        const itemHeight = isMobile ? 24 : 40;
-        const minHeight = isMobile ? 200 : 300;
+        const itemHeight = 40;
+        const minHeight = 360;
         const titleHeight = 40;
         const calculatedHeight = Math.max(minHeight, taskList.length * itemHeight + titleHeight);
         
@@ -482,19 +464,43 @@ class Charts {
     static createHeatmapOption(heatmapData, yearAgo, today) {
         // 计算布局参数
         const container = document.getElementById('workloadHeatmap');
-        const padding = { left: 50, right: 30, top: 40, bottom: 80 };
-        const usableWidth = container.clientWidth - padding.left - padding.right;
-        const usableHeight = container.clientHeight - padding.top - padding.bottom;
-
-        const weeks = 53;
-        const days = 7;
         
-        const cellByWidth = Math.floor((usableWidth - 40) / weeks);
-        const cellByHeight = Math.floor(usableHeight / days);
-        const cellSize = Math.max(Math.min(cellByWidth, cellByHeight), 24);
+        // 计算可用空间
+        const weeks = 53; // 一年大约53周
+        const days = 7;  // 一周7天
+        const padding = {
+            top: 30,    // 给月份标签留空间
+            bottom: 80, // 给底部颜色条留空间
+            left: 40,   // 给星期几标签留空间
+            right: 40   // 让右侧边距和左侧一致，更协调
+        };
+        
+        // 计算理想的单元格大小
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+        
+        // 计算水平和垂直方向可用的空间
+        const availableWidth = containerWidth - padding.left - padding.right;
+        const availableHeight = containerHeight - padding.top - padding.bottom;
+        
+        // 分别计算基于宽度和高度的单元格大小
+        const cellSizeByWidth = Math.floor(availableWidth / weeks);
+        const cellSizeByHeight = Math.floor(availableHeight / days);
+        
+        // 选择较小的那个值作为单元格大小，确保是正方形
+        const cellSize = Math.min(cellSizeByWidth, cellSizeByHeight);
+        
+        // 计算实际需要的总宽度
+        const totalWidth = cellSize * weeks + padding.left + padding.right;
+        
+        // 计算水平居中的左侧边距
+        const leftMargin = Math.max(padding.left, (containerWidth - (cellSize * weeks)) / 2);
 
-        const totalWidth = cellSize * weeks;
-        const newLeft = Math.max(padding.left, Math.floor((container.clientWidth - totalWidth) / 2));
+        // 计算实际需要的容器高度
+        const neededHeight = cellSize * days + padding.top + padding.bottom;
+        
+        // 更新容器高度
+        container.style.height = `${neededHeight}px`;
 
         return {
             tooltip: {
@@ -509,7 +515,7 @@ class Charts {
             },
             visualMap: {
                 min: 0,
-                max: Math.max(...heatmapData.map(item => item[1])),
+                max: Math.max(...heatmapData.map(item => item[1])) || 1, // 防止没有数据时max为0
                 calculable: true,
                 orient: 'horizontal',
                 left: 'center',
@@ -530,23 +536,23 @@ class Charts {
             },
             calendar: {
                 top: padding.top,
-                left: newLeft,
-                right: padding.right,
                 bottom: padding.bottom,
+                left: leftMargin,
+                right: leftMargin, // 确保左右边距相等
                 cellSize: [cellSize, cellSize],
                 range: [yearAgo.toISOString().split('T')[0], today.toISOString().split('T')[0]],
                 itemStyle: {
                     borderWidth: 1,
-                    borderColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline-variant').trim(),
+                    borderColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline-variant').trim()
                 },
                 splitLine: { show: false },
                 yearLabel: { show: false },
                 monthLabel: {
                     nameMap: 'cn',
                     fontSize: 12,
-                    align: 'center',
+                    align: 'left',
                     margin: 12,
-                    padding: [12, 4, 4, 4],
+                    position: 'start',
                     color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
                 },
                 dayLabel: {
@@ -554,13 +560,17 @@ class Charts {
                     nameMap: ['日', '一', '二', '三', '四', '五', '六'],
                     fontSize: 12,
                     margin: 8,
+                    position: 'left',
                     color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
                 }
             },
             series: {
                 type: 'heatmap',
                 coordinateSystem: 'calendar',
-                data: heatmapData
+                data: heatmapData,
+                label: {
+                    show: false
+                }
             }
         };
     }

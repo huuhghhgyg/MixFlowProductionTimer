@@ -758,7 +758,7 @@ md-filled-tonal-button {
     }
 
     .heatmap-scroll-container {
-        height: 340px;
+        height: 100%;
         margin: 0 -16px; /* 延伸到容器边缘 */
         padding: 0 16px; /* 添加内边距保持视觉一致性 */
         width: calc(100% + 32px); /* 补偿负边距 */
@@ -1139,15 +1139,32 @@ body:has(.fullscreen-mode.active) {
 
 .heatmap-scroll-container {
     width: 100%;
-    height: 380px;
+    height: 240px; /* 设置固定高度 */
     transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch; /* 在 iOS 上提供更好的滚动体验 */
+    padding: 0;
+    margin: 0;
+    display: flex; /* 使用flex布局辅助居中 */
+    justify-content: center; /* 水平居中 */
 }
 
 .heatmap-section.collapsed .heatmap-scroll-container {
     height: 0;
+}
+
+#workloadHeatmap {
+    width: 100%;
+    min-width: 800px;
+    max-width: 1200px; /* 限制最大宽度 */
+    height: 100%;
+    opacity: 1;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.heatmap-section.collapsed #workloadHeatmap {
+    opacity: 0;
 }
 
 .toggle-heatmap {
@@ -1162,51 +1179,12 @@ body:has(.fullscreen-mode.active) {
 
 .toggle-heatmap .material-symbols-rounded {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-size: 20px;
+    transform: rotate(0deg);
+    display: block;
 }
 
 .heatmap-section.collapsed .toggle-heatmap .material-symbols-rounded {
-    transform: rotate(-90deg);
-}
-
-#workloadHeatmap {
-    width: 100%;
-    min-width: 800px;
-    height: 370px;
-    padding: 0;
-    opacity: 1;
-    transition: opacity 0.2s ease;
-}
-
-.heatmap-section.collapsed #workloadHeatmap {
-    opacity: 0;
-}
-
-.heatmap-section .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-}
-
-.toggle-heatmap {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    padding: 0;
-    margin: 0;
-    border-radius: 8px;  /* 改回圆角矩形 */
-    background-color: var(--md-sys-color-surface-variant);
-    flex-shrink: 0;
-}
-
-.toggle-heatmap .material-symbols-rounded {
-    font-size: 20px;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.heatmap-section.collapsed .toggle-heatmap .material-symbols-rounded {
-    transform: rotate(-90deg);
+    transform: rotate(180deg);
 }
 
 .gantt-section .section-header {
@@ -1252,4 +1230,18 @@ body:has(.fullscreen-mode.active) {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+    .heatmap-scroll-container {
+        height: 220px; /* 移动端稍微减小高度 */
+        margin: 0 -16px;
+        padding: 0;
+        width: calc(100% + 32px);
+    }
+
+    #workloadHeatmap {
+        min-width: 720px; /* 移动端下稍微减小最小宽度 */
+        max-width: none; /* 移动端下去掉最大宽度限制 */
+    }
 }

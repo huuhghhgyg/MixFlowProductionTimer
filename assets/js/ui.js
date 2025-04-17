@@ -123,6 +123,29 @@ class UI {
         window.addEventListener('resize', () => {
             this.updateUI();
         });
+
+        // 监听热力图折叠/展开
+        const toggleHeatmapBtn = document.querySelector('.toggle-heatmap');
+        const heatmapSection = document.querySelector('.heatmap-section');
+        
+        toggleHeatmapBtn?.addEventListener('click', () => {
+            const isCollapsed = heatmapSection.classList.contains('collapsed');
+            if (isCollapsed) {
+                // 展开热力图
+                heatmapSection.classList.remove('collapsed');
+                // 等待过渡动画完成后重绘热力图
+                setTimeout(() => {
+                    Charts.workloadHeatmap?.resize();
+                    Charts.updateHeatmap();
+                }, 300); // 等待过渡动画完成
+            } else {
+                // 折叠热力图
+                heatmapSection.classList.add('collapsed');
+            }
+            
+            toggleHeatmapBtn.querySelector('.material-symbols-rounded').textContent = 
+                isCollapsed ? 'expand_less' : 'expand_more';
+        });
     }
 
     initializeState() {
