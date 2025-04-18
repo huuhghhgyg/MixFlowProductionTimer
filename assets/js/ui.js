@@ -146,6 +146,11 @@ class UI {
             toggleHeatmapBtn.querySelector('.material-symbols-rounded').textContent = 
                 isCollapsed ? 'expand_less' : 'expand_more';
         });
+
+        // 监听日期更改事件
+        document.addEventListener('dateChange', (e) => {
+            this.calculateAndRenderMetrics();
+        });
     }
 
     initializeState() {
@@ -322,12 +327,26 @@ class UI {
 
     calculateAndRenderMetrics() {
         this.taskMetricsDiv.innerHTML = '';
+        
+        // 获取选中的日期
+        const selectedDate = Charts.datePicker?.valueAsDate || new Date();
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // 筛选当天的历史记录
         const history = appState.getHistory();
+        const dayHistory = history.filter(record => {
+            const recordDate = new Date(record.timestamp);
+            return recordDate >= startOfDay && recordDate <= endOfDay;
+        });
+
         const taskTimes = {};
         let totalRestMs = 0;
         let totalTimeMs = 0;
 
-        const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
+        const sortedHistory = [...dayHistory].sort((a, b) => a.timestamp - b.timestamp);
         let currentStarts = {};
 
         sortedHistory.forEach(entry => {
@@ -347,9 +366,11 @@ class UI {
             }
         });
 
-        // Add current active task duration
+        // 添加当前活动任务的时间（如果在选定日期内）
         const activeEntry = appState.getActiveEntry();
-        if (activeEntry) {
+        if (activeEntry && 
+            new Date(activeEntry.startTime) >= startOfDay && 
+            new Date(activeEntry.startTime) <= endOfDay) {
             const durationSoFar = Date.now() - activeEntry.startTime;
             if (activeEntry.taskId === REST_ID) {
                 totalRestMs += durationSoFar;
@@ -358,13 +379,24 @@ class UI {
             }
         }
 
-        // Calculate total time
+        // 计算总时间
         totalTimeMs = totalRestMs;
         Object.values(taskTimes).forEach(time => {
             totalTimeMs += time;
         });
 
-        // Render rest time
+        // 如果当天没有数据，显示提示信息
+        if (totalTimeMs === 0) {
+            const noDataDiv = document.createElement('div');
+            noDataDiv.textContent = '当前日期没有任务记录';
+            noDataDiv.style.textAlign = 'center';
+            noDataDiv.style.color = getComputedStyle(document.documentElement)
+                .getPropertyValue('--md-sys-color-on-surface-variant').trim();
+            this.taskMetricsDiv.appendChild(noDataDiv);
+            return;
+        }
+
+        // 渲染休息时间
         const restPercent = totalTimeMs > 0 ? (totalRestMs / totalTimeMs * 100) : 0;
         const restDiv = document.createElement('div');
         restDiv.textContent = `总休息时间: ${Timer.formatDuration(totalRestMs)}`;
@@ -372,7 +404,7 @@ class UI {
         restDiv.style.setProperty('--bar-color', 'var(--md-sys-color-secondary)');
         this.taskMetricsDiv.appendChild(restDiv);
 
-        // Render task times
+        // 渲染任务时间
         const tasks = appState.getTasks();
         const taskTimeArray = tasks.map(task => ({
             name: task.name,

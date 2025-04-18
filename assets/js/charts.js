@@ -36,6 +36,10 @@ class Charts {
         // 监听日期选择
         this.datePicker?.addEventListener('change', () => {
             this.updateGanttChart();
+            // 触发日期更改事件
+            document.dispatchEvent(new CustomEvent('dateChange', {
+                detail: { date: this.datePicker.valueAsDate }
+            }));
         });
 
         // 设置热力图事件监听器
@@ -51,6 +55,10 @@ class Charts {
                     if (!isNaN(selectedDate.getTime())) {
                         this.datePicker.valueAsDate = selectedDate;
                         this.updateGanttChart();
+                        // 触发日期更改事件
+                        document.dispatchEvent(new CustomEvent('dateChange', {
+                            detail: { date: selectedDate }
+                        }));
                     }
                 }
             });
@@ -59,6 +67,10 @@ class Charts {
                 const today = new Date();
                 this.datePicker.valueAsDate = today;
                 this.updateGanttChart();
+                // 触发日期更改事件
+                document.dispatchEvent(new CustomEvent('dateChange', {
+                    detail: { date: today }
+                }));
             });
         }
     }
@@ -66,7 +78,7 @@ class Charts {
     static updateGanttChart() {
         if (!this.ganttChart) return;
 
-        const selectedDate = this.datePicker.valueAsDate;
+        const selectedDate = this.datePicker?.valueAsDate || new Date();
         const startOfDay = new Date(selectedDate);
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(selectedDate);
@@ -92,36 +104,54 @@ class Charts {
                         fill: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-on-surface-variant').trim()
                     }
                 }],
-                grid: {
-                    show: false
-                },
                 xAxis: { show: false },
-                yAxis: { show: false }
+                yAxis: { show: false },
+                grid: { show: false }
             };
             this.ganttChart.setOption(option, true);
             return;
         }
 
-        // 计算时间轴范围
-        const sortedHistory = [...dayTasks].sort((a, b) => a.timestamp - b.timestamp);
-        let timeRange = {
-            start: new Date(sortedHistory[0].timestamp),
-            end: new Date(sortedHistory[sortedHistory.length - 1].timestamp)
-        };
-
-        // 如果当前有活动任务且是今天的，将结束时间延伸到现在
-        const activeEntry = appState.getActiveEntry();
-        if (activeEntry && new Date(activeEntry.startTime).toDateString() === selectedDate.toDateString()) {
-            timeRange.end = new Date();
-        }
-
         // 获取任务列表
         const tasks = new Set();
-        sortedHistory.forEach(entry => tasks.add(entry.taskName));
+        dayTasks.forEach(entry => tasks.add(entry.taskName));
+
+        // 确定时间轴范围
+        let timeRange = {
+            start: null,
+            end: null
+        };
+
+        // 找出当天最早和最晚的时间戳
+        dayTasks.forEach(record => {
+            const timestamp = new Date(record.timestamp);
+            if (!timeRange.start || timestamp < timeRange.start) {
+                timeRange.start = timestamp;
+            }
+            if (!timeRange.end || timestamp > timeRange.end) {
+                timeRange.end = timestamp;
+            }
+        });
+
+        // 如果当前有活动任务且是当天的，添加到任务列表中并更新结束时间
+        const activeEntry = appState.getActiveEntry();
         if (activeEntry && new Date(activeEntry.startTime).toDateString() === selectedDate.toDateString()) {
             tasks.add(activeEntry.taskName);
+            const now = new Date();
+            if (now > timeRange.end) {
+                timeRange.end = now;
+            }
+            if (new Date(activeEntry.startTime) < timeRange.start) {
+                timeRange.start = new Date(activeEntry.startTime);
+            }
         }
+
         const taskList = Array.from(tasks);
+
+        // 添加一些边距到时间轴
+        const timeMargin = 1000; // 1000毫秒数
+        timeRange.start = new Date(timeRange.start.getTime() - timeMargin);
+        timeRange.end = new Date(timeRange.end.getTime() + timeMargin);
 
         // 构建系列数据
         const series = [];
@@ -129,6 +159,7 @@ class Charts {
         let currentTask = null;
 
         // 处理历史记录中的任务
+        const sortedHistory = [...dayTasks].sort((a, b) => a.timestamp - b.timestamp);
         sortedHistory.forEach(entry => {
             if (entry.type === 'start' || entry.type === 'start_rest') {
                 if (currentStart && currentTask) {
@@ -181,8 +212,8 @@ class Charts {
             dataZoom: [{
                 type: 'slider',
                 xAxisIndex: 0,
-                startValue: timeRange.start,
-                endValue: timeRange.end,
+                startValue: timeRange.start.getTime(),
+                endValue: timeRange.end.getTime(),
                 height: isMobile ? 20 : 30,
                 borderColor: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline').trim(),
                 selectedDataBackground: {
@@ -207,8 +238,8 @@ class Charts {
             }, {
                 type: 'inside',
                 xAxisIndex: 0,
-                startValue: timeRange.start,
-                endValue: timeRange.end
+                startValue: timeRange.start.getTime(),
+                endValue: timeRange.end.getTime()
             }],
             grid: {
                 top: isMobile ? 40 : 60,
@@ -220,8 +251,8 @@ class Charts {
             xAxis: {
                 type: 'time',
                 position: 'top',
-                min: timeRange.start,
-                max: timeRange.end,
+                min: timeRange.start.getTime(),
+                max: timeRange.end.getTime(),
                 axisLine: {
                     lineStyle: {
                         color: getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-outline-variant').trim()
