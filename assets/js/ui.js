@@ -213,6 +213,7 @@ class UI {
 
     startRest() {
         appState.startTask(REST_ID, '休息');
+        this.renderTasks();
         this.updateUI();
         this.updatePageTitle('休息中');
     }
@@ -222,6 +223,7 @@ class UI {
         if (!activeEntry) return;
 
         appState.stopTask(activeEntry.taskId);
+        this.renderTasks(); // 添加这行来重新渲染任务列表，清除选中状态
         this.updateUI();
         this.updatePageTitle();
     }
