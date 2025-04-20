@@ -6,6 +6,7 @@
     "display": "standalone",
     "background_color": "#FFF8F6",
     "theme_color": "#B95E20",
+    "permissions": ["notifications"],
     "icons": [
         {
             "src": "assets/icons/favicon-16x16.png",

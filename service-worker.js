@@ -1,12 +1,23 @@
 const CACHE_NAME = 'mfpt-cache-v1';
-const CACHE_VERSION = '1.0.0'; // 添加版本号，每次更新时修改这个值
+const CACHE_VERSION = '1.0.0';
 
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/script.js',
-    '/manifest.json',
+    '.',
+    'index.html',
+    'style.css',
+    'manifest.json',
+    'assets/js/charts.js',
+    'assets/js/constants.js',
+    'assets/js/core.js',
+    'assets/js/storage.js',
+    'assets/js/timer.js',
+    'assets/js/ui.js',
+    'assets/icons/android-chrome-192x192.png',
+    'assets/icons/android-chrome-512x512.png',
+    'assets/icons/apple-touch-icon.png',
+    'assets/icons/favicon-16x16.png',
+    'assets/icons/favicon-32x32.png',
+    'assets/icons/favicon.ico',
     'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200',
     'https://fonts.googleapis.com/css2?family=Google+Sans+Display:wght@400;500;700&family=Google+Sans+Text:wght@400;500&display=swap',
     'https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js'
@@ -15,8 +26,19 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then((cache) => cache.addAll(ASSETS_TO_CACHE))
-            .then(() => self.skipWaiting()) // 强制新 Service Worker 立即激活
+            .then((cache) => {
+                // 使用 Promise.all 来处理所有缓存请求
+                return Promise.all(
+                    ASSETS_TO_CACHE.map(url => {
+                        return cache.add(url).catch(error => {
+                            console.error('Failed to cache:', url, error);
+                            // 不让单个资源的失败影响整体缓存
+                            return Promise.resolve();
+                        });
+                    })
+                );
+            })
+            .then(() => self.skipWaiting())
     );
 });
 

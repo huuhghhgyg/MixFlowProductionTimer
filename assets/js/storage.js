@@ -1,9 +1,5 @@
 // 数据持久化相关功能
-const STORAGE_KEYS = {
-    TASKS: 'mfpt_tasks',
-    HISTORY: 'mfpt_history',
-    ACTIVE_ENTRY: 'mfpt_active_entry'
-};
+import { STORAGE_KEYS } from './constants.js';
 
 const Storage = {
     getTasks() {
@@ -21,6 +17,16 @@ const Storage = {
         return storedEntry ? JSON.parse(storedEntry) : null;
     },
 
+    getTimerSettings() {
+        const storedSettings = localStorage.getItem(STORAGE_KEYS.TIMER_SETTINGS);
+        return storedSettings ? JSON.parse(storedSettings) : {
+            reminderEnabled: true,
+            reminderMinutes: 30,
+            timeoutEnabled: true,
+            timeoutMinutes: 60
+        };
+    },
+
     saveTasks(tasks) {
         localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
     },
@@ -33,10 +39,16 @@ const Storage = {
         localStorage.setItem(STORAGE_KEYS.ACTIVE_ENTRY, JSON.stringify(activeEntry));
     },
 
+    saveTimerSettings(settings) {
+        localStorage.setItem(STORAGE_KEYS.TIMER_SETTINGS, JSON.stringify(settings));
+    },
+
     clearAllData() {
         localStorage.removeItem(STORAGE_KEYS.TASKS);
         localStorage.removeItem(STORAGE_KEYS.HISTORY);
         localStorage.removeItem(STORAGE_KEYS.ACTIVE_ENTRY);
+        // 保留定时器设置
+        // localStorage.removeItem(STORAGE_KEYS.TIMER_SETTINGS);
     }
 };
 

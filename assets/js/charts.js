@@ -1,4 +1,5 @@
-import appState, { REST_ID } from './core.js';
+import appState from './core.js';
+import { REST_ID } from './constants.js';
 import Timer from './timer.js';
 
 class Charts {

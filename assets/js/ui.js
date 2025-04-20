@@ -1,7 +1,11 @@
 import Timer from './timer.js';
 import Storage from './storage.js';
 import Charts from './charts.js';
-import appState, { REST_ID } from './core.js';
+import appState from './core.js';
+import { REST_ID } from './constants.js';
+
+// 创建一个全局 UI 实例的引用，供其他模块使用
+let uiInstance = null;
 
 export function updateTimerDisplay(startTime) {
     if (!startTime) {
@@ -42,11 +46,13 @@ class UI {
                 });
         }
         
-        // 初始化通知权限
-        if ('Notification' in window && Notification.permission === 'default') {
+        // 检查并请求通知权限
+        if ('Notification' in window && Notification.permission !== 'granted') {
             Notification.requestPermission();
         }
 
+        // 保存 UI 实例的全局引用
+        uiInstance = ui;
         return ui;
     }
 
@@ -63,12 +69,20 @@ class UI {
         this.taskMetricsDiv = document.querySelector('#taskMetrics');
         this.clearHistoryButton = document.querySelector('#clearHistoryButton');
         this.clearDataButton = document.querySelector('#clearDataButton');
+        
+        // Timer settings elements
+        this.reminderMinutesInput = document.querySelector('#reminderMinutes');
+        this.timeoutMinutesInput = document.querySelector('#timeoutMinutes');
+        this.reminderEnabledInput = document.querySelector('#reminderEnabled');
+        this.timeoutEnabledInput = document.querySelector('#timeoutEnabled');
 
         // Fullscreen elements
         this.fullscreenMode = document.querySelector('.fullscreen-mode');
         this.fullscreenToggle = document.querySelector('.fullscreen-toggle');
         this.fullscreenTimer = document.querySelector('.fullscreen-mode .timer');
         this.taskChips = document.querySelector('.task-chips');
+
+        this.notificationStatus = document.querySelector('#notificationStatus');
 
         this.setupEventListeners();
         this.initializeState();
@@ -151,13 +165,153 @@ class UI {
         document.addEventListener('dateChange', (e) => {
             this.calculateAndRenderMetrics();
         });
+
+        // Timer settings
+        this.reminderMinutesInput.addEventListener('change', () => {
+            const value = parseInt(this.reminderMinutesInput.value);
+            if (value > 0) {
+                appState.updateTimerSettings({ reminderMinutes: value });
+            } else {
+                // 恢复保存的值
+                const settings = appState.getTimerSettings();
+                this.reminderMinutesInput.value = settings.reminderMinutes;
+            }
+        });
+
+        this.timeoutMinutesInput.addEventListener('change', () => {
+            const value = parseInt(this.timeoutMinutesInput.value);
+            if (value > 0) {
+                appState.updateTimerSettings({ timeoutMinutes: value });
+            } else {
+                // 恢复保存的值
+                const settings = appState.getTimerSettings();
+                this.timeoutMinutesInput.value = settings.timeoutMinutes;
+            }
+        });
+
+        // 开关状态变化处理
+        this.reminderEnabledInput.addEventListener('change', () => {
+            const checked = this.reminderEnabledInput.checked;
+            appState.updateTimerSettings({ reminderEnabled: checked });
+            this.updateSettingsState();
+        });
+
+        this.timeoutEnabledInput.addEventListener('change', () => {
+            const checked = this.timeoutEnabledInput.checked;
+            appState.updateTimerSettings({ timeoutEnabled: checked });
+            this.updateSettingsState();
+        });
+
+        // 监听通知事件
+        document.addEventListener('mfpt:notification', (event) => {
+            const { title, message } = event.detail;
+            // 创建一个内联通知
+            const notification = document.createElement('div');
+            notification.className = 'inline-notification';
+            notification.innerHTML = `
+                <span class="material-symbols-rounded">notifications</span>
+                <div class="notification-content">
+                    <strong>${title}</strong>
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // 3秒后自动移除通知
+            setTimeout(() => {
+                notification.classList.add('fade-out');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        });
+
+        // 监听强制更新事件
+        document.addEventListener('mfpt:forceUpdate', () => {
+            console.log('收到强制更新事件');
+            this.updateUI();
+        });
+
+        // 监听任务停止事件 - 添加这个监听器来响应任务自动停止事件
+        document.addEventListener('mfpt:taskStopped', (event) => {
+            console.log('收到任务停止事件:', event.detail);
+            // 更新UI界面
+            this.renderTasks();
+            this.updateUI();
+            this.updatePageTitle();
+        });
     }
 
     initializeState() {
+        // 初始化定时器设置
+        const settings = appState.getTimerSettings();
+        this.reminderMinutesInput.value = settings.reminderMinutes;
+        this.timeoutMinutesInput.value = settings.timeoutMinutes;
+        this.reminderEnabledInput.checked = settings.reminderEnabled;
+        this.timeoutEnabledInput.checked = settings.timeoutEnabled;
+        this.updateSettingsState();
+
         this.renderTasks();
         this.renderHistory(); // 确保这一行存在且被调用
         this.calculateAndRenderMetrics();
         this.updateCurrentActivityDisplay();
+        this.updateNotificationStatus();
+    }
+
+    updateSettingsState() {
+        // 更新提醒时间输入框状态
+        const reminderParent = this.reminderMinutesInput.closest('.setting-item');
+        if (this.reminderEnabledInput.checked) {
+            reminderParent.classList.remove('disabled');
+            this.reminderMinutesInput.disabled = false;
+        } else {
+            reminderParent.classList.add('disabled');
+            this.reminderMinutesInput.disabled = true;
+        }
+
+        // 更新超时时间输入框状态
+        const timeoutParent = this.timeoutMinutesInput.closest('.setting-item');
+        if (this.timeoutEnabledInput.checked) {
+            timeoutParent.classList.remove('disabled');
+            this.timeoutMinutesInput.disabled = false;
+        } else {
+            timeoutParent.classList.add('disabled');
+            this.timeoutMinutesInput.disabled = true;
+        }
+    }
+
+    updateNotificationStatus() {
+        if (!('Notification' in window)) {
+            this.showNotificationStatus('warning', 'error', '你的浏览器不支持通知功能');
+            return;
+        }
+
+        switch (Notification.permission) {
+            case 'granted':
+                this.showNotificationStatus('success', 'notifications_active', '通知功能已启用');
+                break;
+            case 'denied':
+                this.showNotificationStatus('warning', 'notifications_off', 
+                    '通知权限已被禁用。要重新启用通知，请点击地址栏左侧的图标，然后允许通知权限。');
+                break;
+            case 'default':
+                this.showNotificationStatus('info', 'notifications', 
+                    '尚未授予通知权限。点击"允许"以启用任务提醒功能。');
+                // 尝试请求权限
+                Notification.requestPermission().then(() => {
+                    this.updateNotificationStatus();
+                });
+                break;
+        }
+    }
+
+    showNotificationStatus(type, icon, message) {
+        this.notificationStatus.className = `notification-status ${type}`;
+        this.notificationStatus.innerHTML = `
+            <span class="material-symbols-rounded">${icon}</span>
+            <span class="status-text">${message}</span>
+        `;
     }
 
     // UI update methods
@@ -556,4 +710,5 @@ class UI {
     }
 }
 
+export { uiInstance };
 export default UI;
