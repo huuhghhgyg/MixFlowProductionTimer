@@ -270,6 +270,11 @@ md-list-item md-icon:hover {
 #taskMetrics {
     display: grid;
     gap: 12px;
+    max-height: 480px;
+    min-height: 200px;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin: 0;
 }
 
 #taskMetrics div {
@@ -393,27 +398,29 @@ button:active::before {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 400px;
+    max-height: 480px;
+    min-height: 200px; /* 设置最小高度 */
     overflow-y: auto;
     padding-right: 8px;
+    margin: 0; /* 重置外边距 */
 }
 
 /* 自定义滚动条样式 */
-.task-list::-webkit-scrollbar {
+.task-list::-webkit-scrollbar, #taskMetrics::-webkit-scrollbar {
     width: 8px;
 }
 
-.task-list::-webkit-scrollbar-track {
+.task-list::-webkit-scrollbar-track, #taskMetrics::-webkit-scrollbar-track {
     background: var(--md-sys-color-surface-variant);
     border-radius: 4px;
 }
 
-.task-list::-webkit-scrollbar-thumb {
+.task-list::-webkit-scrollbar-thumb, #taskMetrics::-webkit-scrollbar-thumb {
     background: var(--md-sys-color-outline);
     border-radius: 4px;
 }
 
-.task-list::-webkit-scrollbar-thumb:hover {
+.task-list::-webkit-scrollbar-thumb:hover, #taskMetrics::-webkit-scrollbar-thumb:hover {
     background: var(--md-sys-color-primary);
 }
 
@@ -425,13 +432,11 @@ button:active::before {
     border-radius: var(--md-radius-small);
     background: var(--md-sys-color-surface-variant);
     position: relative;
-    overflow: hidden;
     cursor: pointer;
     color: var(--md-sys-color-on-surface-variant);
-    /* 添加过渡效果 */
     transition: all 0.15s ease-in-out;
-    /* 统一边框 */
     border: 1px solid transparent;
+    box-sizing: border-box; /* 确保padding和border不会影响整体高度 */
 }
 
 .task-item span {
@@ -812,6 +817,35 @@ md-filled-tonal-button {
         min-width: 120px;
         height: 32px;
         padding: 4px 8px;
+    }
+
+    .task-list-section {
+        min-height: 300px; /* 移动端稍微减小高度 */
+    }
+    
+    .task-list {
+        min-height: 150px;
+    }
+
+    .time-input {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .time-input .unit {
+        white-space: nowrap;
+        color: var(--md-sys-color-on-surface-variant);
+        min-width: 32px; /* 确保单位有足够空间 */
+    }
+
+    .setting-item-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 0;
     }
 }
 
@@ -1322,27 +1356,35 @@ body:has(.fullscreen-mode.active) {
 
 .setting-item {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: var(--md-sys-color-surface-variant);
+    border-radius: var(--md-radius-small);
 }
 
-.setting-label {
+.setting-item-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
-    color: var(--md-sys-color-on-surface);
+    gap: 12px;
+}
+
+.setting-item-header .switch {
+    flex-shrink: 0;
 }
 
 .time-input {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
     gap: 8px;
 }
 
 .time-input input {
-    width: 80px;
-    padding: 8px;
+    width: 100%;
+    max-width: 72px;
+    padding: 8px 12px;
     border: 1px solid var(--md-sys-color-outline);
     border-radius: var(--md-radius-small);
     background: transparent;
@@ -1350,62 +1392,62 @@ body:has(.fullscreen-mode.active) {
     font-size: 1rem;
 }
 
-.time-input input:focus {
-    outline: none;
-    border-color: var(--md-sys-color-primary);
-}
-
 .time-input .unit {
     color: var(--md-sys-color-on-surface-variant);
+    white-space: nowrap;
+    min-width: 32px;
+    text-align: left;
+    padding-left: 4px;
 }
 
 @media (max-width: 768px) {
-    .timer-settings {
-        gap: 12px;
-    }
-
     .setting-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        padding: 12px;
     }
 
-    .time-input input {
+    .setting-item-header {
+        flex-wrap: nowrap;
+    }
+    
+    .setting-label {
+        font-size: 0.875rem;
+    }
+
+    .time-input {
         width: 100%;
     }
+    
+    .time-input .unit {
+        font-size: 0.875rem;
+    }
 }
 
-.setting-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-/* 开关样式 */
+/* 开关样式优化 */
 .switch {
     position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 24px;
+    display: inline-flex;
+    width: 52px;
+    height: 32px;
+    padding: 0;
+    margin: 0;
 }
 
 .switch input {
     opacity: 0;
     width: 0;
     height: 0;
+    margin: 0;
+    position: absolute;
 }
 
 .slider {
     position: absolute;
     cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--md-sys-color-outline);
-    transition: .3s;
-    border-radius: 12px;
+    inset: 0;
+    background-color: var(--md-sys-color-surface-variant);
+    transition: all 0.2s ease-in-out;
+    border-radius: 32px;
+    border: 2px solid var(--md-sys-color-outline);
 }
 
 .slider:before {
@@ -1413,28 +1455,32 @@ body:has(.fullscreen-mode.active) {
     content: "";
     height: 16px;
     width: 16px;
-    left: 4px;
-    bottom: 4px;
-    background-color: var(--md-sys-color-surface);
-    transition: .3s;
+    left: 6px;
+    bottom: 6px;
+    background-color: var(--md-sys-color-outline);
+    transition: all 0.2s ease-in-out;
     border-radius: 50%;
 }
 
 input:checked + .slider {
-    background-color: var(--md-sys-color-primary);
-}
-
-input:focus + .slider {
-    box-shadow: 0 0 1px var(--md-sys-color-primary);
+    background-color: var(--md-sys-color-primary-container);
+    border-color: var(--md-sys-color-primary);
 }
 
 input:checked + .slider:before {
-    transform: translateX(16px);
+    transform: translateX(20px);
+    background-color: var(--md-sys-color-primary);
 }
 
-/* 禁用状态样式 */
-.setting-item.disabled .time-input input {
+.setting-item.disabled {
     opacity: 0.5;
+}
+
+.setting-item.disabled .time-input {
+    pointer-events: none;
+}
+
+.setting-item.disabled .time-input input {
     pointer-events: none;
 }
 
@@ -1551,5 +1597,103 @@ input:checked + .slider:before {
         left: 16px;
         min-width: 0;
         max-width: none;
+    }
+}
+
+.task-list-section {
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+}
+
+.task-list-section .section-header {
+    flex-shrink: 0; /* 防止header被压缩 */
+}
+
+/* Switch 样式 */
+.switch {
+    position: relative;
+    display: inline-flex;
+    width: 52px;
+    height: 32px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: var(--md-sys-color-surface-variant);
+    transition: .3s;
+    border-radius: 32px;
+    border: 2px solid var(--md-sys-color-outline);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 6px;
+    bottom: 6px;
+    background-color: var(--md-sys-color-outline);
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--md-sys-color-primary-container);
+    border-color: var(--md-sys-color-primary);
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+    background-color: var(--md-sys-color-primary);
+}
+
+/* 禁用状态的样式 */
+input:disabled + .slider {
+    opacity: 0.38;
+    cursor: not-allowed;
+}
+
+.setting-item-header .setting-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+}
+
+.setting-item-header .setting-label .material-symbols-rounded {
+    font-size: 20px;
+}
+
+.time-input {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 8px;
+    max-width: 200px; /* 限制最大宽度 */
+}
+
+.time-input input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: var(--md-sys-color-outline-variant);
+}
+
+@media (max-width: 768px) {
+    .setting-item-header .setting-label {
+        font-size: 0.875rem;
+    }
+
+    .time-input {
+        max-width: 160px; /* 移动端下稍微减小最大宽度 */
+        grid-template-columns: auto auto; /* 改为自动调整列宽 */
     }
 }

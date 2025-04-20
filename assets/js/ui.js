@@ -261,22 +261,16 @@ class UI {
 
     updateSettingsState() {
         // 更新提醒时间输入框状态
-        const reminderParent = this.reminderMinutesInput.closest('.setting-item');
         if (this.reminderEnabledInput.checked) {
-            reminderParent.classList.remove('disabled');
             this.reminderMinutesInput.disabled = false;
         } else {
-            reminderParent.classList.add('disabled');
             this.reminderMinutesInput.disabled = true;
         }
 
         // 更新超时时间输入框状态
-        const timeoutParent = this.timeoutMinutesInput.closest('.setting-item');
         if (this.timeoutEnabledInput.checked) {
-            timeoutParent.classList.remove('disabled');
             this.timeoutMinutesInput.disabled = false;
         } else {
-            timeoutParent.classList.add('disabled');
             this.timeoutMinutesInput.disabled = true;
         }
     }
@@ -601,18 +595,13 @@ class UI {
 
     updateFullscreenDisplay() {
         if (!this.fullscreenMode.classList.contains('active')) return;
-        const activeEntry = appState.getActiveEntry();
-        if (!activeEntry) {
-            this.fullscreenTimer.textContent = '00:00:00';
-            return;
-        }
         
+        const timeStr = this.currentTimerSpan.textContent || '00:00:00';
         if (window.innerWidth <= 768) {
-            const timeStr = this.currentTimerSpan.textContent;
             const [hours, minutes, seconds] = timeStr.split(':');
             this.fullscreenTimer.innerHTML = `${hours}:<br>${minutes}:<br>${seconds}`;
         } else {
-            this.fullscreenTimer.textContent = this.currentTimerSpan.textContent;
+            this.fullscreenTimer.textContent = timeStr;
         }
     }
 
