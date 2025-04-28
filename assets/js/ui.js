@@ -475,7 +475,7 @@ class UI {
 
     calculateAndRenderMetrics() {
         this.taskMetricsDiv.innerHTML = '';
-        
+
         // 获取选中的日期
         const selectedDate = Charts.datePicker?.valueAsDate || new Date();
         const startOfDay = new Date(selectedDate);
@@ -492,7 +492,6 @@ class UI {
 
         const taskTimes = {};
         let totalRestMs = 0;
-        let totalTimeMs = 0;
 
         const sortedHistory = [...dayHistory].sort((a, b) => a.timestamp - b.timestamp);
         let currentStarts = {};
@@ -527,38 +526,41 @@ class UI {
             }
         }
 
-        // 计算总时间
-        totalTimeMs = totalRestMs;
-        Object.values(taskTimes).forEach(time => {
-            totalTimeMs += time;
-        });
+        // Check if there's any meaningful data to display
+        const hasTaskData = Object.values(taskTimes).some(time => time > 0);
+        const hasRestData = totalRestMs > 0;
 
-        // 如果当天没有数据，显示提示信息
-        if (totalTimeMs === 0) {
+        if (!hasTaskData && !hasRestData) {
             const noDataDiv = document.createElement('div');
             noDataDiv.textContent = '当前日期没有任务记录';
-            noDataDiv.style.textAlign = 'center';
-            noDataDiv.style.color = getComputedStyle(document.documentElement)
-                .getPropertyValue('--md-sys-color-on-surface-variant').trim();
+            noDataDiv.className = 'no-data-message';
             this.taskMetricsDiv.appendChild(noDataDiv);
             return;
         }
 
-        // 渲染休息时间
-        const restPercent = totalTimeMs > 0 ? (totalRestMs / totalTimeMs * 100) : 0;
-        const restDiv = document.createElement('div');
-        restDiv.textContent = `总休息时间: ${Timer.formatDuration(totalRestMs)}`;
-        restDiv.style.setProperty('--progress', `${restPercent}%`);
-        restDiv.style.setProperty('--bar-color', 'var(--md-sys-color-secondary)');
-        this.taskMetricsDiv.appendChild(restDiv);
+        // Calculate total time only if there's data
+        const totalTimeMs = totalRestMs + Object.values(taskTimes).reduce((sum, time) => sum + time, 0);
 
-        // 渲染任务时间
+        // Render rest time only if it's positive or if there are other tasks
+        if (hasRestData || hasTaskData) { // Show rest time even if 0s, if other tasks exist
+            const restPercent = totalTimeMs > 0 ? (totalRestMs / totalTimeMs * 100) : 0;
+            const restDiv = document.createElement('div');
+            restDiv.textContent = `总休息时间: ${Timer.formatDuration(totalRestMs)}`;
+            restDiv.style.setProperty('--progress', `${restPercent}%`);
+            restDiv.style.setProperty('--bar-color', 'var(--md-sys-color-secondary)');
+            this.taskMetricsDiv.appendChild(restDiv);
+        }
+
+        // Render task times (only if they have time > 0)
         const tasks = appState.getTasks();
-        const taskTimeArray = tasks.map(task => ({
-            name: task.name,
-            time: taskTimes[task.id] || 0,
-            percent: totalTimeMs > 0 ? ((taskTimes[task.id] || 0) / totalTimeMs * 100) : 0
-        })).sort((a, b) => b.time - a.time);
+        const taskTimeArray = tasks
+            .map(task => ({
+                name: task.name,
+                time: taskTimes[task.id] || 0,
+                percent: totalTimeMs > 0 ? ((taskTimes[task.id] || 0) / totalTimeMs * 100) : 0
+            }))
+            .filter(taskTime => taskTime.time > 0) // Filter out tasks with 0 time
+            .sort((a, b) => b.time - a.time);
 
         taskTimeArray.forEach(taskTime => {
             const div = document.createElement('div');
