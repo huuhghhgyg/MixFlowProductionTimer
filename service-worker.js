@@ -17,22 +17,17 @@ const ASSETS_TO_CACHE = [
     'assets/icons/apple-touch-icon.png',
     'assets/icons/favicon-16x16.png',
     'assets/icons/favicon-32x32.png',
-    'assets/icons/favicon.ico',
-    'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200',
-    'https://fonts.googleapis.com/css2?family=Google+Sans+Display:wght@400;500;700&family=Google+Sans+Text:wght@400;500&display=swap',
-    'https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js'
+    'assets/icons/favicon.ico'
 ];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                // 使用 Promise.all 来处理所有缓存请求
                 return Promise.all(
                     ASSETS_TO_CACHE.map(url => {
                         return cache.add(url).catch(error => {
                             console.error('Failed to cache:', url, error);
-                            // 不让单个资源的失败影响整体缓存
                             return Promise.resolve();
                         });
                     })
@@ -48,12 +43,11 @@ self.addEventListener('activate', (event) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
                     if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName); // 删除旧版本缓存
+                        return caches.delete(cacheName);
                     }
                 })
             );
         }).then(() => {
-            // 立即控制所有页面
             return clients.claim();
         })
     );
@@ -63,51 +57,62 @@ self.addEventListener('activate', (event) => {
 function isRequestCacheable(url) {
     try {
         const urlObj = new URL(url);
-        // 只缓存 http/https 协议的请求
+        // 允许缓存本地资源和指定的 CDN 资源
         return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
     } catch (e) {
         return false;
     }
 }
 
+// 检查是否是外部资源
+function isExternalResource(url) {
+    return url.includes('bootcdn.net') || 
+           url.includes('fonts.googleapis.com') || 
+           url.includes('gstatic.com');
+}
+
 self.addEventListener('fetch', (event) => {
+    // 对于外部资源（CDN），优先使用网络请求，失败时再使用缓存
+    if (isExternalResource(event.request.url)) {
+        event.respondWith(
+            fetch(event.request)
+                .catch(() => caches.match(event.request))
+        );
+        return;
+    }
+
+    // 对于本地资源，优先使用缓存，同时在后台更新缓存
     event.respondWith(
         caches.match(event.request)
             .then((response) => {
-                // 如果找到缓存的响应，先返回缓存
                 if (response) {
-                    // 同时发起网络请求以更新缓存
-                    if (isRequestCacheable(event.request.url)) {
-                        fetch(event.request).then((networkResponse) => {
-                            if (networkResponse && networkResponse.ok) {
-                                caches.open(CACHE_NAME).then((cache) => {
-                                    cache.put(event.request, networkResponse);
-                                });
+                    // 如果有缓存就先返回缓存
+                    fetch(event.request)
+                        .then(networkResponse => {
+                            if (networkResponse && networkResponse.ok && isRequestCacheable(event.request.url)) {
+                                caches.open(CACHE_NAME)
+                                    .then(cache => cache.put(event.request, networkResponse));
                             }
-                        }).catch(() => {
-                            // 忽略更新缓存时的错误
-                        });
-                    }
+                        })
+                        .catch(() => {});
                     return response;
                 }
 
                 // 如果没有缓存，发起网络请求
-                return fetch(event.request).then((networkResponse) => {
-                    if (!networkResponse || !networkResponse.ok) {
+                return fetch(event.request)
+                    .then(networkResponse => {
+                        if (!networkResponse || !networkResponse.ok) {
+                            return networkResponse;
+                        }
+
+                        if (isRequestCacheable(event.request.url)) {
+                            const responseToCache = networkResponse.clone();
+                            caches.open(CACHE_NAME)
+                                .then(cache => cache.put(event.request, responseToCache));
+                        }
+
                         return networkResponse;
-                    }
-
-                    // 只缓存可缓存的请求
-                    if (isRequestCacheable(event.request.url)) {
-                        // 克隆响应，因为响应流只能被读取一次
-                        const responseToCache = networkResponse.clone();
-                        caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(event.request, responseToCache);
-                        });
-                    }
-
-                    return networkResponse;
-                });
+                    });
             })
     );
 });

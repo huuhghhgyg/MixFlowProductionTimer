@@ -8,18 +8,25 @@ class Charts {
     static datePicker = null;
 
     static init() {
+        // 等待 DOM 加载完成
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.initializeCharts());
+        } else {
+            this.initializeCharts();
+        }
+    }
+
+    static initializeCharts() {
         this.ganttChart = echarts.init(document.getElementById('ganttChart'));
         this.workloadHeatmap = echarts.init(document.getElementById('workloadHeatmap'));
         this.datePicker = document.getElementById('ganttDatePicker');
         
-        // 设置日期选择器为今天
-        this.datePicker.valueAsDate = new Date();
+        if (this.datePicker) {
+            this.datePicker.valueAsDate = new Date();
+        }
         
-        // 初始化图表
         this.updateGanttChart();
         this.updateHeatmap();
-
-        // 设置事件监听器
         this.setupEventListeners();
     }
 
