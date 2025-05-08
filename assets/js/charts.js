@@ -568,7 +568,7 @@ class Charts {
                 inRange: {
                     color: [
                         getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-surface-variant').trim(),
-                        getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary-container').trim(),
+                        // getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary-container').trim(),
                         getComputedStyle(document.documentElement).getPropertyValue('--md-sys-color-primary').trim()
                     ]
                 }

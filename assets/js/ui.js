@@ -165,9 +165,6 @@ class UI {
                 // 折叠热力图
                 heatmapSection.classList.add('collapsed');
             }
-            
-            toggleHeatmapBtn.querySelector('.material-symbols-rounded').textContent = 
-                isCollapsed ? 'expand_less' : 'expand_more';
         });
 
         // 监听日期更改事件

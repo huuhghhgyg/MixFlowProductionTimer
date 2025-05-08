@@ -1283,10 +1283,6 @@ body:has(.fullscreen-mode.active) {
     }
 }
 
-.history-section {
-    margin-top: 24px;
-}
-
 .history-section .section-header {
     display: flex;
     flex-direction: column;
@@ -1502,7 +1498,6 @@ input:checked + .slider:before {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 16px;
     font-size: 0.875rem;
     color: var(--md-sys-color-on-surface-variant);
 }
