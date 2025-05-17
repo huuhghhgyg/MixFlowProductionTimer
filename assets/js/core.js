@@ -1,7 +1,7 @@
 import Storage from './storage.js';
 import { REST_ID } from './constants.js';
-import { uiInstance } from './ui.js';
 
+// 移除 uiInstance 的导入
 export const STORAGE_KEYS = {
     TASKS: 'mfpt_tasks',
     HISTORY: 'mfpt_history',
@@ -185,15 +185,31 @@ class AppState {
         // 如果已经超时，直接停止任务
         if (this.timerSettings.timeoutEnabled && elapsedMinutes >= this.timerSettings.timeoutMinutes) {
             console.log("检测到任务已超时，直接停止");
+            
+            // 计算实际的停止时间（开始时间 + 超时时间）
+            const stopTime = startTime + (this.timerSettings.timeoutMinutes * 60 * 1000);
+            
+            // 记录停止事件，使用超时时间点而不是当前时间
+            this.history.push({
+                taskId: this.activeEntry.taskId,
+                taskName: this.activeEntry.taskName,
+                type: 'stop',
+                timestamp: stopTime
+            });
+
             this.showNotification('超时警告', `任务"${this.activeEntry.taskName}"已超过${this.timerSettings.timeoutMinutes}分钟，任务已停止`);
-            // 直接调用UI的停止方法，保证界面更新
-            if (uiInstance) {
-                console.log('通过UI实例停止任务');
-                uiInstance.stopCurrentActivity();
-            } else {
-                console.log('UI实例不可用，通过appState停止任务');
-                this.stopTask(this.activeEntry.taskId);
-            }
+
+            // 在停止任务事件中也使用超时时间点
+            document.dispatchEvent(new CustomEvent('mfpt:taskStopped', {
+                detail: {
+                    taskId: this.activeEntry.taskId,
+                    taskName: this.activeEntry.taskName,
+                    duration: this.timerSettings.timeoutMinutes * 60 * 1000
+                }
+            }));
+
+            this.activeEntry = null;
+            this.saveData();
             return;
         }
 
@@ -225,18 +241,32 @@ class AppState {
             if (timeoutMinutesLeft > 0) {
                 console.log(`设置超时: ${timeoutMinutesLeft.toFixed(2)}分钟后触发`);
                 this.timeoutTimeout = setTimeout(() => {
+                    // 计算实际的停止时间（开始时间 + 超时时间）
+                    const stopTime = this.activeEntry.startTime + (this.timerSettings.timeoutMinutes * 60 * 1000);
+                    
+                    // 记录停止事件，使用超时时间点而不是当前时间
+                    this.history.push({
+                        taskId: this.activeEntry.taskId,
+                        taskName: this.activeEntry.taskName,
+                        type: 'stop',
+                        timestamp: stopTime
+                    });
+
                     // 发送超时通知并停止任务
                     console.log("触发超时，停止任务");
                     this.showNotification('超时警告', `任务"${this.activeEntry.taskName}"已超过${this.timerSettings.timeoutMinutes}分钟，任务已停止`);
                     
-                    // 直接调用UI的停止方法，保证界面更新
-                    if (uiInstance) {
-                        console.log('通过UI实例停止任务');
-                        uiInstance.stopCurrentActivity();
-                    } else {
-                        console.log('UI实例不可用，通过appState停止任务');
-                        this.stopTask(this.activeEntry.taskId);
-                    }
+                    // 在停止任务事件中也使用超时时间点
+                    document.dispatchEvent(new CustomEvent('mfpt:taskStopped', {
+                        detail: {
+                            taskId: this.activeEntry.taskId,
+                            taskName: this.activeEntry.taskName,
+                            duration: this.timerSettings.timeoutMinutes * 60 * 1000
+                        }
+                    }));
+
+                    this.activeEntry = null;
+                    this.saveData();
                 }, timeoutMinutesLeft * 60 * 1000);
             }
         }
@@ -278,16 +308,31 @@ class AppState {
         // 检查是否应该已经超时
         if (this.timerSettings.timeoutEnabled && elapsedMinutes >= this.timerSettings.timeoutMinutes) {
             console.log("页面恢复后发现任务已超时");
+            
+            // 计算实际的停止时间（开始时间 + 超时时间）
+            const stopTime = this.activeEntry.startTime + (this.timerSettings.timeoutMinutes * 60 * 1000);
+            
+            // 记录停止事件，使用超时时间点而不是当前时间
+            this.history.push({
+                taskId: this.activeEntry.taskId,
+                taskName: this.activeEntry.taskName,
+                type: 'stop',
+                timestamp: stopTime
+            });
+
             this.showNotification('超时警告', `任务"${this.activeEntry.taskName}"已超过${this.timerSettings.timeoutMinutes}分钟，任务已停止`);
             
-            // 直接调用UI的停止方法，保证界面更新
-            if (uiInstance) {
-                console.log('通过UI实例停止任务');
-                uiInstance.stopCurrentActivity();
-            } else {
-                console.log('UI实例不可用，通过appState停止任务');
-                this.stopTask(this.activeEntry.taskId);
-            }
+            // 在停止任务事件中也使用超时时间点
+            document.dispatchEvent(new CustomEvent('mfpt:taskStopped', {
+                detail: {
+                    taskId: this.activeEntry.taskId,
+                    taskName: this.activeEntry.taskName,
+                    duration: this.timerSettings.timeoutMinutes * 60 * 1000
+                }
+            }));
+
+            this.activeEntry = null;
+            this.saveData();
             return;
         }
         

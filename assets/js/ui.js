@@ -22,11 +22,13 @@ export function updateTimerDisplay(startTime) {
     
     // 更新全屏模式的显示
     const fullscreenTimer = document.querySelector('.fullscreen-mode .timer');
-    if (window.innerWidth <= 768) {
-        const [hours, minutes, seconds] = timeStr.split(':');
-        fullscreenTimer.innerHTML = `${hours}:<br>${minutes}:<br>${seconds}`;
-    } else {
-        fullscreenTimer.textContent = timeStr;
+    if (fullscreenTimer) {
+        if (window.innerWidth <= 768) {
+            const [hours, minutes, seconds] = timeStr.split(':');
+            fullscreenTimer.innerHTML = `${hours}:<br>${minutes}:<br>${seconds}`;
+        } else {
+            fullscreenTimer.textContent = timeStr;
+        }
     }
 }
 
@@ -34,6 +36,13 @@ class UI {
     static init() {
         const ui = new UI();
         Charts.init();
+        
+        // 监听停止任务事件
+        document.addEventListener('mfpt:stopTask', (event) => {
+            if (event.detail.taskId) {
+                ui.stopCurrentActivity();
+            }
+        });
         
         // 注册Service Worker
         if ('serviceWorker' in navigator) {
@@ -51,8 +60,8 @@ class UI {
             Notification.requestPermission();
         }
 
-        // 保存 UI 实例的全局引用
-        uiInstance = ui;
+        // 发布初始化完成事件
+        document.dispatchEvent(new CustomEvent('mfpt:uiInitialized', { detail: { ui } }));
         return ui;
     }
 
@@ -701,5 +710,4 @@ class UI {
     }
 }
 
-export { uiInstance };
 export default UI;
