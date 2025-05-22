@@ -1,24 +1,8 @@
 const CACHE_NAME = 'mfpt-cache-v1';
 const CACHE_VERSION = '1.0.0';
 
-const ASSETS_TO_CACHE = [
-    '.',
-    'index.html',
-    'style.css',
-    'manifest.json',
-    'assets/js/charts.js',
-    'assets/js/constants.js',
-    'assets/js/core.js',
-    'assets/js/storage.js',
-    'assets/js/timer.js',
-    'assets/js/ui.js',
-    'assets/icons/android-chrome-192x192.png',
-    'assets/icons/android-chrome-512x512.png',
-    'assets/icons/apple-touch-icon.png',
-    'assets/icons/favicon-16x16.png',
-    'assets/icons/favicon-32x32.png',
-    'assets/icons/favicon.ico'
-];
+// 清空预缓存列表，因为我们现在只希望缓存CDN资源
+const ASSETS_TO_CACHE = [];
 
 const CDN_RESOURCES = {
     'fonts.googleapis.com': {
@@ -167,29 +151,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // 对于本地资源，使用 Cache First 策略
-    event.respondWith(
-        caches.match(event.request)
-            .then((response) => {
-                if (response) {
-                    return response;
-                }
-
-                // 如果没有缓存，发起网络请求
-                return fetch(event.request)
-                    .then(networkResponse => {
-                        if (!networkResponse || !networkResponse.ok) {
-                            return networkResponse;
-                        }
-
-                        if (isRequestCacheable(event.request.url)) {
-                            const responseToCache = networkResponse.clone();
-                            caches.open(CACHE_NAME)
-                                .then(cache => cache.put(event.request, responseToCache));
-                        }
-
-                        return networkResponse;
-                    });
-            })
-    );
+    // 对于本地资源，不再使用 Cache First 策略，而是直接从网络获取
+    // 这样可以确保本地的 HTML, CSS, JS 文件不会被 Service Worker 缓存
+    event.respondWith(fetch(event.request));
 });

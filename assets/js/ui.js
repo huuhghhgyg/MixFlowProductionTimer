@@ -78,6 +78,7 @@ class UI {
         this.taskMetricsDiv = document.querySelector('#taskMetrics');
         this.clearHistoryButton = document.querySelector('#clearHistoryButton');
         this.clearDataButton = document.querySelector('#clearDataButton');
+        this.toggleHistoryLogButton = document.querySelector('#toggleHistoryLogButton');
         
         // Timer settings elements
         this.reminderMinutesInput = document.querySelector('#reminderMinutes');
@@ -148,11 +149,12 @@ class UI {
         });
 
         // 监听热力图折叠/展开
-        const toggleHeatmapBtn = document.querySelector('.toggle-heatmap');
-        const heatmapSection = document.querySelector('.heatmap-section');
+        const toggleHeatmapBtn = document.querySelector('#toggleHeatmapButton');
+        const heatmapSection = document.querySelector('#heatmapSection');
         
         toggleHeatmapBtn?.addEventListener('click', () => {
-            const isCollapsed = heatmapSection.classList.contains('collapsed');
+            let isCollapsed = heatmapSection.classList.contains('collapsed');
+            console.log('isCollapsed:', isCollapsed,'classList:', heatmapSection.classList);
             if (isCollapsed) {
                 // 展开热力图
                 heatmapSection.classList.remove('collapsed');
@@ -247,6 +249,17 @@ class UI {
             this.updateUI();
             this.updatePageTitle();
         });
+
+        // 监听活动日志折叠/展开
+        // const toggleLogBtn = document.querySelector('#toggleHistoryLogButton'); // Already in this.toggleHistoryLogButton
+        const logSectionElement = document.querySelector('#historySection');
+        
+        if (this.toggleHistoryLogButton && logSectionElement) {
+            this.toggleHistoryLogButton.addEventListener('click', () => {
+                logSectionElement.classList.toggle('collapsed');
+                // CSS will handle the icon rotation based on the .collapsed class
+            });
+        }
     }
 
     initializeState() {

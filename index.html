@@ -81,10 +81,10 @@
             <div id="ganttChart"></div>
         </div>
 
-        <div class="surface heatmap-section collapsed">
+        <div id="heatmapSection" class="surface content-section collapsed">
             <header class="section-header">
                 <h2>工作时长热力图</h2>
-                <button class="button-tonal toggle-heatmap">
+                <button class="button-tonal toggle-expand" id="toggleHeatmapButton">
                     <span class="material-symbols-rounded">expand_more</span>
                 </button>
             </header>
@@ -137,10 +137,15 @@
             </div>
         </div>
 
-        <div class="surface history-section">
+        <div id="historySection" class="surface collapsed">
             <header class="section-header">
                 <h2>活动日志</h2>
-                <div class="button-group">
+                <button class="button-tonal toggle-expand" id="toggleHistoryLogButton">
+                    <span class="material-symbols-rounded">expand_more</span>
+                </button>
+            </header>
+            <div id="log-scroll-container">
+                <div class="history-actions"> 
                     <button class="button-tonal" id="clearHistoryButton">
                         <span class="material-symbols-rounded">history</span>
                         清除历史记录
@@ -150,9 +155,12 @@
                         清除所有数据
                     </button>
                 </div>
-            </header>
-            <div id="historyLog"></div>
+                <div id="historyLog">
+                    <!-- 日志条目将由JS动态插入 -->
+                </div>
+            </div>
         </div>
+
     </div>
 
     <div class="fullscreen-mode">
