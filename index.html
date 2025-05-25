@@ -24,7 +24,7 @@
             <p class="headline-small text-xl font-normal text-on-surface-variant dark:text-on-surface-variant-dark opacity-90">源自TPS的平準化理念，让工作节奏更均衡</p>
         </header>
 
-        <div class="add-task surface flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+        <div class="add-task card flex flex-col md:flex-row gap-4 items-stretch md:items-center">
             <div class="text-field relative flex-1 min-w-0 w-full">
                 <input type="text" id="newTaskInput" placeholder=" " class="text-field-input peer">
                 <label class="text-field-label">输入新任务名称</label>
@@ -35,7 +35,7 @@
             </button>
         </div>
 
-        <div class="current-activity surface text-center">
+        <div class="current-activity card text-center">
             <div class="activity-content">
                 <h2 class="section-header-title mb-0">当前活动</h2>
                 <div class="activity-details">
@@ -56,14 +56,14 @@
         </div>
 
         <div class="main-grid grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="task-list-section surface flex flex-col min-h-[400px]">
+            <div class="task-list-section card flex flex-col min-h-[400px]">
                 <header class="section-header flex justify-between items-center mb-4 shrink-0">
                     <h2 class="section-header-title">任务列表</h2>
                 </header>
                 <div class="task-list flex flex-col gap-2 max-h-[480px] min-h-[200px] overflow-y-auto pr-2" id="taskList"></div>
             </div>
 
-            <div class="metrics-section surface">
+            <div class="metrics-section card">
                 <header class="section-header flex justify-between items-center mb-4">
                     <h2 class="section-header-title">任务统计</h2>
                 </header>
@@ -71,7 +71,7 @@
             </div>
         </div>
 
-        <div class="gantt-section surface">
+        <div class="gantt-section card">
             <header class="section-header flex justify-between items-center gap-2 mb-4">
                 <h2 class="section-header-title flex-1 whitespace-nowrap overflow-hidden text-ellipsis">任务时间轴</h2>
                 <div class="date-selector flex items-center shrink-0">
@@ -81,7 +81,7 @@
             <div id="ganttChart" class="w-full h-[300px] rounded-md-small overflow-hidden"></div>
         </div>
 
-        <div id="heatmapSection" class="surface content-section transition-all duration-300 ease-in-out collapsed">
+        <div id="heatmapSection" class="card content-section transition-all duration-300 ease-in-out collapsed">
             <header class="section-header flex justify-between items-center gap-2 mb-4">
                 <h2 class="section-header-title flex-1 whitespace-nowrap overflow-hidden text-ellipsis">工作时长热力图</h2>
                 <button class="btn-toggle-expand" id="toggleHeatmapButton">
@@ -93,7 +93,7 @@
             </div>
         </div>
 
-        <div class="timer-settings-section surface">
+        <div class="timer-settings-section card">
             <header class="section-header flex justify-between items-center mb-4">
                 <h2 class="section-header-title">任务提醒设置</h2>
             </header>
@@ -137,7 +137,7 @@
             </div>
         </div>
 
-        <div id="historySection" class="surface collapsed">
+        <div id="historySection" class="card collapsed">
             <header class="section-header flex justify-between items-center gap-2 mb-4">
                 <h2 class="section-header-title">活动日志</h2>
                 <button class="btn-toggle-expand" id="toggleHistoryLogButton">

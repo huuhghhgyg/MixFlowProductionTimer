@@ -155,7 +155,6 @@ class UI {
         
         toggleHeatmapBtn?.addEventListener('click', () => {
             let isCollapsed = heatmapSection.classList.contains('collapsed');
-            console.log('isCollapsed:', isCollapsed,'classList:', heatmapSection.classList);
             if (isCollapsed) {
                 // 展开热力图
                 heatmapSection.classList.remove('collapsed');
@@ -711,8 +710,40 @@ class UI {
         });
     }
 
-    showNotification(message) {
-        // 实现通知功能
+    showNotification(title, message) {
+        console.log(`发送通知: ${title} - ${message}`);
+        
+        // 触发自定义事件，用于显示内联通知
+        document.dispatchEvent(new CustomEvent('mfpt:notification', {
+            detail: { title, message, timestamp: Date.now() }
+        }));
+
+        // 创建一个内联通知元素并应用 Tailwind 类
+        const notification = document.createElement('div');
+        // 应用 Tailwind 类
+        notification.className = 'inline-notification fixed bottom-6 right-6 p-4 bg-surface dark:bg-surface-dark text-on-surface dark:text-on-surface-dark rounded-md-medium shadow-md flex items-start gap-3 z-[1000] min-w-[280px] max-w-md';
+        notification.innerHTML = `
+            <span class="material-symbols-rounded text-primary dark:text-primary-dark text-2xl">notifications</span>
+            <div class="notification-content flex-1">
+                <strong class="block mb-1 text-on-surface dark:text-on-surface-dark">${title}</strong>
+                <p class="m-0 text-sm text-on-surface-variant dark:text-on-surface-variant-dark">${message}</p>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // 3秒后自动移除通知
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                // Check if the element still exists before attempting to remove
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 300); // Match CSS animation duration
+        }, 3000);
+
+        // 尝试发送系统通知
         if ('Notification' in window && Notification.permission === 'granted') {
             new Notification('生产计时器', { body: message });
         }

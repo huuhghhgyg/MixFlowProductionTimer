@@ -4,93 +4,137 @@
 
 @layer base {
   :root {
-    --md-sys-color-primary: #B95E20;
-    --md-sys-color-on-primary: #FFFFFF;
-    --md-sys-color-primary-container: #FFDBCA;
-    --md-sys-color-on-primary-container: #3A1800;
-    --md-sys-color-secondary: #A08C7D;
-    --md-sys-color-on-secondary: #FFFFFF;
-    --md-sys-color-secondary-container: #FFDBCA;
-    --md-sys-color-on-secondary-container: #2C160A;
-    --md-sys-color-tertiary: #705D50;
-    --md-sys-color-on-tertiary: #FFFFFF;
-    --md-sys-color-tertiary-container: #FFDBCA;
-    --md-sys-color-on-tertiary-container: #291807;
-    --md-sys-color-error: #B3261E;
-    --md-sys-color-on-error: #FFFFFF;
-    --md-sys-color-error-container: #F9DEDC;
-    --md-sys-color-on-error-container: #410E0B;
-    --md-sys-color-surface: #FFF8F6;
-    --md-sys-color-on-surface: #201A18;
-    --md-sys-color-surface-variant: #F4DED4;
-    --md-sys-color-on-surface-variant: #52443D;
-    --md-sys-color-outline: #85746B;
-    --md-sys-color-outline-variant: #D7C2B9;
+    --md-sys-color-primary: theme('colors.primary.DEFAULT');
+    --md-sys-color-on-primary: theme('colors.on-primary.DEFAULT');
+    --md-sys-color-primary-container: theme('colors.primary-container.DEFAULT');
+    --md-sys-color-on-primary-container: theme('colors.on-primary-container.DEFAULT');
+
+    --md-sys-color-secondary: theme('colors.secondary.DEFAULT');
+    --md-sys-color-on-secondary: theme('colors.on-secondary.DEFAULT');
+    --md-sys-color-secondary-container: theme('colors.secondary-container.DEFAULT');
+    --md-sys-color-on-secondary-container: theme('colors.on-secondary-container.DEFAULT');
+
+    --md-sys-color-tertiary: theme('colors.tertiary.DEFAULT');
+    --md-sys-color-on-tertiary: theme('colors.on-tertiary.DEFAULT');
+    --md-sys-color-tertiary-container: theme('colors.tertiary-container.DEFAULT');
+    --md-sys-color-on-tertiary-container: theme('colors.on-tertiary-container.DEFAULT');
+
+    --md-sys-color-error: theme('colors.error.DEFAULT');
+    --md-sys-color-on-error: theme('colors.on-error.DEFAULT');
+    --md-sys-color-error-container: theme('colors.error-container.DEFAULT');
+    --md-sys-color-on-error-container: theme('colors.on-error-container.DEFAULT');
+
+    --md-sys-color-surface: theme('colors.surface.DEFAULT');
+    --md-sys-color-on-surface: theme('colors.on-surface.DEFAULT');
+    --md-sys-color-surface-variant: theme('colors.surface-variant.DEFAULT');
+    --md-sys-color-on-surface-variant: theme('colors.on-surface-variant.DEFAULT');
+
+    --md-sys-color-outline: theme('colors.outline.DEFAULT');
+    --md-sys-color-outline-variant: theme('colors.outline-variant.DEFAULT');
+
+    /* TODO: Add state layer opacity variables if needed for effects like hover/pressed */
+    /* TODO: Add elevation variables if needed for shadows */
   }
 
   html.dark {
-    --md-sys-color-primary: #F97316;
-    --md-sys-color-on-primary: #000000;
-    --md-sys-color-primary-container: #7C2D03;
-    --md-sys-color-on-primary-container: #FFEDD5;
-    --md-sys-color-secondary: #A08C7D; /* TODO: Replace if dark specific value exists in tailwind.config.js */
-    --md-sys-color-tertiary: #705D50; /* TODO: Replace if dark specific value exists in tailwind.config.js */
-    --md-sys-color-error: #EF4444;
-    --md-sys-color-on-error: #F3F4F6;
-    --md-sys-color-error-container: #7F1D1D;
-    --md-sys-color-on-error-container: #410E0B; /* TODO: Check if needs dark version */
-    --md-sys-color-surface: #1F2937;
-    --md-sys-color-on-surface: #F3F4F6;
-    --md-sys-color-surface-variant: #374151;
-    --md-sys-color-on-surface-variant: #E5E7EB;
-    --md-sys-color-outline: #4B5563;
-    --md-sys-color-outline-variant: #D7C2B9; /* TODO: Check if needs dark version, often outline-variant is lighter in dark */
+    --md-sys-color-primary: theme('colors.primary.dark');
+    --md-sys-color-on-primary: theme('colors.on-primary.dark');
+    --md-sys-color-primary-container: theme('colors.primary-container.dark');
+    --md-sys-color-on-primary-container: theme('colors.on-primary-container.dark');
+
+    --md-sys-color-secondary: theme('colors.secondary.dark'); /* TODO: Define dark mode colors */
+    --md-sys-color-on-secondary: theme('colors.on-secondary.dark'); /* TODO: Define dark mode colors */
+    --md-sys-color-secondary-container: theme('colors.secondary-container.dark'); /* TODO: Define dark mode colors */
+    --md-sys-color-on-secondary-container: theme('colors.on-secondary-container.dark'); /* TODO: Define dark mode colors */
+
+    --md-sys-color-tertiary: theme('colors.tertiary.dark'); /* TODO: Define dark mode colors */
+    --md-sys-color-on-tertiary: theme('colors.on-tertiary.dark'); /* TODO: Define dark mode colors */
+    --md-sys-color-tertiary-container: theme('colors.tertiary-container.dark'); /* TODO: Define dark mode colors */
+    --md-sys-color-on-tertiary-container: theme('colors.on-tertiary-container.dark'); /* TODO: Define dark mode colors */
+
+    --md-sys-color-error: theme('colors.error.dark');
+    --md-sys-color-on-error: theme('colors.on-error.dark');
+    --md-sys-color-error-container: theme('colors.error-container.dark');
+    --md-sys-color-on-error-container: theme('colors.on-error-container.dark');
+
+    --md-sys-color-surface: theme('colors.surface.dark');
+    --md-sys-color-on-surface: theme('colors.on-surface.dark');
+    --md-sys-color-surface-variant: theme('colors.surface-variant.dark');
+    --md-sys-color-on-surface-variant: theme('colors.on-surface-variant.dark');
+
+    --md-sys-color-outline: theme('colors.outline.dark');
+    --md-sys-color-outline-variant: theme('colors.outline-variant.dark'); /* TODO: Define dark mode colors */
   }
 }
 
 @layer components {
-  .surface {
+  .card {
     @apply bg-surface dark:bg-surface-dark rounded-md-large p-6 border border-outline dark:border-outline-dark relative overflow-hidden;
   }
 
   .btn {
     @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
+    /* Add base hover/active state layer effect using ::before */
+    &::before {
+      content: '';
+      @apply absolute inset-0 bg-current opacity-0 transition-opacity duration-200 ease-in-out;
+    }
+    &:hover::before {
+      /* Using a fixed opacity value, ideally this would come from a CSS variable mapped in tailwind.config */
+      @apply opacity-10;
+    }
+    &:active::before {
+       @apply opacity-20; /* Slightly higher opacity for pressed state */
+    }
   }
 
   .btn-filled {
-    @apply btn bg-primary dark:bg-primary-dark text-on-primary dark:text-on-primary-dark;
+    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
+    @apply bg-primary dark:bg-primary-dark text-on-primary dark:text-on-primary-dark;
     /* Adding a subtle hover/active effect as an approximation of the state layer */
     @apply hover:opacity-90 active:opacity-80;
   }
 
   .btn-tonal {
-    @apply btn bg-surface-variant dark:bg-surface-variant-dark text-on-surface-variant dark:text-on-surface-variant-dark;
+    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
+    @apply bg-surface-variant dark:bg-surface-variant-dark text-on-surface-variant dark:text-on-surface-variant-dark;
     /* Adding a subtle hover/active effect */
     @apply hover:opacity-90 active:opacity-80;
   }
 
   .btn-error {
-    @apply btn bg-error dark:bg-error-dark text-on-error dark:text-on-error-dark;
+    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
+    @apply bg-error dark:bg-error-dark text-on-error dark:text-on-error-dark;
     @apply hover:opacity-90 active:opacity-80;
   }
 
   .btn-toggle-expand {
-    @apply bg-surface-variant dark:bg-surface-variant-dark text-on-surface-variant dark:text-on-surface-variant-dark p-2 h-9 min-w-[36px] rounded-md-small flex items-center justify-center transition-all duration-200 ease-in-out;
+    /* Applying necessary utility classes from .btn and specific styles */
+    @apply inline-flex cursor-pointer relative overflow-hidden whitespace-nowrap shrink-0 transition-all duration-200 ease-in-out;
+    @apply bg-surface-variant dark:bg-surface-variant-dark text-on-surface-variant dark:text-on-surface-variant-dark p-2 h-9 min-w-[36px] rounded-md-small flex items-center justify-center;
     /* Adding a subtle hover/active effect */
     @apply hover:opacity-90 active:opacity-80;
   }
 
+  .text-field {
+    @apply relative flex-1 min-w-0 w-full;
+  }
+
   .text-field-input {
-    @apply w-full px-4 py-3 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-base text-on-surface dark:text-on-surface-dark transition-colors duration-200 ease-in-out;
+    @apply w-full px-4 py-3 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-base text-on-surface dark:text-on-surface-dark transition-colors duration-200 ease-in-out box-border placeholder-transparent;
     @apply focus:outline-none focus:border-primary dark:focus:border-primary-dark;
     box-sizing: border-box; /* Ensure padding doesn't cause overflow */
   }
 
   .text-field-label {
-    @apply absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-on-surface-variant-dark transition-all duration-200 ease-in-out bg-surface dark:bg-surface-dark px-1 pointer-events-none origin-left;
+    @apply absolute left-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant dark:text-on-surface-variant-dark transition-all duration-200 ease-in-out bg-surface dark:bg-surface-dark px-1 pointer-events-none;
     /* Label floats up when input is focused or has content, remaining left-aligned */
-    @apply peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:scale-75 peer-focus:text-primary dark:peer-focus:text-primary-dark;
-    @apply peer-[&:not(:placeholder-shown)]:top-0 peer-[&:not(:placeholder-shown)]:-translate-y-1/2 peer-[&:not(:placeholder-shown)]:scale-75 peer-[&:not(:placeholder-shown)]:text-primary dark:peer-[&:not(:placeholder-shown)]:text-primary-dark;
+    @apply peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:scale-90 peer-focus:text-primary dark:peer-focus:text-primary-dark;
+    @apply peer-[&:not(:placeholder-shown)]:top-0 peer-[&:not(:placeholder-shown)]:-translate-y-1/2 peer-[&:not(:placeholder-shown)]:scale-90 peer-[&:not(:placeholder-shown)]:text-primary dark:peer-[&:not(:placeholder-shown)]:text-primary-dark;
+  }
+
+  .text-field-input:focus {
+    @apply outline-none border-primary dark:border-primary-dark;
   }
 
   .section-header-title {
@@ -98,33 +142,42 @@
   }
 
   .task-item {
-    @apply flex items-center justify-between px-4 py-3 rounded-md-small bg-surface-variant dark:bg-surface-variant-dark text-on-surface-variant dark:text-on-surface-variant-dark cursor-pointer border border-transparent transition-all duration-150 ease-in-out;
+    @apply flex items-center justify-between p-3 bg-surface-variant dark:bg-surface-variant-dark rounded-md-small cursor-pointer text-on-surface-variant dark:text-on-surface-variant-dark transition-all duration-150 ease-in-out border border-transparent box-border;
     /* Simulating state layer with opacity */
     @apply hover:bg-opacity-80 dark:hover:bg-opacity-80;
+  }
+  .task-item span {
+    @apply overflow-hidden text-ellipsis whitespace-nowrap flex-1 text-on-surface dark:text-on-surface-dark;
   }
   .task-item.active {
     @apply bg-primary-container dark:bg-primary-container-dark text-on-primary-container dark:text-on-primary-container-dark;
   }
-  .task-item .task-item-text {
-    @apply overflow-hidden text-ellipsis whitespace-nowrap flex-1 text-on-surface dark:text-on-surface-dark;
-  }
   .task-item .delete-button {
     /* Mobile first: visible, larger tap target */
-    @apply opacity-100 bg-transparent text-on-surface-variant dark:text-on-surface-variant-dark 
-           w-10 h-10 p-2 rounded-lg /* Consistent with desktop target below */
-           inline-flex items-center justify-center 
-           transition-all duration-200 ease-in-out 
-           hover:text-error dark:hover:text-error-dark 
-           hover:bg-error-container dark:hover:bg-error-container-dark
-           md:ml-2;
+    @apply inline-flex items-center justify-center p-2
+            opacity-0 transition-opacity duration-200 ease-in-out
+            bg-transparent text-on-surface-variant dark:text-on-surface-variant-dark
+            border-none cursor-pointer relative overflow-hidden;
     /* Desktop overrides: hidden by default, aim for ~40px clickable area, icon ~20px */
-    @apply md:opacity-0 md:w-10 md:h-10 md:p-2; /* Larger: 40px container, 8px padding -> 24px icon space */
+    @apply md:opacity-0 md:h-10 md:px-6 rounded-md-small; /* Larger: 40px container, 8px padding -> 24px icon space */
+
+    /* Add state layer effect using ::before, inherited from the concept of .btn but defined here */
+    &::before {
+      content: '';
+      @apply absolute inset-0 bg-current opacity-0 transition-opacity duration-200 ease-in-out rounded-md-small; /* Apply rounded corners to the pseudo-element as well */
+    }
+    &:hover::before {
+      @apply opacity-10;
+    }
+    &:active::before {
+      @apply opacity-20;
+    }
   }
   .task-item .delete-button .material-symbols-rounded {
     @apply text-xl; /* Explicitly 24px, can be 20px if preferred via text-lg */
   }
   .task-item:hover .delete-button {
-    @apply md:opacity-100;
+    @apply opacity-100;
   }
 
   .metric-item-container {
@@ -132,21 +185,24 @@
   }
   /* For the progress bar, JS will need to set the width via style="width: var(--progress)" on this element */
   .metric-item-progress-bar {
-    @apply absolute top-0 left-0 h-full bg-primary dark:bg-primary-dark opacity-10 transition-all duration-300 ease-in-out z-0;
+    @apply absolute top-0 left-0 h-full opacity-10 z-0;
+    transition: width 0.3s ease-in-out;
+    background-color: var(--bar-color, theme('colors.primary.DEFAULT'));
+    width: var(--progress, 0%);
   }
   .metric-item-content {
     @apply relative z-10;
   }
 
   .log-entry {
-    @apply flex items-center gap-2 px-3 py-2 text-sm text-on-surface dark:text-on-surface-dark rounded-md-small bg-surface-variant dark:bg-surface-variant-dark;
+    @apply flex items-center gap-2 p-2.5 bg-surface-variant dark:bg-surface-variant-dark rounded-md-small text-sm text-on-surface dark:text-on-surface-dark;
   }
   .log-entry .material-symbols-rounded {
     @apply text-lg;
   }
 
   .task-chip {
-    @apply inline-flex items-center gap-2 h-8 px-4 bg-transparent text-on-surface dark:text-on-surface-dark border border-outline dark:border-outline-dark rounded-md-small cursor-pointer transition-all duration-200 ease-in-out whitespace-nowrap text-sm select-none outline-none box-border;
+    @apply inline-flex flex-none items-center gap-2 h-8 px-4 bg-transparent text-on-surface dark:text-on-surface-dark border border-outline dark:border-outline-dark rounded-md-small cursor-pointer transition-all duration-200 ease-in-out whitespace-nowrap text-sm relative overflow-visible select-none outline-none box-border;
     @apply hover:border-on-surface dark:hover:border-on-surface-dark hover:opacity-90;
   }
   .task-chip.active {
@@ -205,8 +261,8 @@
 
   /* History Log Section */
   #historySection #log-scroll-container {
-    @apply overflow-hidden max-h-[800px]; /* Set initial max-height */
-    transition: max-height 0.6s cubic-bezier(0.2, 0, 0.4, 1);
+    @apply overflow-hidden max-h-[800px];
+    transition: max-height 0.5s ease-in-out, opacity 0.2s ease-out;
   }
   #historySection.collapsed #log-scroll-container {
     @apply max-h-0 opacity-0; /* Opacity can still transition if transition-all was on parent, or add transition-opacity here if needed */
@@ -221,5 +277,108 @@
   }
   #historySection.collapsed .btn-toggle-expand .material-symbols-rounded {
     @apply rotate-180;
+  }
+
+  .section-header {
+    @apply flex justify-between items-center mb-4;
+  }
+
+  .setting-item {
+    @apply flex flex-col gap-3 p-4 bg-surface-variant dark:bg-surface-variant-dark rounded-md-small;
+  }
+
+  .setting-item-header {
+    @apply flex justify-between items-center gap-3;
+  }
+
+  .time-input {
+    @apply grid grid-cols-[auto_1fr] items-center gap-2 max-w-[200px];
+  }
+
+  .time-input input {
+    @apply w-full max-w-[72px] px-3 py-2 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-base text-on-surface dark:text-on-surface-dark focus:outline-none focus:border-primary dark:focus:border-primary-dark;
+  }
+
+  .time-input .unit {
+    @apply text-on-surface-variant dark:text-on-surface-variant-dark whitespace-nowrap min-w-[32px] text-left pl-1;
+  }
+
+  /* Migrate inline-notification styles */
+  .inline-notification {
+    @apply fixed bottom-6 right-6 p-4 bg-surface dark:bg-surface-dark text-on-surface dark:text-on-surface-dark rounded-md-medium shadow-md flex items-start gap-3 z-[1000] min-w-[280px] max-w-md;
+    animation: slide-in 0.3s ease-out;
+  }
+
+  .inline-notification.fade-out {
+    animation: fade-out 0.3s ease-out forwards;
+  }
+
+  .inline-notification .material-symbols-rounded {
+    @apply text-primary dark:text-primary-dark text-2xl;
+  }
+
+  .inline-notification .notification-content {
+    @apply flex-1;
+  }
+
+  .inline-notification .notification-content strong {
+    @apply block mb-1 text-on-surface dark:text-on-surface-dark;
+  }
+
+  .inline-notification .notification-content p {
+    @apply m-0 text-sm text-on-surface-variant dark:text-on-surface-variant-dark;
+  }
+}
+
+@layer utilities {
+  /* Custom utility for scrollbar */
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 8px;
+  }
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background: theme('colors.surface-variant.DEFAULT');
+    border-radius: 4px;
+  }
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    background: theme('colors.outline.DEFAULT');
+    border-radius: 4px;
+  }
+  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.primary.DEFAULT');
+  }
+
+  .dark .scrollbar-custom::-webkit-scrollbar-track {
+    background: theme('colors.surface-variant.dark');
+  }
+
+  .dark .scrollbar-custom::-webkit-scrollbar-thumb {
+    background: theme('colors.outline.dark');
+  }
+
+   .dark .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.primary.dark');
+  }
+}
+
+/* Add keyframes for animations */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
   }
 } 
