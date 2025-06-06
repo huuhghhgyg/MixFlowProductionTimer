@@ -1,13 +1,6 @@
-import Storage from './storage.js';
-import { REST_ID } from './constants.js';
-
 // 移除 uiInstance 的导入
-export const STORAGE_KEYS = {
-    TASKS: 'mfpt_tasks',
-    HISTORY: 'mfpt_history',
-    ACTIVE_ENTRY: 'mfpt_active_entry',
-    TIMER_SETTINGS: 'mfpt_timer_settings'
-};
+import Storage from './storage.js'; // 确保导入 Storage
+import { REST_ID, STORAGE_KEYS } from './constants.js'; // 导入 STORAGE_KEYS
 
 class AppState {
     constructor() {
@@ -22,17 +15,22 @@ class AppState {
         };
         this.reminderTimeout = null;
         this.timeoutTimeout = null;
-        this.loadData();
+        // loadData 现在是异步的，但构造函数不能是异步的。
+        // 我们将启动加载过程，但依赖于一个单独的初始化函数来确保在使用 appState 之前数据已加载。
+        // this.loadData(); // 不再在构造函数中直接调用
         
         // 添加页面可见性变化监听
         document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
     }
 
-    loadData() {
-        this.tasks = Storage.getTasks() || [];
-        this.history = Storage.getHistory() || [];
-        this.activeEntry = Storage.getActiveEntry();
-        this.timerSettings = Storage.getTimerSettings();
+    async loadData() {
+        await Storage.loadDataFolderHandle(); // 首先加载文件夹句柄
+        this.tasks = await Storage.getTasks() || [];
+        this.history = await Storage.getHistory() || [];
+        this.activeEntry = await Storage.getActiveEntry();
+        const loadedTimerSettings = await Storage.getTimerSettings();
+        // 合并加载的设置和默认设置，以防某些键丢失
+        this.timerSettings = { ...this.timerSettings, ...loadedTimerSettings };
         
         // 如果有活动的任务，设置提醒和超时
         if (this.activeEntry) {
@@ -40,35 +38,36 @@ class AppState {
         }
     }
 
-    saveData() {
-        Storage.saveTasks(this.tasks);
-        Storage.saveHistory(this.history);
-        Storage.saveActiveEntry(this.activeEntry);
-        Storage.saveTimerSettings(this.timerSettings);
+    async saveData() {
+        await Storage.saveTasks(this.tasks);
+        await Storage.saveHistory(this.history);
+        await Storage.saveActiveEntry(this.activeEntry);
+        await Storage.saveTimerSettings(this.timerSettings);
     }
 
-    addTask(taskName) {
+    async addTask(taskName) {
         const task = {
             id: crypto.randomUUID(),
             name: taskName
         };
         this.tasks.push(task);
-        this.saveData();
+        await this.saveData();
         return task;
     }
 
-    deleteTask(taskId) {
+    async deleteTask(taskId) {
         if (this.activeEntry?.taskId === taskId) {
-            this.stopTask(taskId);
+            // 如果删除的是活动任务，先停止它
+            await this.stopTask(taskId, false); // 传入 false 表示不将停止视为一次正常的“完成”
         }
         this.tasks = this.tasks.filter(task => task.id !== taskId);
-        this.saveData();
+        await this.saveData();
     }
 
-    startTask(taskId, taskName) {
+    async startTask(taskId, taskName) {
         // 如果有活动任务，先停止它
         if (this.activeEntry) {
-            this.stopTask(this.activeEntry.taskId);
+            await this.stopTask(this.activeEntry.taskId, true); // 标记为正常停止
         }
 
         // 创建新的活动任务
@@ -89,59 +88,55 @@ class AppState {
         // 设置定时器
         this.setupTimers();
 
-        this.saveData();
+        await this.saveData();
         
         // 记录开始任务的调试信息
-        console.log(`任务 "${taskName}" 已开始，设置了提醒：${this.timerSettings.reminderEnabled ? this.timerSettings.reminderMinutes + '分钟' : '禁用'}, 超时：${this.timerSettings.timeoutEnabled ? this.timerSettings.timeoutMinutes + '分钟' : '禁用'}`);
+        console.debug(`Task started: ${taskName} (ID: ${taskId}) at ${new Date(this.activeEntry.startTime).toLocaleTimeString()}`);
+        document.dispatchEvent(new CustomEvent('mfpt:startTask', { detail: { taskId, taskName } }));
     }
 
-    stopTask(taskId) {
+    async stopTask(taskId, normalStop = true) {
         if (!this.activeEntry || this.activeEntry.taskId !== taskId) {
+            console.warn("Attempted to stop a task that is not active or does not match.");
             return;
         }
 
-        // 清除定时器
-        this.clearTimers();
+        const endTime = Date.now();
+        const duration = endTime - this.activeEntry.startTime;
 
-        const now = Date.now();
-        
-        // 记录停止事件
-        this.history.push({
-            taskId,
-            taskName: this.activeEntry.taskName,
-            type: taskId === REST_ID ? 'stop_rest' : 'stop',
-            timestamp: now
-        });
-
-        // 触发任务停止事件
-        document.dispatchEvent(new CustomEvent('mfpt:taskStopped', {
-            detail: {
-                taskId,
+        if (normalStop) {
+            this.history.push({
+                taskId: this.activeEntry.taskId,
                 taskName: this.activeEntry.taskName,
-                duration: now - this.activeEntry.startTime
-            }
-        }));
+                type: this.activeEntry.taskId === REST_ID ? 'stop_rest' : 'stop',
+                timestamp: endTime,
+                duration: duration
+            });
+        }
 
+        const stoppedTaskName = this.activeEntry.taskName;
         this.activeEntry = null;
-        this.saveData();
+        this.clearTimers();
+        await this.saveData();
+
+        console.debug(`Task stopped: ${stoppedTaskName} (ID: ${taskId}) at ${new Date(endTime).toLocaleTimeString()}. Duration: ${duration}ms`);
+        document.dispatchEvent(new CustomEvent('mfpt:stopTask', { detail: { taskId: taskId, taskName: stoppedTaskName, duration } }));
     }
 
-    clearHistory() {
-        if (this.activeEntry) {
-            this.stopTask(this.activeEntry.taskId);
-        }
+    async clearHistory() {
         this.history = [];
-        this.saveData();
+        await this.saveData();
     }
 
-    clearAllData() {
-        if (this.activeEntry) {
-            this.stopTask(this.activeEntry.taskId);
-        }
+    async clearAllData() {
         this.tasks = [];
         this.history = [];
         this.activeEntry = null;
-        this.saveData();
+        // 不清除定时器设置和文件夹句柄
+        // this.timerSettings = { ... }; 
+        await Storage.clearAllData(); // 调用 Storage 的 clearAllData
+        // 清除后重新加载数据（主要为了确保 timerSettings 等从 localStorage 或默认值加载）
+        await this.loadData(); 
     }
 
     getTasks() {
@@ -405,11 +400,31 @@ class AppState {
     }
 
     getTimerSettings() {
-        return { ...this.timerSettings };
+        return this.timerSettings;
+    }
+
+    async setDataFolder(handle) {
+        await Storage.setDataFolderHandle(handle);
+        // 数据源已更改，重新加载所有数据
+        await this.loadData();
+        // 可能需要触发UI更新事件
+        document.dispatchEvent(new CustomEvent('mfpt:dataLocationChanged'));
+    }
+
+    getDataFolderHandle() {
+        return Storage.dataFolderHandle;
     }
 }
 
-// 创建并导出单例实例
+// 创建单例实例
 const appState = new AppState();
-export { REST_ID };
-export default appState;
+
+// 异步初始化函数
+export async function initializeAppState() {
+    await appState.loadData();
+    // 可以在这里添加其他异步初始化步骤
+    console.log("AppState initialized and data loaded.");
+}
+
+export { REST_ID, appState }; // 导出 appState 实例
+export default appState; // 默认导出也保留，以防现有用法

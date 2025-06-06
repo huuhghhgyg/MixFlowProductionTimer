@@ -1,7 +1,7 @@
 import Timer from './timer.js';
 import Storage from './storage.js';
 import Charts from './charts.js';
-import appState from './core.js';
+import appState, { initializeAppState } from './core.js';
 import { REST_ID } from './constants.js';
 
 // 创建一个全局 UI 实例的引用，供其他模块使用
@@ -32,8 +32,10 @@ export function updateTimerDisplay(startTime) {
     }
 }
 
-class UI {
-    static init() {
+class UI {    static async init() {
+        // 首先初始化AppState，确保数据加载完成
+        await initializeAppState();
+        
         const ui = new UI();
         Charts.init();
         
@@ -91,9 +93,13 @@ class UI {
         this.fullscreenToggle = document.querySelector('.fullscreen-toggle');
         this.fullscreenToggleIcon = this.fullscreenToggle ? this.fullscreenToggle.querySelector('span') : null;
         this.fullscreenTimer = document.querySelector('.fullscreen-mode .timer');
-        this.taskChips = document.querySelector('.task-chips');
-
-        this.notificationStatus = document.querySelector('#notificationStatus');
+        this.taskChips = document.querySelector('.task-chips');        this.notificationStatus = document.querySelector('#notificationStatus');
+        
+        // Data storage elements
+        this.selectDataFolderButton = document.querySelector('#selectDataFolderButton');
+        this.clearSelectedFolderButton = document.querySelector('#clearSelectedFolderButton');
+        this.currentStorageStatus = document.querySelector('#currentStorageStatus');
+        this.currentStorageLocationText = document.querySelector('#currentStorageLocationText');
 
         this.setupEventListeners();
         this.initializeState();
@@ -106,13 +112,15 @@ class UI {
             if (e.key === 'Enter') {
                 this.addTask();
             }
-        });
-
-        // Activity controls
+        });        // Activity controls
         this.startRestButton.addEventListener('click', () => this.startRest());
         this.stopActivityButton.addEventListener('click', () => this.stopCurrentActivity());
         this.clearHistoryButton.addEventListener('click', () => this.clearHistory());
         this.clearDataButton.addEventListener('click', () => this.clearAllData());
+        
+        // Data storage controls
+        this.selectDataFolderButton.addEventListener('click', () => this.selectDataFolder());
+        this.clearSelectedFolderButton.addEventListener('click', () => this.clearSelectedFolder());
 
         // Fullscreen mode
         this.fullscreenToggle.addEventListener('click', () => this.toggleFullscreen());
@@ -248,9 +256,7 @@ class UI {
             this.renderTasks();
             this.updateUI();
             this.updatePageTitle();
-        });
-
-        // 监听活动日志折叠/展开
+        });        // 监听活动日志折叠/展开
         // const toggleLogBtn = document.querySelector('#toggleHistoryLogButton'); // Already in this.toggleHistoryLogButton
         const logSectionElement = document.querySelector('#historySection');
         
@@ -260,9 +266,14 @@ class UI {
                 // CSS will handle the icon rotation based on the .collapsed class
             });
         }
-    }
 
-    initializeState() {
+        // 监听数据位置变更事件
+        document.addEventListener('mfpt:dataLocationChanged', () => {
+            console.log('收到数据位置变更事件');
+            this.updateStorageStatus();
+            this.updateUI();
+        });
+    }initializeState() {
         // 初始化定时器设置
         const settings = appState.getTimerSettings();
         this.reminderMinutesInput.value = settings.reminderMinutes;
@@ -276,6 +287,7 @@ class UI {
         this.calculateAndRenderMetrics();
         this.updateCurrentActivityDisplay();
         this.updateNotificationStatus();
+        this.updateStorageStatus();
     }
 
     updateSettingsState() {
@@ -755,10 +767,77 @@ class UI {
 
     onStop() {
         document.dispatchEvent(new CustomEvent('timer:stop'));
+    }    onReset() {
+        document.dispatchEvent(new CustomEvent('timer:reset'));
     }
 
-    onReset() {
-        document.dispatchEvent(new CustomEvent('timer:reset'));
+    // Data storage methods
+    async selectDataFolder() {
+        try {
+            // 检查浏览器是否支持File System Access API
+            if (!('showDirectoryPicker' in window)) {
+                alert('您的浏览器不支持文件系统访问功能。请使用最新版本的Chrome、Edge或其他支持的浏览器。');
+                return;
+            }
+
+            // 显示文件夹选择对话框
+            const folderHandle = await window.showDirectoryPicker();
+            
+            // 设置数据文件夹
+            await appState.setDataFolder(folderHandle);
+            
+            // 更新UI状态
+            this.updateStorageStatus();
+            
+            // 显示成功通知
+            this.showNotification('存储设置', `已成功切换到本地文件夹存储：${folderHandle.name}`);
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                // 用户取消了文件夹选择，不显示错误
+                return;
+            }
+            console.error('选择数据文件夹时出错:', error);
+            alert('选择文件夹时出现错误，请重试。');
+        }
+    }
+
+    async clearSelectedFolder() {
+        try {
+            // 询问用户确认
+            if (!confirm('确定要恢复默认存储吗？这将切换回浏览器内部存储，但不会删除现有的本地文件。')) {
+                return;
+            }
+
+            // 清除文件夹句柄
+            await appState.setDataFolder(null);
+            
+            // 更新UI状态
+            this.updateStorageStatus();
+            
+            // 显示成功通知
+            this.showNotification('存储设置', '已恢复到浏览器内部存储');
+        } catch (error) {
+            console.error('恢复默认存储时出错:', error);
+            alert('恢复默认存储时出现错误，请重试。');
+        }
+    }
+
+    updateStorageStatus() {
+        const folderHandle = appState.getDataFolderHandle();
+        
+        if (folderHandle) {
+            this.currentStorageStatus.className = 'notification-status success';
+            this.currentStorageStatus.innerHTML = `
+                <span class="material-symbols-rounded">folder</span>
+                <span class="status-text">当前存储: 本地文件夹 (${folderHandle.name})</span>
+            `;
+        } else {
+            this.currentStorageStatus.className = 'notification-status info';
+            this.currentStorageStatus.innerHTML = `
+                <span class="material-symbols-rounded">database</span>
+                <span class="status-text">当前存储: 浏览器内部存储</span>
+            `;
+        }
     }
 }
 

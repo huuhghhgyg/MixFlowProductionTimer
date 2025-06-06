@@ -137,6 +137,35 @@
             </div>
         </div>
 
+        <!-- 数据存储设置卡片 -->
+        <div class="data-storage-settings-section card">
+            <header class="section-header flex justify-between items-center mb-4">
+                <h2 class="section-header-title">数据存储设置</h2>
+            </header>
+            <div class="settings-content flex flex-col gap-4">
+                <p class="text-sm text-on-surface-variant dark:text-on-surface-variant-dark">
+                    您可以选择一个本地文件夹来存储应用数据。如果未选择，数据将默认存储在浏览器内部。
+                </p>
+                
+                <div id="currentStorageStatus" class="notification-status p-3 rounded-lg border border-outline dark:border-outline-dark bg-surface-container-lowest dark:bg-surface-container-lowest-dark flex items-center gap-2">
+                    <span class="material-symbols-rounded text-xl text-on-surface-variant dark:text-on-surface-variant-dark">database</span>
+                    <span id="currentStorageLocationText" class="text-sm text-on-surface-variant dark:text-on-surface-variant-dark">当前存储: 浏览器内部存储</span>
+                </div>
+
+                <div class="buttons-group flex flex-col sm:flex-row gap-3 mt-2">
+                    <button id="selectDataFolderButton" class="btn-tonal w-full sm:w-auto flex-1 flex items-center justify-center gap-2 min-w-[140px]">
+                        <span class="material-symbols-rounded">folder_open</span>
+                        <span>选择文件夹</span>
+                    </button>
+                    <button id="clearSelectedFolderButton" class="btn-tonal w-full sm:w-auto flex-1 flex items-center justify-center gap-2 min-w-[140px]">
+                        <span class="material-symbols-rounded">replay</span>
+                        <span>恢复默认</span>
+                    </button>
+                </div>
+                <p id="selectedFolderPath" class="hidden" title=""></p> 
+            </div>
+        </div>
+
         <div id="historySection" class="card collapsed">
             <header class="section-header flex justify-between items-center gap-2 mb-4">
                 <h2 class="section-header-title">活动日志</h2>
@@ -177,11 +206,9 @@
         import UI from './assets/js/ui.js';
         import appState from './assets/js/core.js';
         import Charts from './assets/js/charts.js';
-        import Timer from './assets/js/timer.js';
-
-        // 初始化应用
-        document.addEventListener('DOMContentLoaded', () => {
-            UI.init();
+        import Timer from './assets/js/timer.js';        // 初始化应用
+        document.addEventListener('DOMContentLoaded', async () => {
+            await UI.init();
         });
     </script>
 </body>

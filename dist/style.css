@@ -1699,6 +1699,10 @@ html.dark {
   inset: 0px;
 }
 
+.bottom-6 {
+  bottom: 1.5rem;
+}
+
 .bottom-8 {
   bottom: 2rem;
 }
@@ -1727,10 +1731,6 @@ html.dark {
   top: 1.5rem;
 }
 
-.bottom-6 {
-  bottom: 1.5rem;
-}
-
 .z-\[1000\] {
   z-index: 1000;
 }
@@ -1757,6 +1757,10 @@ html.dark {
   margin-bottom: 0px;
 }
 
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
 .mb-4 {
   margin-bottom: 1rem;
 }
@@ -1769,12 +1773,12 @@ html.dark {
   margin-top: 3.5rem;
 }
 
-.mt-4 {
-  margin-top: 1rem;
+.mt-2 {
+  margin-top: 0.5rem;
 }
 
-.mb-1 {
-  margin-bottom: 0.25rem;
+.mt-4 {
+  margin-top: 1rem;
 }
 
 .block {
@@ -1791,6 +1795,14 @@ html.dark {
 
 .grid {
   display: grid;
+}
+
+.contents {
+  display: contents;
+}
+
+.hidden {
+  display: none;
 }
 
 .h-0 {
@@ -1861,16 +1873,16 @@ html.dark {
   min-width: 140px;
 }
 
+.min-w-\[280px\] {
+  min-width: 280px;
+}
+
 .min-w-\[32px\] {
   min-width: 32px;
 }
 
 .min-w-\[800px\] {
   min-width: 800px;
-}
-
-.min-w-\[280px\] {
-  min-width: 280px;
 }
 
 .max-w-6xl {
@@ -1995,12 +2007,16 @@ html.dark {
   border-radius: 9999px;
 }
 
-.rounded-md-small {
-  border-radius: 8px;
+.rounded-lg {
+  border-radius: 0.5rem;
 }
 
 .rounded-md-medium {
   border-radius: 12px;
+}
+
+.rounded-md-small {
+  border-radius: 8px;
 }
 
 .border {
@@ -2028,6 +2044,10 @@ html.dark {
 
 .bg-transparent {
   background-color: transparent;
+}
+
+.p-3 {
+  padding: 0.75rem;
 }
 
 .p-4 {
@@ -2087,6 +2107,11 @@ html.dark {
   font-family: Google Sans Text, system-ui, sans-serif;
 }
 
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
 .text-3xl {
   font-size: 1.875rem;
   line-height: 2.25rem;
@@ -2115,11 +2140,6 @@ html.dark {
 .text-xl {
   font-size: 1.25rem;
   line-height: 1.75rem;
-}
-
-.text-2xl {
-  font-size: 1.5rem;
-  line-height: 2rem;
 }
 
 .font-light {
@@ -2159,6 +2179,11 @@ html.dark {
 .text-on-surface-variant {
   --tw-text-opacity: 1;
   color: rgb(82 68 61 / var(--tw-text-opacity, 1));
+}
+
+.text-on-surface-variant-dark {
+  --tw-text-opacity: 1;
+  color: rgb(229 231 235 / var(--tw-text-opacity, 1));
 }
 
 .text-primary {
@@ -2361,6 +2386,16 @@ html.dark {
   content: var(--tw-content);
   --tw-bg-opacity: 1;
   background-color: rgb(185 94 32 / var(--tw-bg-opacity, 1));
+}
+
+@media (min-width: 640px) {
+  .sm\:w-auto {
+    width: auto;
+  }
+
+  .sm\:flex-row {
+    flex-direction: row;
+  }
 }
 
 @media (min-width: 768px) {
