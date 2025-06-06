@@ -89,6 +89,7 @@ class UI {
         // Fullscreen elements
         this.fullscreenMode = document.querySelector('.fullscreen-mode');
         this.fullscreenToggle = document.querySelector('.fullscreen-toggle');
+        this.fullscreenToggleIcon = this.fullscreenToggle ? this.fullscreenToggle.querySelector('span') : null;
         this.fullscreenTimer = document.querySelector('.fullscreen-mode .timer');
         this.taskChips = document.querySelector('.task-chips');
 
@@ -154,7 +155,6 @@ class UI {
         
         toggleHeatmapBtn?.addEventListener('click', () => {
             let isCollapsed = heatmapSection.classList.contains('collapsed');
-            console.log('isCollapsed:', isCollapsed,'classList:', heatmapSection.classList);
             if (isCollapsed) {
                 // 展开热力图
                 heatmapSection.classList.remove('collapsed');
@@ -429,15 +429,17 @@ class UI {
             }
             taskItem.setAttribute('data-task-id', task.id);
             
-            const taskName = document.createElement('span');
-            taskName.textContent = task.name;
+            const taskNameSpan = document.createElement('span');
+            taskNameSpan.className = 'task-item-text';
+            taskNameSpan.textContent = task.name;
             
             const deleteButton = document.createElement('button');
-            deleteButton.className = 'button-tonal delete-button';
+            deleteButton.setAttribute('aria-label', `Delete task ${task.name}`);
             deleteButton.innerHTML = '<span class="material-symbols-rounded">delete</span>';
+            deleteButton.classList.add('delete-button');
             deleteButton.setAttribute('data-task-id', task.id);
             
-            taskItem.appendChild(taskName);
+            taskItem.appendChild(taskNameSpan);
             taskItem.appendChild(deleteButton);
             this.taskList.appendChild(taskItem);
         });
@@ -447,11 +449,8 @@ class UI {
         this.historyLogDiv.innerHTML = '';
         const history = appState.getHistory();
         const sortedHistory = [...history].sort((a, b) => {
-            // 首先按时间戳倒序排列
             const timeCompare = b.timestamp - a.timestamp;
             if (timeCompare !== 0) return timeCompare;
-            
-            // 如果时间戳相同，确保"结束"事件排在"开始"事件之前
             if (a.type.startsWith('stop') && b.type.startsWith('start')) return -1;
             if (a.type.startsWith('start') && b.type.startsWith('stop')) return 1;
             return 0;
@@ -459,6 +458,7 @@ class UI {
 
         sortedHistory.forEach(entry => {
             const p = document.createElement('p');
+            p.className = 'log-entry';
             const time = new Date(entry.timestamp).toLocaleTimeString();
             let icon = '';
             switch (entry.type) {
@@ -494,15 +494,12 @@ class UI {
 
     calculateAndRenderMetrics() {
         this.taskMetricsDiv.innerHTML = '';
-
-        // 获取选中的日期
         const selectedDate = Charts.datePicker?.valueAsDate || new Date();
         const startOfDay = new Date(selectedDate);
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(selectedDate);
         endOfDay.setHours(23, 59, 59, 999);
 
-        // 筛选当天的历史记录
         const history = appState.getHistory();
         const dayHistory = history.filter(record => {
             const recordDate = new Date(record.timestamp);
@@ -511,7 +508,6 @@ class UI {
 
         const taskTimes = {};
         let totalRestMs = 0;
-
         const sortedHistory = [...dayHistory].sort((a, b) => a.timestamp - b.timestamp);
         let currentStarts = {};
 
@@ -532,7 +528,6 @@ class UI {
             }
         });
 
-        // 添加当前活动任务的时间（如果在选定日期内）
         const activeEntry = appState.getActiveEntry();
         if (activeEntry && 
             new Date(activeEntry.startTime) >= startOfDay && 
@@ -545,48 +540,63 @@ class UI {
             }
         }
 
-        // Check if there's any meaningful data to display
         const hasTaskData = Object.values(taskTimes).some(time => time > 0);
         const hasRestData = totalRestMs > 0;
 
         if (!hasTaskData && !hasRestData) {
             const noDataDiv = document.createElement('div');
             noDataDiv.textContent = '当前日期没有任务记录';
-            noDataDiv.className = 'no-data-message';
+            noDataDiv.className = 'text-center text-on-surface-variant dark:text-on-surface-variant-dark py-4';
             this.taskMetricsDiv.appendChild(noDataDiv);
             return;
         }
 
-        // Calculate total time only if there's data
         const totalTimeMs = totalRestMs + Object.values(taskTimes).reduce((sum, time) => sum + time, 0);
 
-        // Render rest time only if it's positive or if there are other tasks
-        if (hasRestData || hasTaskData) { // Show rest time even if 0s, if other tasks exist
+        if (hasRestData || hasTaskData) {
             const restPercent = totalTimeMs > 0 ? (totalRestMs / totalTimeMs * 100) : 0;
-            const restDiv = document.createElement('div');
-            restDiv.textContent = `总休息时间: ${Timer.formatDuration(totalRestMs)}`;
-            restDiv.style.setProperty('--progress', `${restPercent}%`);
-            restDiv.style.setProperty('--bar-color', 'var(--md-sys-color-secondary)');
-            this.taskMetricsDiv.appendChild(restDiv);
+            const restItemContainer = document.createElement('div');
+            restItemContainer.className = 'metric-item-container';
+
+            const restProgressBar = document.createElement('div');
+            restProgressBar.className = 'metric-item-progress-bar';
+            restProgressBar.style.width = `${restPercent}%`;
+
+            const restContent = document.createElement('div');
+            restContent.className = 'metric-item-content';
+            restContent.textContent = `总休息时间: ${Timer.formatDuration(totalRestMs)}`;
+            
+            restItemContainer.appendChild(restProgressBar);
+            restItemContainer.appendChild(restContent);
+            this.taskMetricsDiv.appendChild(restItemContainer);
         }
 
-        // Render task times (only if they have time > 0)
         const tasks = appState.getTasks();
         const taskTimeArray = tasks
             .map(task => ({
+                id: task.id,
                 name: task.name,
                 time: taskTimes[task.id] || 0,
                 percent: totalTimeMs > 0 ? ((taskTimes[task.id] || 0) / totalTimeMs * 100) : 0
             }))
-            .filter(taskTime => taskTime.time > 0) // Filter out tasks with 0 time
+            .filter(taskTime => taskTime.time > 0)
             .sort((a, b) => b.time - a.time);
 
         taskTimeArray.forEach(taskTime => {
-            const div = document.createElement('div');
-            div.textContent = `${taskTime.name}: ${Timer.formatDuration(taskTime.time)}`;
-            div.style.setProperty('--progress', `${taskTime.percent}%`);
-            div.style.setProperty('--bar-color', 'var(--md-sys-color-primary)');
-            this.taskMetricsDiv.appendChild(div);
+            const taskItemContainer = document.createElement('div');
+            taskItemContainer.className = 'metric-item-container';
+
+            const taskProgressBar = document.createElement('div');
+            taskProgressBar.className = 'metric-item-progress-bar';
+            taskProgressBar.style.width = `${taskTime.percent}%`;
+
+            const taskContent = document.createElement('div');
+            taskContent.className = 'metric-item-content';
+            taskContent.textContent = `${taskTime.name}: ${Timer.formatDuration(taskTime.time)}`;
+
+            taskItemContainer.appendChild(taskProgressBar);
+            taskItemContainer.appendChild(taskContent);
+            this.taskMetricsDiv.appendChild(taskItemContainer);
         });
     }
 
@@ -634,7 +644,7 @@ class UI {
         const activeEntry = appState.getActiveEntry();
         restChip.className = 'task-chip' + (activeEntry?.taskId === REST_ID ? ' active' : '');
         restChip.innerHTML = `
-            <div class="chip-content">
+            <div class="chip-content flex items-center gap-2">
                 <span class="material-symbols-rounded">coffee</span>
                 <span class="chip-text">休息</span>
                 ${activeEntry?.taskId === REST_ID ? '<span class="material-symbols-rounded check-icon">done</span>' : ''}
@@ -649,7 +659,7 @@ class UI {
             const chip = document.createElement('div');
             chip.className = 'task-chip' + (activeEntry?.taskId === task.id ? ' active' : '');
             chip.innerHTML = `
-                <div class="chip-content">
+                <div class="chip-content flex items-center gap-2">
                     <span class="chip-text">${task.name}</span>
                     ${activeEntry?.taskId === task.id ? '<span class="material-symbols-rounded check-icon">done</span>' : ''}
                 </div>
@@ -700,8 +710,40 @@ class UI {
         });
     }
 
-    showNotification(message) {
-        // 实现通知功能
+    showNotification(title, message) {
+        console.log(`发送通知: ${title} - ${message}`);
+        
+        // 触发自定义事件，用于显示内联通知
+        document.dispatchEvent(new CustomEvent('mfpt:notification', {
+            detail: { title, message, timestamp: Date.now() }
+        }));
+
+        // 创建一个内联通知元素并应用 Tailwind 类
+        const notification = document.createElement('div');
+        // 应用 Tailwind 类
+        notification.className = 'inline-notification fixed bottom-6 right-6 p-4 bg-surface dark:bg-surface-dark text-on-surface dark:text-on-surface-dark rounded-md-medium shadow-md flex items-start gap-3 z-[1000] min-w-[280px] max-w-md';
+        notification.innerHTML = `
+            <span class="material-symbols-rounded text-primary dark:text-primary-dark text-2xl">notifications</span>
+            <div class="notification-content flex-1">
+                <strong class="block mb-1 text-on-surface dark:text-on-surface-dark">${title}</strong>
+                <p class="m-0 text-sm text-on-surface-variant dark:text-on-surface-variant-dark">${message}</p>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // 3秒后自动移除通知
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                // Check if the element still exists before attempting to remove
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 300); // Match CSS animation duration
+        }, 3000);
+
+        // 尝试发送系统通知
         if ('Notification' in window && Notification.permission === 'granted') {
             new Notification('生产计时器', { body: message });
         }
