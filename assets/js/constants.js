@@ -22,7 +22,7 @@ export const COLOR_THEMES = {
         id: 'green',
         name: '晨曦绿',
         description: '清新的绿色调，适合早晨工作',
-        timeRange: [6, 11],
+        timeRange: [6, 10],
         colors: {
             light: {
                 primary: '#416900',
@@ -72,11 +72,12 @@ export const COLOR_THEMES = {
                 outline: '#8F9285',
                 outlineVariant: '#44483D'
             }
-        }    },    BLUE: {
+        }
+    }, BLUE: {
         id: 'blue',
         name: '正午蓝',
         description: '深邃的蓝色调，保持专注',
-        timeRange: [11, 14],        colors: {
+        timeRange: [10, 13], colors: {
             light: {
                 primary: '#006590',
                 onPrimary: '#FFFFFF',
@@ -125,11 +126,12 @@ export const COLOR_THEMES = {
                 outline: '#8B9198',
                 outlineVariant: '#41484D'
             }
-        }    },    YELLOW: {
+        }
+    }, YELLOW: {
         id: 'yellow',
         name: '午后黄',
         description: '温暖的黄色调，保持活力',
-        timeRange: [14, 18],
+        timeRange: [13, 16],
         colors: {
             light: {
                 primary: '#9D4300',
@@ -185,7 +187,7 @@ export const COLOR_THEMES = {
         id: 'orange',
         name: '夕阳橙',
         description: '温暖的夕阳色调，舒缓夜晚',
-        timeRange: [18, 22],
+        timeRange: [16, 19],
         colors: {
             light: {
                 primary: '#8C4E42',
@@ -235,12 +237,13 @@ export const COLOR_THEMES = {
                 outline: '#84716D',
                 outlineVariant: '#554441'
             }
-        }},
+        }
+    },
     PURPLE: {
         id: 'purple',
         name: '夜幕紫',
         description: '深邃的紫色调，宁静夜晚',
-        timeRange: [22, 6],
+        timeRange: [19, 6],
         colors: {
             light: {
                 primary: '#3F4FD0',
