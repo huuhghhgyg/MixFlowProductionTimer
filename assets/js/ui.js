@@ -48,11 +48,8 @@ class UI {
 
         // 检查并请求通知权限
         if ('Notification' in window && Notification.permission !== 'granted') {
-            Notification.requestPermission();
-        }
+            Notification.requestPermission();        }
 
-        // 发布初始化完成事件
-        document.dispatchEvent(new CustomEvent('mfpt:uiInitialized', { detail: { ui } }));
         return ui;
     }
 
@@ -97,196 +94,11 @@ class UI {
         this.currentThemeDescText = document.querySelector('#currentThemeDescText');
         this.currentThemeModeText = document.querySelector('#currentThemeModeText');
         this.manualThemeSelection = document.querySelector('#manualThemeSelection');
-        this.themeOptions = document.querySelectorAll('.theme-option');
-
-        this.setupEventListeners();
+        this.themeOptions = document.querySelectorAll('.theme-option');        this.setupEventListeners();
         this.initializeState();
     }
 
-    setupEventListeners() {
-        // Task management
-        this.addTaskButton.addEventListener('click', () => this.addTask());
-        this.newTaskInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                this.addTask();
-            }
-        });        // Activity controls
-        this.startRestButton.addEventListener('click', () => this.startRest());
-        this.stopActivityButton.addEventListener('click', () => this.stopCurrentActivity());
-        this.clearHistoryButton.addEventListener('click', () => this.clearHistory());
-        this.clearDataButton.addEventListener('click', () => this.clearAllData());
-        // Data storage controls
-        this.selectDataFolderButton.addEventListener('click', () => this.selectDataFolder());
-        this.clearSelectedFolderButton.addEventListener('click', () => this.clearSelectedFolder());
-
-        // Theme controls
-        this.autoThemeSwitch.addEventListener('change', (e) => this.toggleThemeMode(e.target.checked));
-        this.themeOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                const themeId = e.currentTarget.getAttribute('data-theme');
-                this.selectManualTheme(themeId);
-            });
-        });
-
-        // Listen for theme changes
-        document.addEventListener('mfpt:themeChanged', (e) => this.updateThemeStatus(e.detail));
-
-        // Fullscreen mode
-        this.fullscreenToggle.addEventListener('click', () => this.toggleFullscreen());
-        document.addEventListener('keydown', (e) => {
-            if (e.altKey && (e.key === 'f' || e.key === 'F')) {
-                e.preventDefault();
-                this.toggleFullscreen();
-            }
-        });
-
-        // Task list delegation
-        this.taskList.addEventListener('click', async (e) => { // Add async
-            const taskItem = e.target.closest('.task-item');
-            const deleteButton = e.target.closest('.delete-button');
-
-            if (deleteButton) {
-                const taskId = deleteButton.getAttribute('data-task-id');
-                if (taskId) {
-                    this.deleteTask(taskId);
-                }
-            } else if (taskItem) {
-                const taskId = taskItem.getAttribute('data-task-id');
-                if (taskId) {
-                    // Ensure appState.activeEntry is set before UI updates that depend on it.
-                    await this.startTask(taskId); // Add await
-                }
-            }
-        });
-
-        // Visibility change
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                this.updateUI();
-            }
-        });
-
-        window.addEventListener('resize', () => {
-            this.updateUI();
-        });
-
-        // 监听热力图折叠/展开
-        const toggleHeatmapBtn = document.querySelector('#toggleHeatmapButton');
-        const heatmapSection = document.querySelector('#heatmapSection');
-
-        toggleHeatmapBtn?.addEventListener('click', () => {
-            let isCollapsed = heatmapSection.classList.contains('collapsed');
-            if (isCollapsed) {
-                // 展开热力图
-                heatmapSection.classList.remove('collapsed');
-                // 等待过渡动画完成后重绘热力图
-                setTimeout(() => {
-                    Charts.workloadHeatmap?.resize();
-                    Charts.updateHeatmap();
-                }, 300); // 等待过渡动画完成
-            } else {
-                // 折叠热力图
-                heatmapSection.classList.add('collapsed');
-            }
-        });
-
-        // 监听日期更改事件
-        document.addEventListener('dateChange', (e) => {
-            this.calculateAndRenderMetrics();
-        });
-
-        // Timer settings
-        this.reminderMinutesInput.addEventListener('change', () => {
-            const value = parseInt(this.reminderMinutesInput.value);
-            if (value > 0) {
-                appState.updateTimerSettings({ reminderMinutes: value });
-            } else {
-                // 恢复保存的值
-                const settings = appState.getTimerSettings();
-                this.reminderMinutesInput.value = settings.reminderMinutes;
-            }
-        });
-
-        this.timeoutMinutesInput.addEventListener('change', () => {
-            const value = parseInt(this.timeoutMinutesInput.value);
-            if (value > 0) {
-                appState.updateTimerSettings({ timeoutMinutes: value });
-            } else {
-                // 恢复保存的值
-                const settings = appState.getTimerSettings();
-                this.timeoutMinutesInput.value = settings.timeoutMinutes;
-            }
-        });
-
-        // 开关状态变化处理
-        this.reminderEnabledInput.addEventListener('change', () => {
-            const checked = this.reminderEnabledInput.checked;
-            appState.updateTimerSettings({ reminderEnabled: checked });
-            this.updateSettingsState();
-        });
-
-        this.timeoutEnabledInput.addEventListener('change', () => {
-            const checked = this.timeoutEnabledInput.checked;
-            appState.updateTimerSettings({ timeoutEnabled: checked });
-            this.updateSettingsState();
-        });
-
-        // 监听通知事件
-        document.addEventListener('mfpt:notification', (event) => {
-            const { title, message } = event.detail;
-            // 创建一个内联通知
-            const notification = document.createElement('div');
-            notification.className = 'inline-notification';
-            notification.innerHTML = `
-                <span class="material-symbols-rounded">notifications</span>
-                <div class="notification-content">
-                    <strong>${title}</strong>
-                    <p>${message}</p>
-                </div>
-            `;
-
-            document.body.appendChild(notification);
-
-            // 3秒后自动移除通知
-            setTimeout(() => {
-                notification.classList.add('fade-out');
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
-        });
-
-        // 监听强制更新事件
-        document.addEventListener('mfpt:forceUpdate', () => {
-            console.log('收到强制更新事件');
-            this.updateUI();
-        });
-
-        // 监听任务停止事件 - 添加这个监听器来响应任务自动停止事件
-        document.addEventListener('mfpt:taskStopped', (event) => {
-            console.log('收到任务停止事件:', event.detail);
-            // 更新UI界面
-            this.renderTasks();
-            this.updateUI();
-            this.updatePageTitle();
-        });        // 监听活动日志折叠/展开
-        // const toggleLogBtn = document.querySelector('#toggleHistoryLogButton'); // Already in this.toggleHistoryLogButton
-        const logSectionElement = document.querySelector('#historySection');
-
-        if (this.toggleHistoryLogButton && logSectionElement) {
-            this.toggleHistoryLogButton.addEventListener('click', () => {
-                logSectionElement.classList.toggle('collapsed');
-                // CSS will handle the icon rotation based on the .collapsed class
-            });
-        }
-
-        // 监听数据位置变更事件
-        document.addEventListener('mfpt:dataLocationChanged', () => {
-            console.log('收到数据位置变更事件');
-            this.updateStorageStatus();
-            this.updateUI();
-        });
-    } initializeState() {
+    initializeState() {
         // 初始化定时器设置
         const settings = appState.getTimerSettings();
         this.reminderMinutesInput.value = settings.reminderMinutes;
@@ -454,14 +266,7 @@ class UI {
                 setTimeout(() => {
                     document.body.removeChild(notification);
                 }, 300);
-            }, 3000);
-        });
-
-        // 监听强制更新事件
-        document.addEventListener('mfpt:forceUpdate', () => {
-            console.log('收到强制更新事件');
-            this.updateUI();
-        });
+            }, 3000);        });
 
         // 监听任务停止事件 - 添加这个监听器来响应任务自动停止事件
         document.addEventListener('mfpt:taskStopped', (event) => {
@@ -585,41 +390,29 @@ class UI {
         this.calculateAndRenderMetrics();
         this.renderHistory(); // 添加这行
     }
-    
-    async startTask(taskId) { // Add async
+      startTask(taskId) {
         const tasks = appState.getTasks();
         const task = tasks.find(t => t.id === taskId);
         if (!task) return;
 
-        // 启动任务 - 先更新应用状态
-        await appState.startTask(taskId, task.name); // Add await
-
-        // 立即更新计时器显示
-        this.updateCurrentActivityDisplay();
-
-        // 更新任务列表和其他UI元素
-        this.renderTasks();
-        this.updatePageTitle(task.name);
-
-        // 更新其他UI组件
-        this.calculateAndRenderMetrics();
-        Charts.updateGanttChart();
-    }
-    
-    async startRest() { // Add async
-        // 启动休息任务 - 先更新应用状态
-        await appState.startTask(REST_ID, '休息'); // Add await
-
-        // 立即更新计时器显示
-        this.updateCurrentActivityDisplay();
-
-        // 更新任务列表和其他UI元素
-        this.renderTasks();
-        this.updatePageTitle('休息中');
-
-        // 更新其他UI组件
-        this.calculateAndRenderMetrics();
-        Charts.updateGanttChart();
+        appState.startTask(taskId, task.name, () => {
+            this.updateCurrentActivityDisplay();
+            this.renderTasks();
+            this.updatePageTitle(task.name);
+            this.calculateAndRenderMetrics();
+            Charts.updateGanttChart();
+            this.renderTaskChips();  // 这个方法已经存在
+        });    }
+      
+    startRest() {
+        appState.startTask(REST_ID, '休息', () => {
+            this.updateCurrentActivityDisplay();
+            this.renderTasks();
+            this.updatePageTitle('休息中');
+            this.calculateAndRenderMetrics();
+            Charts.updateGanttChart();
+            this.renderTaskChips();  // 这个方法已经存在
+        });
     }
 
     stopCurrentActivity() {

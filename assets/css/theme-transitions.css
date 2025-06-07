@@ -2,39 +2,39 @@
 :root {
   /* 主题切换时所有颜色属性的过渡效果 */
   transition: 
-    --md-sys-color-primary 0.3s ease-in-out,
-    --md-sys-color-on-primary 0.3s ease-in-out,
-    --md-sys-color-primary-container 0.3s ease-in-out,
-    --md-sys-color-on-primary-container 0.3s ease-in-out,
-    --md-sys-color-secondary 0.3s ease-in-out,
-    --md-sys-color-on-secondary 0.3s ease-in-out,
-    --md-sys-color-secondary-container 0.3s ease-in-out,
-    --md-sys-color-on-secondary-container 0.3s ease-in-out,
-    --md-sys-color-tertiary 0.3s ease-in-out,
-    --md-sys-color-on-tertiary 0.3s ease-in-out,
-    --md-sys-color-tertiary-container 0.3s ease-in-out,
-    --md-sys-color-on-tertiary-container 0.3s ease-in-out,
-    --md-sys-color-error 0.3s ease-in-out,
-    --md-sys-color-on-error 0.3s ease-in-out,
-    --md-sys-color-error-container 0.3s ease-in-out,
-    --md-sys-color-on-error-container 0.3s ease-in-out,
-    --md-sys-color-surface 0.3s ease-in-out,
-    --md-sys-color-on-surface 0.3s ease-in-out,
-    --md-sys-color-surface-variant 0.3s ease-in-out,
-    --md-sys-color-on-surface-variant 0.3s ease-in-out,
-    --md-sys-color-outline 0.3s ease-in-out,
-    --md-sys-color-outline-variant 0.3s ease-in-out;
+    --md-sys-color-primary 0.3s linear,
+    --md-sys-color-on-primary 0.3s linear,
+    --md-sys-color-primary-container 0.3s linear,
+    --md-sys-color-on-primary-container 0.3s linear,
+    --md-sys-color-secondary 0.3s linear,
+    --md-sys-color-on-secondary 0.3s linear,
+    --md-sys-color-secondary-container 0.3s linear,
+    --md-sys-color-on-secondary-container 0.3s linear,
+    --md-sys-color-tertiary 0.3s linear,
+    --md-sys-color-on-tertiary 0.3s linear,
+    --md-sys-color-tertiary-container 0.3s linear,
+    --md-sys-color-on-tertiary-container 0.3s linear,
+    --md-sys-color-error 0.3s linear,
+    --md-sys-color-on-error 0.3s linear,
+    --md-sys-color-error-container 0.3s linear,
+    --md-sys-color-on-error-container 0.3s linear,
+    --md-sys-color-surface 0.3s linear,
+    --md-sys-color-on-surface 0.3s linear,
+    --md-sys-color-surface-variant 0.3s linear,
+    --md-sys-color-on-surface-variant 0.3s linear,
+    --md-sys-color-outline 0.3s linear,
+    --md-sys-color-outline-variant 0.3s linear;
 }
 
 /* 所有使用主题颜色的元素都应该有过渡效果 */
 * {
   transition: 
-    background-color 0.3s ease-in-out,
-    color 0.3s ease-in-out,
-    border-color 0.3s ease-in-out,
-    box-shadow 0.3s ease-in-out,
-    fill 0.3s ease-in-out,
-    stroke 0.3s ease-in-out;
+    background-color 0.3s linear,
+    color 0.3s linear,
+    border-color 0.3s linear,
+    box-shadow 0.3s linear,
+    fill 0.3s linear,
+    stroke 0.3s linear;
 }
 
 /* 针对特定主题类的样式增强 */

@@ -57,16 +57,24 @@ class AppState {
     async deleteTask(taskId) {
         if (this.activeEntry?.taskId === taskId) {
             // 如果删除的是活动任务，先停止它
-            await this.stopTask(taskId, false); // 传入 false 表示不将停止视为一次正常的“完成”
+            await this.stopTask(taskId, false, () => {
+                console.log(`Task ${taskId} stopped as part of deletion.`);
+            }); 
         }
         this.tasks = this.tasks.filter(task => task.id !== taskId);
         await this.saveData();
     }
 
-    async startTask(taskId, taskName) {
+    async startTask(taskId, taskName, onStartedCallback) { // Add onStartedCallback
         // 如果有活动任务，先停止它
         if (this.activeEntry) {
-            await this.stopTask(this.activeEntry.taskId, true); // 标记为正常停止
+            await this.stopTask(this.activeEntry.taskId, true, () => {
+                console.log(`Previous task ${this.activeEntry?.taskName} stopped to start new task ${taskName}.`);
+                // 旧任务停止后的特定UI更新（如果需要的话）可以在这里，
+                // 但主要的“新任务已启动”的UI更新由 onStartedCallback 负责。
+                // 通常，我们可能只需要确保任务列表等已刷新。
+                // document.dispatchEvent(new CustomEvent('mfpt:coreTaskStoppedForNew', { detail: { taskId: this.activeEntry.taskId } }));
+            }); 
         }
 
         // 创建新的活动任务
@@ -85,18 +93,22 @@ class AppState {
         });
 
         // 设置定时器
-        this.setupTimers();
-
-        await this.saveData();
+        this.setupTimers();        await this.saveData();
         
         // 记录开始任务的调试信息
         console.debug(`Task started: ${taskName} (ID: ${taskId}) at ${new Date(this.activeEntry.startTime).toLocaleTimeString()}`);
-        document.dispatchEvent(new CustomEvent('mfpt:startTask', { detail: { taskId, taskName } }));
+
+        if (onStartedCallback && typeof onStartedCallback === 'function') {
+            onStartedCallback();
+        }
     }
 
-    async stopTask(taskId, normalStop = true) {
+    async stopTask(taskId, normalStop = true, onStoppedCallback) { // Add onStoppedCallback
         if (!this.activeEntry || this.activeEntry.taskId !== taskId) {
             console.warn("Attempted to stop a task that is not active or does not match.");
+            if (onStoppedCallback && typeof onStoppedCallback === 'function') {
+                onStoppedCallback(false); // Indicate failure or no-op
+            }
             return;
         }
 
@@ -111,15 +123,25 @@ class AppState {
                 timestamp: endTime,
                 duration: duration
             });
-        }
-
-        const stoppedTaskName = this.activeEntry.taskName;
+        }        const stoppedTaskName = this.activeEntry.taskName;
         this.activeEntry = null;
         this.clearTimers();
         await this.saveData();
 
         console.debug(`Task stopped: ${stoppedTaskName} (ID: ${taskId}) at ${new Date(endTime).toLocaleTimeString()}. Duration: ${duration}ms`);
-        document.dispatchEvent(new CustomEvent('mfpt:stopTask', { detail: { taskId: taskId, taskName: stoppedTaskName, duration } }));
+        
+        // 派发任务停止事件（仅在需要通知其他组件时使用）
+        document.dispatchEvent(new CustomEvent('mfpt:taskStopped', { 
+            detail: { 
+                taskId: taskId, 
+                taskName: stoppedTaskName, 
+                duration: duration 
+            } 
+        }));
+
+        if (onStoppedCallback && typeof onStoppedCallback === 'function') {
+            onStoppedCallback(true); // Indicate success
+        }
     }
 
     async clearHistory() {

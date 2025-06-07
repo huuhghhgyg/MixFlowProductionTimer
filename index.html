@@ -21,7 +21,7 @@
     <div class="container max-w-6xl mx-auto grid gap-6">
         <header class="app-header text-center mb-8 mt-14 flex flex-col gap-2">
             <h1 class="display-large text-3xl font-normal text-on-surface dark:text-on-surface-dark">Mixed-Flow Production Timer</h1>
-            <p class="headline-small text-xl font-normal text-on-surface-variant dark:text-on-surface-variant-dark opacity-90">源自TPS的平準化理念，让工作节奏更均衡</p>
+            <p class="headline-small text-xl font-normal text-on-secondary-container dark:text-on-secondary-container-dark opacity-90">源自TPS的平準化理念，让工作节奏更均衡</p>
         </header>
 
         <div class="add-task card flex flex-col md:flex-row gap-4 items-stretch md:items-center">
@@ -42,7 +42,7 @@
                     <p id="currentTaskName" class="text-on-surface dark:text-on-surface-dark">-- 无活动 --</p>
                     <div class="timer text-5xl font-medium text-primary tracking-[0.05em] my-4" id="currentTimer">00:00:00</div>
                     <div class="activity-buttons flex gap-2 justify-center mt-4">
-                        <button class="btn-severe" id="stopActivityButton">
+                        <button class="btn-tertiary" id="stopActivityButton">
                             <span class="material-symbols-rounded">stop</span>
                             停止计时
                         </button>
@@ -102,7 +102,7 @@
                     <span class="material-symbols-rounded">info</span>
                     正在检查通知权限...
                 </div>
-                <div class="setting-item flex flex-col gap-3 p-4 bg-surface-variant dark:bg-surface-variant-dark rounded-md-small">
+                <div class="setting-item flex flex-col gap-3 p-4 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small">
                     <div class="setting-item-header flex justify-between items-center gap-3">
                         <span class="setting-label flex items-center gap-2 text-base">
                             <span class="material-symbols-rounded text-xl">notifications</span>
@@ -110,15 +110,15 @@
                         </span>
                         <label class="switch relative inline-flex w-[52px] h-8">
                             <input type="checkbox" id="reminderEnabled" class="opacity-0 w-0 h-0 peer" checked>
-                            <span class="slider absolute cursor-pointer inset-0 bg-surface-variant dark:bg-surface-variant-dark transition-all duration-200 ease-in-out rounded-full border-2 border-outline dark:border-outline-dark peer-checked:bg-primary-container dark:peer-checked:bg-primary-container-dark peer-checked:border-primary dark:peer-checked:border-primary-dark before:absolute before:content-[''] before:h-4 before:w-4 before:left-1.5 before:bottom-1.5 before:bg-outline dark:before:bg-outline-dark before:transition-all before:duration-200 before:ease-in-out before:rounded-full peer-checked:before:translate-x-5 peer-checked:before:bg-primary dark:peer-checked:before:bg-primary-dark"></span>
+                            <span class="slider absolute cursor-pointer inset-0 bg-secondary-container dark:bg-secondary-container-dark transition-all duration-200 ease-in-out rounded-full border-2 border-outline dark:border-outline-dark peer-checked:bg-primary-container dark:peer-checked:bg-primary-container-dark peer-checked:border-primary dark:peer-checked:border-primary-dark before:absolute before:content-[''] before:h-4 before:w-4 before:left-1.5 before:bottom-1.5 before:bg-outline dark:before:bg-outline-dark before:transition-all before:duration-200 before:ease-in-out before:rounded-full peer-checked:before:translate-x-5 peer-checked:before:bg-primary dark:peer-checked:before:bg-primary-dark"></span>
                         </label>
                     </div>
                     <div class="time-input grid grid-cols-[auto_1fr] items-center gap-2 max-w-[200px]">
                         <input type="number" id="reminderMinutes" min="1" value="30" class="w-full max-w-[72px] px-3 py-2 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-on-surface dark:text-on-surface-dark text-base focus:outline-none focus:border-primary dark:focus:border-primary-dark">
-                        <span class="unit text-on-surface-variant dark:text-on-surface-variant-dark whitespace-nowrap min-w-[32px] text-left pl-1">分钟</span>
+                        <span class="unit text-on-secondary-container dark:text-on-secondary-container-dark whitespace-nowrap min-w-[32px] text-left pl-1">分钟</span>
                     </div>
                 </div>
-                <div class="setting-item flex flex-col gap-3 p-4 bg-surface-variant dark:bg-surface-variant-dark rounded-md-small">
+                <div class="setting-item flex flex-col gap-3 p-4 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small">
                     <div class="setting-item-header flex justify-between items-center gap-3">
                         <span class="setting-label flex items-center gap-2 text-base">
                             <span class="material-symbols-rounded text-xl">timer_off</span>
@@ -126,12 +126,12 @@
                         </span>
                         <label class="switch relative inline-flex w-[52px] h-8">
                             <input type="checkbox" id="timeoutEnabled" class="opacity-0 w-0 h-0 peer" checked>
-                            <span class="slider absolute cursor-pointer inset-0 bg-surface-variant dark:bg-surface-variant-dark transition-all duration-200 ease-in-out rounded-full border-2 border-outline dark:border-outline-dark peer-checked:bg-primary-container dark:peer-checked:bg-primary-container-dark peer-checked:border-primary dark:peer-checked:border-primary-dark before:absolute before:content-[''] before:h-4 before:w-4 before:left-1.5 before:bottom-1.5 before:bg-outline dark:before:bg-outline-dark before:transition-all before:duration-200 before:ease-in-out before:rounded-full peer-checked:before:translate-x-5 peer-checked:before:bg-primary dark:peer-checked:before:bg-primary-dark"></span>
+                            <span class="slider absolute cursor-pointer inset-0 bg-secondary-container dark:bg-secondary-container-dark transition-all duration-200 ease-in-out rounded-full border-2 border-outline dark:border-outline-dark peer-checked:bg-primary-container dark:peer-checked:bg-primary-container-dark peer-checked:border-primary dark:peer-checked:border-primary-dark before:absolute before:content-[''] before:h-4 before:w-4 before:left-1.5 before:bottom-1.5 before:bg-outline dark:before:bg-outline-dark before:transition-all before:duration-200 before:ease-in-out before:rounded-full peer-checked:before:translate-x-5 peer-checked:before:bg-primary dark:peer-checked:before:bg-primary-dark"></span>
                         </label>
                     </div>
                     <div class="time-input grid grid-cols-[auto_1fr] items-center gap-2 max-w-[200px]">
                         <input type="number" id="timeoutMinutes" min="1" value="60" class="w-full max-w-[72px] px-3 py-2 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-on-surface dark:text-on-surface-dark text-base focus:outline-none focus:border-primary dark:focus:border-primary-dark">
-                        <span class="unit text-on-surface-variant dark:text-on-surface-variant-dark whitespace-nowrap min-w-[32px] text-left pl-1">分钟</span>
+                        <span class="unit text-on-secondary-container dark:text-on-secondary-container-dark whitespace-nowrap min-w-[32px] text-left pl-1">分钟</span>
                     </div>
                 </div>
             </div>
@@ -143,17 +143,17 @@
                 <h2 class="section-header-title">数据存储设置</h2>
             </header>
             <div class="settings-content flex flex-col gap-4">
-                <p class="text-sm text-on-surface-variant dark:text-on-surface-variant-dark">
+                <p class="text-sm text-on-secondary-container dark:text-on-secondary-container-dark">
                     您可以选择一个本地文件夹来存储应用数据。如果未选择，数据将默认存储在浏览器内部。
                 </p>
                 
                 <div id="currentStorageStatus" class="notification-status p-3 rounded-lg border border-outline dark:border-outline-dark bg-surface-container-lowest dark:bg-surface-container-lowest-dark flex items-center gap-2">
-                    <span class="material-symbols-rounded text-xl text-on-surface-variant dark:text-on-surface-variant-dark">database</span>
-                    <span id="currentStorageLocationText" class="text-sm text-on-surface-variant dark:text-on-surface-variant-dark">当前存储: 浏览器内部存储</span>
+                    <span class="material-symbols-rounded text-xl text-on-secondary-container dark:text-on-secondary-container-dark">database</span>
+                    <span id="currentStorageLocationText" class="text-sm text-on-secondary-container dark:text-on-secondary-container-dark">当前存储: 浏览器内部存储</span>
                 </div>
 
                 <div class="buttons-group flex gap-2 justify-center mb-4">
-                    <button id="selectDataFolderButton" class="btn-tonal min-w-[140px]">
+                    <button id="selectDataFolderButton" class="btn-tertiary min-w-[140px]">
                         <span class="material-symbols-rounded">folder_open</span>
                         <span>选择文件夹</span>
                     </button>
@@ -171,12 +171,12 @@
                 <h2 class="section-header-title">颜色主题设置</h2>
             </header>
             <div class="theme-settings-content flex flex-col gap-4">
-                <p class="text-sm text-on-surface-variant dark:text-on-surface-variant-dark">
+                <p class="text-sm text-on-secondary-container dark:text-on-secondary-container-dark">
                     选择您喜欢的颜色主题，或启用自动切换根据时段自动调整主题色彩。
                 </p>
                 
                 <!-- 主题模式选择 -->
-                <div class="theme-mode-selection p-4 bg-surface-variant dark:bg-surface-variant-dark rounded-md-small">
+                <div class="theme-mode-selection p-4 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small">
                     <div class="setting-item-header flex justify-between items-center gap-3 mb-3">
                         <span class="setting-label flex items-center gap-2 text-base">
                             <span class="material-symbols-rounded text-xl">schedule</span>
@@ -184,10 +184,10 @@
                         </span>
                         <label class="switch relative inline-flex w-[52px] h-8">
                             <input type="checkbox" id="autoThemeSwitch" class="opacity-0 w-0 h-0 peer" checked>
-                            <span class="slider absolute cursor-pointer inset-0 bg-surface-variant dark:bg-surface-variant-dark transition-all duration-200 ease-in-out rounded-full border-2 border-outline dark:border-outline-dark peer-checked:bg-primary-container dark:peer-checked:bg-primary-container-dark peer-checked:border-primary dark:peer-checked:border-primary-dark before:absolute before:content-[''] before:h-4 before:w-4 before:left-1.5 before:bottom-1.5 before:bg-outline dark:before:bg-outline-dark before:transition-all before:duration-200 before:ease-in-out before:rounded-full peer-checked:before:translate-x-5 peer-checked:before:bg-primary dark:peer-checked:before:bg-primary-dark"></span>
+                            <span class="slider absolute cursor-pointer inset-0 bg-secondary-container dark:bg-secondary-container-dark transition-all duration-200 ease-in-out rounded-full border-2 border-outline dark:border-outline-dark peer-checked:bg-primary-container dark:peer-checked:bg-primary-container-dark peer-checked:border-primary dark:peer-checked:border-primary-dark before:absolute before:content-[''] before:h-4 before:w-4 before:left-1.5 before:bottom-1.5 before:bg-outline dark:before:bg-outline-dark before:transition-all before:duration-200 before:ease-in-out before:rounded-full peer-checked:before:translate-x-5 peer-checked:before:bg-primary dark:peer-checked:before:bg-primary-dark"></span>
                         </label>
                     </div>
-                    <p class="text-xs text-on-surface-variant dark:text-on-surface-variant-dark opacity-80">
+                    <p class="text-xs text-on-secondary-container dark:text-on-secondary-container-dark opacity-80">
                         启用后将根据当前时间自动切换主题：晨曦绿 (6-11时)、正午蓝 (11-14时)、午后黄 (14-18时)、夕阳橙 (18-22时)、夜幕紫 (22-6时)
                     </p>
                 </div>
@@ -197,27 +197,27 @@
                     <div id="themeColorPreview" class="w-6 h-6 rounded-full border-2 border-outline dark:border-outline-dark"></div>
                     <div class="flex-1">
                         <span id="currentThemeNameText" class="text-sm font-medium text-on-surface dark:text-on-surface-dark">晨曦绿</span>
-                        <p id="currentThemeDescText" class="text-xs text-on-surface-variant dark:text-on-surface-variant-dark">清新的绿色调，适合早晨工作</p>
+                        <p id="currentThemeDescText" class="text-xs text-on-secondary-container dark:text-on-secondary-container-dark">清新的绿色调，适合早晨工作</p>
                     </div>
-                    <span id="currentThemeModeText" class="text-xs text-on-surface-variant dark:text-on-surface-variant-dark bg-surface-variant dark:bg-surface-variant-dark px-2 py-1 rounded">自动模式</span>
+                    <span id="currentThemeModeText" class="text-xs text-on-tertiary-container dark:text-on-tertiary-container-dark bg-tertiary-container dark:bg-tertiary-container-dark px-2 py-1 rounded">自动模式</span>
                 </div>
 
                 <!-- 手动主题选择 -->
-                <div id="manualThemeSelection" class="manual-theme-selection" style="display: none;">                    <div class="theme-grid grid grid-cols-2 md:grid-cols-5 gap-3">                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-surface-variant dark:bg-surface-variant-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="green">
+                <div id="manualThemeSelection" class="manual-theme-selection" style="display: none;">                    <div class="theme-grid grid grid-cols-2 md:grid-cols-5 gap-3">                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="green">
                             <div class="w-8 h-8 rounded-full border-2 border-outline dark:border-outline-dark" style="background-color: #416900;"></div>
-                            <span class="text-xs text-center text-on-surface-variant dark:text-on-surface-variant-dark">晨曦绿</span>
-                        </button>                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-surface-variant dark:bg-surface-variant-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="blue">
+                            <span class="text-xs text-center text-on-secondary-container dark:text-on-secondary-container-dark">晨曦绿</span>
+                        </button>                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="blue">
                             <div class="w-8 h-8 rounded-full border-2 border-outline dark:border-outline-dark" style="background-color: #006590;"></div>
-                            <span class="text-xs text-center text-on-surface-variant dark:text-on-surface-variant-dark">正午蓝</span>
-                        </button>                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-surface-variant dark:bg-surface-variant-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="yellow">
+                            <span class="text-xs text-center text-on-secondary-container dark:text-on-secondary-container-dark">正午蓝</span>
+                        </button>                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="yellow">
                             <div class="w-8 h-8 rounded-full border-2 border-outline dark:border-outline-dark" style="background-color: #855400;"></div>
-                            <span class="text-xs text-center text-on-surface-variant dark:text-on-surface-variant-dark">午后黄</span>
-                        </button>                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-surface-variant dark:bg-surface-variant-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="orange">
+                            <span class="text-xs text-center text-on-secondary-container dark:text-on-secondary-container-dark">午后黄</span>
+                        </button>                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="orange">
                             <div class="w-8 h-8 rounded-full border-2 border-outline dark:border-outline-dark" style="background-color: #B12D00;"></div>
-                            <span class="text-xs text-center text-on-surface-variant dark:text-on-surface-variant-dark">夕阳橙</span>
-                        </button><button class="theme-option flex flex-col items-center gap-2 p-3 bg-surface-variant dark:bg-surface-variant-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="purple">
+                            <span class="text-xs text-center text-on-secondary-container dark:text-on-secondary-container-dark">夕阳橙</span>
+                        </button><button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="purple">
                             <div class="w-8 h-8 rounded-full border-2 border-outline dark:border-outline-dark" style="background-color: #3F4FD0;"></div>
-                            <span class="text-xs text-center text-on-surface-variant dark:text-on-surface-variant-dark">夜幕紫</span>
+                            <span class="text-xs text-center text-on-secondary-container dark:text-on-secondary-container-dark">夜幕紫</span>
                         </button>
                     </div>
                 </div>
@@ -255,7 +255,7 @@
         <div class="task-chips fixed bottom-8 left-12 right-0 flex gap-2 justify-start overflow-x-auto"></div>
     </div>
 
-    <button class="fullscreen-toggle fixed right-6 top-6 w-10 h-10 rounded-full text-on-surface-variant dark:text-on-surface-variant-dark flex items-center justify-center cursor-pointer transition-colors duration-200 ease-in-out z-[1001] bg-transparent hover:bg-surface-variant dark:hover:bg-surface-variant-dark">
+    <button class="fullscreen-toggle fixed right-6 top-6 w-10 h-10 rounded-full text-on-secondary-container dark:text-on-secondary-container-dark flex items-center justify-center cursor-pointer transition-colors duration-200 ease-in-out z-[1001] bg-transparent hover:bg-secondary-container dark:hover:bg-secondary-container-dark">
         <span class="material-symbols-rounded">fullscreen</span>
     </button>
 

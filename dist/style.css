@@ -666,68 +666,6 @@ html.dark {
   }
 }
 
-.btn {
-  position: relative;
-  display: inline-flex;
-  height: 2.5rem;
-  flex-shrink: 0;
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  overflow: hidden;
-  white-space: nowrap;
-  border-radius: 12px;
-  border-style: none;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  font-weight: 500;
-  transition-property: all;
-  transition-duration: 200ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  /* Add base hover/active state layer effect using ::before */
-  &::before {
-    content: '';
-  }
-  &::before {
-    position: absolute;
-  }
-  &::before {
-    inset: 0px;
-  }
-  &::before {
-    background-color: currentColor;
-  }
-  &::before {
-    opacity: 0;
-  }
-  &::before {
-    transition-property: opacity;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
-  }
-  &::before {
-    transition-duration: 200ms;
-  }
-  &::before {
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  &:hover::before {
-    /* Using a fixed opacity value, ideally this would come from a CSS variable mapped in tailwind.config */
-  }
-  &:hover::before {
-    opacity: 0.1;
-  }
-  &:active::before {
-    opacity: 0.2;
-  }
-  &:active::before {
-    /* Slightly higher opacity for pressed state */
-  }
-}
-
 .btn-filled {
   position: relative;
   display: inline-flex;
@@ -793,14 +731,14 @@ html.dark {
   transition-property: all;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  background-color: var(--md-sys-color-surface-variant);
-  color: var(--md-sys-color-on-surface-variant);
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
 }
 
 @media (prefers-color-scheme: dark) {
   .btn-tonal {
-    background-color: var(--md-sys-color-surface-variant);
-    color: var(--md-sys-color-on-surface-variant);
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
   }
 }
 
@@ -816,7 +754,7 @@ html.dark {
   opacity: 0.8;
 }
 
-.btn-severe {
+.btn-tertiary {
   position: relative;
   display: inline-flex;
   height: 2.5rem;
@@ -842,17 +780,17 @@ html.dark {
 }
 
 @media (prefers-color-scheme: dark) {
-  .btn-severe {
+  .btn-tertiary {
     background-color: var(--md-sys-color-tertiary-container);
     color: var(--md-sys-color-on-tertiary-container);
   }
 }
 
-.btn-severe:hover {
+.btn-tertiary:hover {
   opacity: 0.9;
 }
 
-.btn-severe:active {
+.btn-tertiary:active {
   opacity: 0.8;
 }
 
@@ -913,15 +851,15 @@ html.dark {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background-color: var(--md-sys-color-surface-variant);
+  background-color: var(--md-sys-color-secondary-container);
   padding: 0.5rem;
-  color: var(--md-sys-color-on-surface-variant);
+  color: var(--md-sys-color-on-secondary-container);
 }
 
 @media (prefers-color-scheme: dark) {
   .btn-toggle-expand {
-    background-color: var(--md-sys-color-surface-variant);
-    color: var(--md-sys-color-on-surface-variant);
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
   }
 }
 
@@ -1101,9 +1039,9 @@ html.dark {
   border-radius: 8px;
   border-width: 1px;
   border-color: transparent;
-  background-color: var(--md-sys-color-surface-variant);
+  background-color: var(--md-sys-color-secondary-container);
   padding: 0.75rem;
-  color: var(--md-sys-color-on-surface-variant);
+  color: var(--md-sys-color-on-secondary-container);
   transition-property: all;
   transition-duration: 150ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -1111,8 +1049,8 @@ html.dark {
 
 @media (prefers-color-scheme: dark) {
   .task-item {
-    background-color: var(--md-sys-color-surface-variant);
-    color: var(--md-sys-color-on-surface-variant);
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
   }
 }
 
@@ -1167,7 +1105,7 @@ html.dark {
   border-style: none;
   background-color: transparent;
   padding: 0.5rem;
-  color: var(--md-sys-color-on-surface-variant);
+  color: var(--md-sys-color-on-secondary-container);
   opacity: 0;
   transition-property: opacity;
   transition-duration: 200ms;
@@ -1176,7 +1114,7 @@ html.dark {
 
 @media (prefers-color-scheme: dark) {
   .task-item .delete-button {
-    color: var(--md-sys-color-on-surface-variant);
+    color: var(--md-sys-color-on-secondary-container);
   }
 }
 
@@ -1251,17 +1189,17 @@ html.dark {
   position: relative;
   overflow: hidden;
   border-radius: 8px;
-  background-color: var(--md-sys-color-surface-variant);
+  background-color: var(--md-sys-color-secondary-container);
   padding: 1rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  color: var(--md-sys-color-on-surface-variant);
+  color: var(--md-sys-color-on-secondary-container);
 }
 
 @media (prefers-color-scheme: dark) {
   .metric-item-container {
-    background-color: var(--md-sys-color-surface-variant);
-    color: var(--md-sys-color-on-surface-variant);
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
   }
 }
 
@@ -1289,7 +1227,7 @@ html.dark {
   align-items: center;
   gap: 0.5rem;
   border-radius: 8px;
-  background-color: var(--md-sys-color-surface-variant);
+  background-color: var(--md-sys-color-secondary-container);
   padding: 0.625rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -1298,7 +1236,7 @@ html.dark {
 
 @media (prefers-color-scheme: dark) {
   .log-entry {
-    background-color: var(--md-sys-color-surface-variant);
+    background-color: var(--md-sys-color-secondary-container);
     color: var(--md-sys-color-on-surface);
   }
 }
@@ -1409,17 +1347,17 @@ html.dark {
   align-items: center;
   gap: 0.5rem;
   border-radius: 8px;
-  background-color: var(--md-sys-color-surface-variant);
+  background-color: var(--md-sys-color-secondary-container);
   padding: 0.75rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  color: var(--md-sys-color-on-surface-variant);
+  color: var(--md-sys-color-on-secondary-container);
 }
 
 @media (prefers-color-scheme: dark) {
   .notification-status {
-    background-color: var(--md-sys-color-surface-variant);
-    color: var(--md-sys-color-on-surface-variant);
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
   }
 }
 
@@ -1458,7 +1396,7 @@ html.dark {
 /* Example for no-data-message if needed for specific styling */
 
 /* .no-data-message {
-    @apply text-center text-on-surface-variant dark:text-on-surface-variant-dark py-4 text-sm;
+    @apply text-center text-on-secondary-container dark:text-on-secondary-container-dark py-4 text-sm;
   } */
 
 /* Collapsible section styles */
@@ -1528,13 +1466,13 @@ html.dark {
   flex-direction: column;
   gap: 0.75rem;
   border-radius: 8px;
-  background-color: var(--md-sys-color-surface-variant);
+  background-color: var(--md-sys-color-secondary-container);
   padding: 1rem;
 }
 
 @media (prefers-color-scheme: dark) {
   .setting-item {
-    background-color: var(--md-sys-color-surface-variant);
+    background-color: var(--md-sys-color-secondary-container);
   }
 }
 
@@ -1591,12 +1529,12 @@ html.dark {
   white-space: nowrap;
   padding-left: 0.25rem;
   text-align: left;
-  color: var(--md-sys-color-on-surface-variant);
+  color: var(--md-sys-color-on-secondary-container);
 }
 
 @media (prefers-color-scheme: dark) {
   .time-input .unit {
-    color: var(--md-sys-color-on-surface-variant);
+    color: var(--md-sys-color-on-secondary-container);
   }
 }
 
@@ -1668,12 +1606,12 @@ html.dark {
   margin: 0px;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  color: var(--md-sys-color-on-surface-variant);
+  color: var(--md-sys-color-on-secondary-container);
 }
 
 @media (prefers-color-scheme: dark) {
   .inline-notification .notification-content p {
-    color: var(--md-sys-color-on-surface-variant);
+    color: var(--md-sys-color-on-secondary-container);
   }
 }
 
@@ -2118,12 +2056,16 @@ html.dark {
   border-color: var(--md-sys-color-outline);
 }
 
+.bg-secondary-container {
+  background-color: var(--md-sys-color-secondary-container);
+}
+
 .bg-surface {
   background-color: var(--md-sys-color-surface);
 }
 
-.bg-surface-variant {
-  background-color: var(--md-sys-color-surface-variant);
+.bg-tertiary-container {
+  background-color: var(--md-sys-color-tertiary-container);
 }
 
 .bg-transparent {
@@ -2260,6 +2202,14 @@ html.dark {
   letter-spacing: -0.025em;
 }
 
+.text-on-secondary-container {
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.text-on-secondary-container-dark {
+  color: var(--md-sys-color-on-secondary-container);
+}
+
 .text-on-surface {
   color: var(--md-sys-color-on-surface);
 }
@@ -2268,8 +2218,8 @@ html.dark {
   color: var(--md-sys-color-on-surface-variant);
 }
 
-.text-on-surface-variant-dark {
-  color: var(--md-sys-color-on-surface-variant);
+.text-on-tertiary-container {
+  color: var(--md-sys-color-on-tertiary-container);
 }
 
 .text-primary {
@@ -2345,7 +2295,7 @@ html.dark {
 /* Custom utility for scrollbar */
 
 .dark .scrollbar-custom::-webkit-scrollbar-track {
-  background: var(--md-sys-color-surface-variant);
+  background: var(--md-sys-color-secondary-container);
 }
 
 .dark .scrollbar-custom::-webkit-scrollbar-thumb {
@@ -2445,8 +2395,8 @@ html.dark {
   background-color: var(--md-sys-color-primary-container);
 }
 
-.hover\:bg-surface-variant:hover {
-  background-color: var(--md-sys-color-surface-variant);
+.hover\:bg-secondary-container:hover {
+  background-color: var(--md-sys-color-secondary-container);
 }
 
 .focus\:border-primary:focus {
@@ -2504,12 +2454,20 @@ html.dark {
     border-color: var(--md-sys-color-outline);
   }
 
+  .dark\:bg-secondary-container-dark {
+    background-color: var(--md-sys-color-secondary-container);
+  }
+
   .dark\:bg-surface-dark {
     background-color: var(--md-sys-color-surface);
   }
 
-  .dark\:bg-surface-variant-dark {
-    background-color: var(--md-sys-color-surface-variant);
+  .dark\:bg-tertiary-container-dark {
+    background-color: var(--md-sys-color-tertiary-container);
+  }
+
+  .dark\:text-on-secondary-container-dark {
+    color: var(--md-sys-color-on-secondary-container);
   }
 
   .dark\:text-on-surface-dark {
@@ -2518,6 +2476,10 @@ html.dark {
 
   .dark\:text-on-surface-variant-dark {
     color: var(--md-sys-color-on-surface-variant);
+  }
+
+  .dark\:text-on-tertiary-container-dark {
+    color: var(--md-sys-color-on-tertiary-container);
   }
 
   .dark\:text-primary-dark {
@@ -2533,8 +2495,8 @@ html.dark {
     background-color: var(--md-sys-color-primary-container);
   }
 
-  .dark\:hover\:bg-surface-variant-dark:hover {
-    background-color: var(--md-sys-color-surface-variant);
+  .dark\:hover\:bg-secondary-container-dark:hover {
+    background-color: var(--md-sys-color-secondary-container);
   }
 
   .dark\:focus\:border-primary-dark:focus {
