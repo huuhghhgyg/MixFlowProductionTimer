@@ -19,10 +19,10 @@ const CDN_RESOURCES = {
             '/s/googlesanstext'           // Google Sans Text 字体文件
         ]
     },
-    'bootcdn.net': {
+    'cdn.staticfile.org': { // 添加或修改此条目以匹配 cdn.staticfile.org
         maxAge: 7 * 24 * 60 * 60 * 1000,  // 7天
         paths: [
-            '/ajax/libs/echarts/'  // ECharts 库
+            '/echarts/'  // 匹配 ECharts 路径
         ]
     }
 };

@@ -264,33 +264,12 @@ const Storage = {
             }
         }
         localStorage.setItem(STORAGE_KEYS.TIMER_SETTINGS, JSON.stringify(settings));
-    },
-
-    async getThemeSettings() {
-        if (this.dataFolderHandle) {
-            try {
-                const fileHandle = await getFileHandle(this.dataFolderHandle, 'themeSettings.json');
-                return await readFile(fileHandle);
-            } catch (error) {
-                if (error.name !== 'NotFoundError') {
-                    console.error("Failed to load theme settings from file system, loading from localStorage instead", error);
-                }
-            }
-        }
+    },    async getThemeSettings() {
+        // 主题设置始终存储在浏览器内部，不存储到外部文件夹
         const data = localStorage.getItem(STORAGE_KEYS.THEME_SETTINGS);
         return data ? JSON.parse(data) : null;
-    },
-
-    async saveThemeSettings(settings) {
-        if (this.dataFolderHandle) {
-            try {
-                const fileHandle = await getFileHandle(this.dataFolderHandle, 'themeSettings.json', true);
-                await writeFile(fileHandle, settings);
-                return;
-            } catch (error) {
-                console.error("Failed to save theme settings to file system, saving to localStorage instead", error);
-            }
-        }
+    },    async saveThemeSettings(settings) {
+        // 主题设置始终存储在浏览器内部，不存储到外部文件夹
         localStorage.setItem(STORAGE_KEYS.THEME_SETTINGS, JSON.stringify(settings));
     },
 
@@ -317,12 +296,12 @@ const Storage = {
             } catch (error) {
                 console.error("Error clearing data from file system, clearing from localStorage instead", error);
             }
-        }
-        localStorage.removeItem(STORAGE_KEYS.TASKS);
+        }        localStorage.removeItem(STORAGE_KEYS.TASKS);
         localStorage.removeItem(STORAGE_KEYS.HISTORY);
         localStorage.removeItem(STORAGE_KEYS.ACTIVE_ENTRY);
-        // 保留定时器设置和文件夹句柄
+        // 保留定时器设置、主题设置和文件夹句柄
         // localStorage.removeItem(STORAGE_KEYS.TIMER_SETTINGS);
+        // localStorage.removeItem(STORAGE_KEYS.THEME_SETTINGS);
         // await this.removeDataFolderHandleFromIndexedDB(); // 不在此处清除句柄，让用户手动断开
     }
 };
