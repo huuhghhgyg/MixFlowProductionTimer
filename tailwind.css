@@ -101,10 +101,9 @@
     /* Adding a subtle hover/active effect */
     @apply hover:opacity-90 active:opacity-80;
   }
-
   .btn-severe {
     @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
-    @apply bg-error-container dark:bg-error-container-dark text-on-error-container dark:text-on-error-container-dark;
+    @apply bg-tertiary-container dark:bg-tertiary-container-dark text-on-tertiary-container dark:text-on-tertiary-container-dark;
     @apply hover:opacity-90 active:opacity-80;
   }
 
@@ -387,4 +386,32 @@
     transform: translateX(100%);
     opacity: 0;
   }
-} 
+}
+
+/* Theme selection styles */
+@layer components {
+  .theme-option {
+    @apply transition-all duration-200 cursor-pointer border-2 border-transparent;
+  }
+
+  .theme-option:hover {
+    @apply scale-105 shadow-sm;
+  }
+
+  .theme-option.selected {
+    @apply border-primary dark:border-primary-dark bg-primary-container dark:bg-primary-container-dark;
+  }
+
+  .theme-option.selected span {
+    @apply text-on-primary-container dark:text-on-primary-container-dark font-medium;
+  }
+
+  /* Theme mode switch additional styles */
+  .switch input:checked + .slider {
+    @apply bg-primary dark:bg-primary-dark border-primary dark:border-primary-dark;
+  }
+
+  .switch input:checked + .slider:before {
+    @apply bg-on-primary dark:bg-on-primary-dark;
+  }
+}

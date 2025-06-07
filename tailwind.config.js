@@ -5,28 +5,100 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'primary': { DEFAULT: '#B95E20', dark: '#F97316' },
-        'on-primary': { DEFAULT: '#FFFFFF', dark: '#000000' },
-        'primary-container': { DEFAULT: '#FFDBCA', dark: '#7C2D03' },
-        'on-primary-container': { DEFAULT: '#3A1800', dark: '#FFEDD5' },
-        'secondary': { DEFAULT: '#A08C7D', dark: '#A08C7D' },
-        'on-secondary': { DEFAULT: '#FFFFFF', dark: '#FFFFFF' },
-        'secondary-container': { DEFAULT: '#FFDBCA', dark: '#FFDBCA' },
-        'on-secondary-container': { DEFAULT: '#2C160A', dark: '#2C160A' },
-        'tertiary': { DEFAULT: '#705D50', dark: '#705D50' },
-        'on-tertiary': { DEFAULT: '#FFFFFF', dark: '#FFFFFF' },
-        'tertiary-container': { DEFAULT: '#FFDBCA', dark: '#FFDBCA' },
-        'on-tertiary-container': { DEFAULT: '#291807', dark: '#291807' },
-        'error': { DEFAULT: '#B3261E', dark: '#EF4444' },
-        'on-error': { DEFAULT: '#FFFFFF', dark: '#F3F4F6' },
-        'error-container': { DEFAULT: '#F9DEDC', dark: '#7F1D1D' },
-        'on-error-container': { DEFAULT: '#410E0B', dark: '#410E0B' },
-        'surface': { DEFAULT: '#FFF8F6', dark: '#1F2937' },
-        'on-surface': { DEFAULT: '#201A18', dark: '#F3F4F6' },
-        'surface-variant': { DEFAULT: '#F4DED4', dark: '#374151' },
-        'on-surface-variant': { DEFAULT: '#52443D', dark: '#E5E7EB' },
-        'outline': { DEFAULT: '#85746B', dark: '#4B5563' },
-        'outline-variant': { DEFAULT: '#D7C2B9', dark: '#D7C2B9' },
+        // Material Design 3 颜色系统 - 支持亮色和暗色模式
+        'primary': {
+          DEFAULT: 'var(--md-sys-color-primary)',
+          dark: 'var(--md-sys-color-primary)'
+        },
+        'on-primary': {
+          DEFAULT: 'var(--md-sys-color-on-primary)',
+          dark: 'var(--md-sys-color-on-primary)'
+        },
+        'primary-container': {
+          DEFAULT: 'var(--md-sys-color-primary-container)',
+          dark: 'var(--md-sys-color-primary-container)'
+        },
+        'on-primary-container': {
+          DEFAULT: 'var(--md-sys-color-on-primary-container)',
+          dark: 'var(--md-sys-color-on-primary-container)'
+        },
+        
+        'secondary': {
+          DEFAULT: 'var(--md-sys-color-secondary)',
+          dark: 'var(--md-sys-color-secondary)'
+        },
+        'on-secondary': {
+          DEFAULT: 'var(--md-sys-color-on-secondary)',
+          dark: 'var(--md-sys-color-on-secondary)'
+        },
+        'secondary-container': {
+          DEFAULT: 'var(--md-sys-color-secondary-container)',
+          dark: 'var(--md-sys-color-secondary-container)'
+        },
+        'on-secondary-container': {
+          DEFAULT: 'var(--md-sys-color-on-secondary-container)',
+          dark: 'var(--md-sys-color-on-secondary-container)'
+        },
+        
+        'tertiary': {
+          DEFAULT: 'var(--md-sys-color-tertiary)',
+          dark: 'var(--md-sys-color-tertiary)'
+        },
+        'on-tertiary': {
+          DEFAULT: 'var(--md-sys-color-on-tertiary)',
+          dark: 'var(--md-sys-color-on-tertiary)'
+        },
+        'tertiary-container': {
+          DEFAULT: 'var(--md-sys-color-tertiary-container)',
+          dark: 'var(--md-sys-color-tertiary-container)'
+        },
+        'on-tertiary-container': {
+          DEFAULT: 'var(--md-sys-color-on-tertiary-container)',
+          dark: 'var(--md-sys-color-on-tertiary-container)'
+        },
+        
+        'error': {
+          DEFAULT: 'var(--md-sys-color-error)',
+          dark: 'var(--md-sys-color-error)'
+        },
+        'on-error': {
+          DEFAULT: 'var(--md-sys-color-on-error)',
+          dark: 'var(--md-sys-color-on-error)'
+        },
+        'error-container': {
+          DEFAULT: 'var(--md-sys-color-error-container)',
+          dark: 'var(--md-sys-color-error-container)'
+        },
+        'on-error-container': {
+          DEFAULT: 'var(--md-sys-color-on-error-container)',
+          dark: 'var(--md-sys-color-on-error-container)'
+        },
+        
+        'surface': {
+          DEFAULT: 'var(--md-sys-color-surface)',
+          dark: 'var(--md-sys-color-surface)'
+        },
+        'on-surface': {
+          DEFAULT: 'var(--md-sys-color-on-surface)',
+          dark: 'var(--md-sys-color-on-surface)'
+        },
+        'surface-variant': {
+          DEFAULT: 'var(--md-sys-color-surface-variant)',
+          dark: 'var(--md-sys-color-surface-variant)'
+        },
+        'on-surface-variant': {
+          DEFAULT: 'var(--md-sys-color-on-surface-variant)',
+          dark: 'var(--md-sys-color-on-surface-variant)'
+        },
+        
+        'outline': {
+          DEFAULT: 'var(--md-sys-color-outline)',
+          dark: 'var(--md-sys-color-outline)'
+        },
+        'outline-variant': {
+          DEFAULT: 'var(--md-sys-color-outline-variant)',
+          dark: 'var(--md-sys-color-outline-variant)'
+        },
       },
       fontFamily: {
         sans: ['Google Sans Text', 'system-ui', 'sans-serif'],

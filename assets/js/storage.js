@@ -253,9 +253,7 @@ const Storage = {
             }
         }
         localStorage.setItem(STORAGE_KEYS.ACTIVE_ENTRY, JSON.stringify(activeEntry));
-    },
-
-    async saveTimerSettings(settings) {
+    },    async saveTimerSettings(settings) {
         if (this.dataFolderHandle) {
             try {
                 const fileHandle = await getFileHandle(this.dataFolderHandle, 'timerSettings.json', true);
@@ -266,6 +264,34 @@ const Storage = {
             }
         }
         localStorage.setItem(STORAGE_KEYS.TIMER_SETTINGS, JSON.stringify(settings));
+    },
+
+    async getThemeSettings() {
+        if (this.dataFolderHandle) {
+            try {
+                const fileHandle = await getFileHandle(this.dataFolderHandle, 'themeSettings.json');
+                return await readFile(fileHandle);
+            } catch (error) {
+                if (error.name !== 'NotFoundError') {
+                    console.error("Failed to load theme settings from file system, loading from localStorage instead", error);
+                }
+            }
+        }
+        const data = localStorage.getItem(STORAGE_KEYS.THEME_SETTINGS);
+        return data ? JSON.parse(data) : null;
+    },
+
+    async saveThemeSettings(settings) {
+        if (this.dataFolderHandle) {
+            try {
+                const fileHandle = await getFileHandle(this.dataFolderHandle, 'themeSettings.json', true);
+                await writeFile(fileHandle, settings);
+                return;
+            } catch (error) {
+                console.error("Failed to save theme settings to file system, saving to localStorage instead", error);
+            }
+        }
+        localStorage.setItem(STORAGE_KEYS.THEME_SETTINGS, JSON.stringify(settings));
     },
 
     async clearAllData() {

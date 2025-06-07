@@ -555,63 +555,63 @@ video {
 }
 
 :root {
-  --md-sys-color-primary: #B95E20;
-  --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #FFDBCA;
-  --md-sys-color-on-primary-container: #3A1800;
-  --md-sys-color-secondary: #A08C7D;
-  --md-sys-color-on-secondary: #FFFFFF;
-  --md-sys-color-secondary-container: #FFDBCA;
-  --md-sys-color-on-secondary-container: #2C160A;
-  --md-sys-color-tertiary: #705D50;
-  --md-sys-color-on-tertiary: #FFFFFF;
-  --md-sys-color-tertiary-container: #FFDBCA;
-  --md-sys-color-on-tertiary-container: #291807;
-  --md-sys-color-error: #B3261E;
-  --md-sys-color-on-error: #FFFFFF;
-  --md-sys-color-error-container: #F9DEDC;
-  --md-sys-color-on-error-container: #410E0B;
-  --md-sys-color-surface: #FFF8F6;
-  --md-sys-color-on-surface: #201A18;
-  --md-sys-color-surface-variant: #F4DED4;
-  --md-sys-color-on-surface-variant: #52443D;
-  --md-sys-color-outline: #85746B;
-  --md-sys-color-outline-variant: #D7C2B9;
+  --md-sys-color-primary: var(--md-sys-color-primary);
+  --md-sys-color-on-primary: var(--md-sys-color-on-primary);
+  --md-sys-color-primary-container: var(--md-sys-color-primary-container);
+  --md-sys-color-on-primary-container: var(--md-sys-color-on-primary-container);
+  --md-sys-color-secondary: var(--md-sys-color-secondary);
+  --md-sys-color-on-secondary: var(--md-sys-color-on-secondary);
+  --md-sys-color-secondary-container: var(--md-sys-color-secondary-container);
+  --md-sys-color-on-secondary-container: var(--md-sys-color-on-secondary-container);
+  --md-sys-color-tertiary: var(--md-sys-color-tertiary);
+  --md-sys-color-on-tertiary: var(--md-sys-color-on-tertiary);
+  --md-sys-color-tertiary-container: var(--md-sys-color-tertiary-container);
+  --md-sys-color-on-tertiary-container: var(--md-sys-color-on-tertiary-container);
+  --md-sys-color-error: var(--md-sys-color-error);
+  --md-sys-color-on-error: var(--md-sys-color-on-error);
+  --md-sys-color-error-container: var(--md-sys-color-error-container);
+  --md-sys-color-on-error-container: var(--md-sys-color-on-error-container);
+  --md-sys-color-surface: var(--md-sys-color-surface);
+  --md-sys-color-on-surface: var(--md-sys-color-on-surface);
+  --md-sys-color-surface-variant: var(--md-sys-color-surface-variant);
+  --md-sys-color-on-surface-variant: var(--md-sys-color-on-surface-variant);
+  --md-sys-color-outline: var(--md-sys-color-outline);
+  --md-sys-color-outline-variant: var(--md-sys-color-outline-variant);
   /* TODO: Add state layer opacity variables if needed for effects like hover/pressed */
   /* TODO: Add elevation variables if needed for shadows */
 }
 
 html.dark {
-  --md-sys-color-primary: #F97316;
-  --md-sys-color-on-primary: #000000;
-  --md-sys-color-primary-container: #7C2D03;
-  --md-sys-color-on-primary-container: #FFEDD5;
-  --md-sys-color-secondary: #A08C7D;
+  --md-sys-color-primary: var(--md-sys-color-primary);
+  --md-sys-color-on-primary: var(--md-sys-color-on-primary);
+  --md-sys-color-primary-container: var(--md-sys-color-primary-container);
+  --md-sys-color-on-primary-container: var(--md-sys-color-on-primary-container);
+  --md-sys-color-secondary: var(--md-sys-color-secondary);
   /* TODO: Define dark mode colors */
-  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-on-secondary: var(--md-sys-color-on-secondary);
   /* TODO: Define dark mode colors */
-  --md-sys-color-secondary-container: #FFDBCA;
+  --md-sys-color-secondary-container: var(--md-sys-color-secondary-container);
   /* TODO: Define dark mode colors */
-  --md-sys-color-on-secondary-container: #2C160A;
+  --md-sys-color-on-secondary-container: var(--md-sys-color-on-secondary-container);
   /* TODO: Define dark mode colors */
-  --md-sys-color-tertiary: #705D50;
+  --md-sys-color-tertiary: var(--md-sys-color-tertiary);
   /* TODO: Define dark mode colors */
-  --md-sys-color-on-tertiary: #FFFFFF;
+  --md-sys-color-on-tertiary: var(--md-sys-color-on-tertiary);
   /* TODO: Define dark mode colors */
-  --md-sys-color-tertiary-container: #FFDBCA;
+  --md-sys-color-tertiary-container: var(--md-sys-color-tertiary-container);
   /* TODO: Define dark mode colors */
-  --md-sys-color-on-tertiary-container: #291807;
+  --md-sys-color-on-tertiary-container: var(--md-sys-color-on-tertiary-container);
   /* TODO: Define dark mode colors */
-  --md-sys-color-error: #EF4444;
-  --md-sys-color-on-error: #F3F4F6;
-  --md-sys-color-error-container: #7F1D1D;
-  --md-sys-color-on-error-container: #410E0B;
-  --md-sys-color-surface: #1F2937;
-  --md-sys-color-on-surface: #F3F4F6;
-  --md-sys-color-surface-variant: #374151;
-  --md-sys-color-on-surface-variant: #E5E7EB;
-  --md-sys-color-outline: #4B5563;
-  --md-sys-color-outline-variant: #D7C2B9;
+  --md-sys-color-error: var(--md-sys-color-error);
+  --md-sys-color-on-error: var(--md-sys-color-on-error);
+  --md-sys-color-error-container: var(--md-sys-color-error-container);
+  --md-sys-color-on-error-container: var(--md-sys-color-on-error-container);
+  --md-sys-color-surface: var(--md-sys-color-surface);
+  --md-sys-color-on-surface: var(--md-sys-color-on-surface);
+  --md-sys-color-surface-variant: var(--md-sys-color-surface-variant);
+  --md-sys-color-on-surface-variant: var(--md-sys-color-on-surface-variant);
+  --md-sys-color-outline: var(--md-sys-color-outline);
+  --md-sys-color-outline-variant: var(--md-sys-color-outline-variant);
   /* TODO: Define dark mode colors */
 }
 
@@ -654,19 +654,77 @@ html.dark {
   overflow: hidden;
   border-radius: 16px;
   border-width: 1px;
-  --tw-border-opacity: 1;
-  border-color: rgb(133 116 107 / var(--tw-border-opacity, 1));
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 248 246 / var(--tw-bg-opacity, 1));
+  border-color: var(--md-sys-color-outline);
+  background-color: var(--md-sys-color-surface);
   padding: 1.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
   .card {
-    --tw-border-opacity: 1;
-    border-color: rgb(75 85 99 / var(--tw-border-opacity, 1));
-    --tw-bg-opacity: 1;
-    background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+    border-color: var(--md-sys-color-outline);
+    background-color: var(--md-sys-color-surface);
+  }
+}
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  height: 2.5rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  white-space: nowrap;
+  border-radius: 12px;
+  border-style: none;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  transition-property: all;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Add base hover/active state layer effect using ::before */
+  &::before {
+    content: '';
+  }
+  &::before {
+    position: absolute;
+  }
+  &::before {
+    inset: 0px;
+  }
+  &::before {
+    background-color: currentColor;
+  }
+  &::before {
+    opacity: 0;
+  }
+  &::before {
+    transition-property: opacity;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+  &::before {
+    transition-duration: 200ms;
+  }
+  &::before {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  &:hover::before {
+    /* Using a fixed opacity value, ideally this would come from a CSS variable mapped in tailwind.config */
+  }
+  &:hover::before {
+    opacity: 0.1;
+  }
+  &:active::before {
+    opacity: 0.2;
+  }
+  &:active::before {
+    /* Slightly higher opacity for pressed state */
   }
 }
 
@@ -691,18 +749,14 @@ html.dark {
   transition-property: all;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  --tw-bg-opacity: 1;
-  background-color: rgb(185 94 32 / var(--tw-bg-opacity, 1));
-  --tw-text-opacity: 1;
-  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
 }
 
 @media (prefers-color-scheme: dark) {
   .btn-filled {
-    --tw-bg-opacity: 1;
-    background-color: rgb(249 115 22 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(0 0 0 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
   }
 }
 
@@ -739,18 +793,14 @@ html.dark {
   transition-property: all;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  --tw-bg-opacity: 1;
-  background-color: rgb(244 222 212 / var(--tw-bg-opacity, 1));
-  --tw-text-opacity: 1;
-  color: rgb(82 68 61 / var(--tw-text-opacity, 1));
+  background-color: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 @media (prefers-color-scheme: dark) {
   .btn-tonal {
-    --tw-bg-opacity: 1;
-    background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(229 231 235 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
   }
 }
 
@@ -787,18 +837,14 @@ html.dark {
   transition-property: all;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  --tw-bg-opacity: 1;
-  background-color: rgb(249 222 220 / var(--tw-bg-opacity, 1));
-  --tw-text-opacity: 1;
-  color: rgb(65 14 11 / var(--tw-text-opacity, 1));
+  background-color: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
 }
 
 @media (prefers-color-scheme: dark) {
   .btn-severe {
-    --tw-bg-opacity: 1;
-    background-color: rgb(127 29 29 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(65 14 11 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-tertiary-container);
+    color: var(--md-sys-color-on-tertiary-container);
   }
 }
 
@@ -831,18 +877,14 @@ html.dark {
   transition-property: all;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  --tw-bg-opacity: 1;
-  background-color: rgb(179 38 30 / var(--tw-bg-opacity, 1));
-  --tw-text-opacity: 1;
-  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+  background-color: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error);
 }
 
 @media (prefers-color-scheme: dark) {
   .btn-error {
-    --tw-bg-opacity: 1;
-    background-color: rgb(239 68 68 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(243 244 246 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-error);
+    color: var(--md-sys-color-on-error);
   }
 }
 
@@ -871,19 +913,15 @@ html.dark {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  --tw-bg-opacity: 1;
-  background-color: rgb(244 222 212 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-surface-variant);
   padding: 0.5rem;
-  --tw-text-opacity: 1;
-  color: rgb(82 68 61 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 @media (prefers-color-scheme: dark) {
   .btn-toggle-expand {
-    --tw-bg-opacity: 1;
-    background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(229 231 235 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
   }
 }
 
@@ -911,8 +949,7 @@ html.dark {
   width: 100%;
   border-radius: 8px;
   border-width: 1px;
-  --tw-border-opacity: 1;
-  border-color: rgb(133 116 107 / var(--tw-border-opacity, 1));
+  border-color: var(--md-sys-color-outline);
   background-color: transparent;
   padding-left: 1rem;
   padding-right: 1rem;
@@ -920,8 +957,7 @@ html.dark {
   padding-bottom: 0.75rem;
   font-size: 1rem;
   line-height: 1.5rem;
-  --tw-text-opacity: 1;
-  color: rgb(32 26 24 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface);
 }
 
 .text-field-input::-moz-placeholder {
@@ -940,24 +976,20 @@ html.dark {
 
 @media (prefers-color-scheme: dark) {
   .text-field-input {
-    --tw-border-opacity: 1;
-    border-color: rgb(75 85 99 / var(--tw-border-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(243 244 246 / var(--tw-text-opacity, 1));
+    border-color: var(--md-sys-color-outline);
+    color: var(--md-sys-color-on-surface);
   }
 }
 
 .text-field-input:focus {
-  --tw-border-opacity: 1;
-  border-color: rgb(185 94 32 / var(--tw-border-opacity, 1));
+  border-color: var(--md-sys-color-primary);
   outline: 2px solid transparent;
   outline-offset: 2px;
 }
 
 @media (prefers-color-scheme: dark) {
   .text-field-input:focus {
-    --tw-border-opacity: 1;
-    border-color: rgb(249 115 22 / var(--tw-border-opacity, 1));
+    border-color: var(--md-sys-color-primary);
   }
 }
 
@@ -973,12 +1005,10 @@ html.dark {
   top: 50%;
   --tw-translate-y: -50%;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 248 246 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-surface);
   padding-left: 0.25rem;
   padding-right: 0.25rem;
-  --tw-text-opacity: 1;
-  color: rgb(82 68 61 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface-variant);
   transition-property: all;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -986,10 +1016,8 @@ html.dark {
 
 @media (prefers-color-scheme: dark) {
   .text-field-label {
-    --tw-bg-opacity: 1;
-    background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(229 231 235 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface-variant);
   }
 }
 
@@ -1003,14 +1031,12 @@ html.dark {
   --tw-scale-x: .9;
   --tw-scale-y: .9;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-  --tw-text-opacity: 1;
-  color: rgb(185 94 32 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-primary);
 }
 
 @media (prefers-color-scheme: dark) {
   .peer:focus ~ .text-field-label {
-    --tw-text-opacity: 1;
-    color: rgb(249 115 22 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-primary);
   }
 }
 
@@ -1020,8 +1046,7 @@ html.dark {
   --tw-scale-x: .9;
   --tw-scale-y: .9;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-  --tw-text-opacity: 1;
-  color: rgb(185 94 32 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-primary);
 }
 
 .peer:not(:placeholder-shown) ~ .text-field-label {
@@ -1030,32 +1055,27 @@ html.dark {
   --tw-scale-x: .9;
   --tw-scale-y: .9;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-  --tw-text-opacity: 1;
-  color: rgb(185 94 32 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-primary);
 }
 
 @media (prefers-color-scheme: dark) {
   .peer:not(:-moz-placeholder-shown) ~ .text-field-label {
-    --tw-text-opacity: 1;
-    color: rgb(249 115 22 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-primary);
   }
   .peer:not(:placeholder-shown) ~ .text-field-label {
-    --tw-text-opacity: 1;
-    color: rgb(249 115 22 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-primary);
   }
 }
 
 .text-field-input:focus {
-  --tw-border-opacity: 1;
-  border-color: rgb(185 94 32 / var(--tw-border-opacity, 1));
+  border-color: var(--md-sys-color-primary);
   outline: 2px solid transparent;
   outline-offset: 2px;
 }
 
 @media (prefers-color-scheme: dark) {
   .text-field-input:focus {
-    --tw-border-opacity: 1;
-    border-color: rgb(249 115 22 / var(--tw-border-opacity, 1));
+    border-color: var(--md-sys-color-primary);
   }
 }
 
@@ -1063,14 +1083,12 @@ html.dark {
   font-size: 1.125rem;
   line-height: 1.75rem;
   font-weight: 500;
-  --tw-text-opacity: 1;
-  color: rgb(32 26 24 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface);
 }
 
 @media (prefers-color-scheme: dark) {
   .section-header-title {
-    --tw-text-opacity: 1;
-    color: rgb(243 244 246 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-on-surface);
   }
 }
 
@@ -1083,11 +1101,9 @@ html.dark {
   border-radius: 8px;
   border-width: 1px;
   border-color: transparent;
-  --tw-bg-opacity: 1;
-  background-color: rgb(244 222 212 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-surface-variant);
   padding: 0.75rem;
-  --tw-text-opacity: 1;
-  color: rgb(82 68 61 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface-variant);
   transition-property: all;
   transition-duration: 150ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -1095,10 +1111,8 @@ html.dark {
 
 @media (prefers-color-scheme: dark) {
   .task-item {
-    --tw-bg-opacity: 1;
-    background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(229 231 235 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
   }
 }
 
@@ -1121,30 +1135,24 @@ html.dark {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  --tw-text-opacity: 1;
-  color: rgb(32 26 24 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface);
 }
 
 @media (prefers-color-scheme: dark) {
   .task-item span {
-    --tw-text-opacity: 1;
-    color: rgb(243 244 246 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-on-surface);
   }
 }
 
 .task-item.active {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 219 202 / var(--tw-bg-opacity, 1));
-  --tw-text-opacity: 1;
-  color: rgb(58 24 0 / var(--tw-text-opacity, 1));
+  background-color: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
 }
 
 @media (prefers-color-scheme: dark) {
   .task-item.active {
-    --tw-bg-opacity: 1;
-    background-color: rgb(124 45 3 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(255 237 213 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
   }
 }
 
@@ -1159,8 +1167,7 @@ html.dark {
   border-style: none;
   background-color: transparent;
   padding: 0.5rem;
-  --tw-text-opacity: 1;
-  color: rgb(82 68 61 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface-variant);
   opacity: 0;
   transition-property: opacity;
   transition-duration: 200ms;
@@ -1169,8 +1176,7 @@ html.dark {
 
 @media (prefers-color-scheme: dark) {
   .task-item .delete-button {
-    --tw-text-opacity: 1;
-    color: rgb(229 231 235 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-on-surface-variant);
   }
 }
 
@@ -1245,21 +1251,17 @@ html.dark {
   position: relative;
   overflow: hidden;
   border-radius: 8px;
-  --tw-bg-opacity: 1;
-  background-color: rgb(244 222 212 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-surface-variant);
   padding: 1rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  --tw-text-opacity: 1;
-  color: rgb(82 68 61 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 @media (prefers-color-scheme: dark) {
   .metric-item-container {
-    --tw-bg-opacity: 1;
-    background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(229 231 235 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
   }
 }
 
@@ -1273,7 +1275,7 @@ html.dark {
   height: 100%;
   opacity: 0.1;
   transition: width 0.3s ease-in-out;
-  background-color: var(--bar-color, #B95E20);
+  background-color: var(--bar-color, var(--md-sys-color-primary));
   width: var(--progress, 0%);
 }
 
@@ -1287,21 +1289,17 @@ html.dark {
   align-items: center;
   gap: 0.5rem;
   border-radius: 8px;
-  --tw-bg-opacity: 1;
-  background-color: rgb(244 222 212 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-surface-variant);
   padding: 0.625rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  --tw-text-opacity: 1;
-  color: rgb(32 26 24 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface);
 }
 
 @media (prefers-color-scheme: dark) {
   .log-entry {
-    --tw-bg-opacity: 1;
-    background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(243 244 246 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface);
   }
 }
 
@@ -1326,15 +1324,13 @@ html.dark {
   white-space: nowrap;
   border-radius: 8px;
   border-width: 1px;
-  --tw-border-opacity: 1;
-  border-color: rgb(133 116 107 / var(--tw-border-opacity, 1));
+  border-color: var(--md-sys-color-outline);
   background-color: transparent;
   padding-left: 1rem;
   padding-right: 1rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  --tw-text-opacity: 1;
-  color: rgb(32 26 24 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface);
   outline: 2px solid transparent;
   outline-offset: 2px;
   transition-property: all;
@@ -1344,40 +1340,32 @@ html.dark {
 
 @media (prefers-color-scheme: dark) {
   .task-chip {
-    --tw-border-opacity: 1;
-    border-color: rgb(75 85 99 / var(--tw-border-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(243 244 246 / var(--tw-text-opacity, 1));
+    border-color: var(--md-sys-color-outline);
+    color: var(--md-sys-color-on-surface);
   }
 }
 
 .task-chip:hover {
-  --tw-border-opacity: 1;
-  border-color: rgb(32 26 24 / var(--tw-border-opacity, 1));
+  border-color: var(--md-sys-color-on-surface);
   opacity: 0.9;
 }
 
 @media (prefers-color-scheme: dark) {
   .task-chip:hover {
-    --tw-border-opacity: 1;
-    border-color: rgb(243 244 246 / var(--tw-border-opacity, 1));
+    border-color: var(--md-sys-color-on-surface);
   }
 }
 
 .task-chip.active {
   border-color: transparent;
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 219 202 / var(--tw-bg-opacity, 1));
-  --tw-text-opacity: 1;
-  color: rgb(44 22 10 / var(--tw-text-opacity, 1));
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
 }
 
 @media (prefers-color-scheme: dark) {
   .task-chip.active {
-    --tw-bg-opacity: 1;
-    background-color: rgb(255 219 202 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(44 22 10 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
   }
 }
 
@@ -1421,21 +1409,17 @@ html.dark {
   align-items: center;
   gap: 0.5rem;
   border-radius: 8px;
-  --tw-bg-opacity: 1;
-  background-color: rgb(244 222 212 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-surface-variant);
   padding: 0.75rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  --tw-text-opacity: 1;
-  color: rgb(82 68 61 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 @media (prefers-color-scheme: dark) {
   .notification-status {
-    --tw-bg-opacity: 1;
-    background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(229 231 235 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
   }
 }
 
@@ -1445,8 +1429,7 @@ html.dark {
 }
 
 .notification-status a {
-  --tw-text-opacity: 1;
-  color: rgb(185 94 32 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-primary);
   text-decoration-line: none;
 }
 
@@ -1456,24 +1439,19 @@ html.dark {
 
 @media (prefers-color-scheme: dark) {
   .notification-status a {
-    --tw-text-opacity: 1;
-    color: rgb(249 115 22 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-primary);
   }
 }
 
 .notification-status.warning {
-  --tw-bg-opacity: 1;
-  background-color: rgb(249 222 220 / var(--tw-bg-opacity, 1));
-  --tw-text-opacity: 1;
-  color: rgb(65 14 11 / var(--tw-text-opacity, 1));
+  background-color: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
 }
 
 @media (prefers-color-scheme: dark) {
   .notification-status.warning {
-    --tw-bg-opacity: 1;
-    background-color: rgb(127 29 29 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(65 14 11 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-error-container);
+    color: var(--md-sys-color-on-error-container);
   }
 }
 
@@ -1550,15 +1528,13 @@ html.dark {
   flex-direction: column;
   gap: 0.75rem;
   border-radius: 8px;
-  --tw-bg-opacity: 1;
-  background-color: rgb(244 222 212 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-surface-variant);
   padding: 1rem;
 }
 
 @media (prefers-color-scheme: dark) {
   .setting-item {
-    --tw-bg-opacity: 1;
-    background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
+    background-color: var(--md-sys-color-surface-variant);
   }
 }
 
@@ -1582,8 +1558,7 @@ html.dark {
   max-width: 72px;
   border-radius: 8px;
   border-width: 1px;
-  --tw-border-opacity: 1;
-  border-color: rgb(133 116 107 / var(--tw-border-opacity, 1));
+  border-color: var(--md-sys-color-outline);
   background-color: transparent;
   padding-left: 0.75rem;
   padding-right: 0.75rem;
@@ -1591,28 +1566,23 @@ html.dark {
   padding-bottom: 0.5rem;
   font-size: 1rem;
   line-height: 1.5rem;
-  --tw-text-opacity: 1;
-  color: rgb(32 26 24 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface);
 }
 
 .time-input input:focus {
-  --tw-border-opacity: 1;
-  border-color: rgb(185 94 32 / var(--tw-border-opacity, 1));
+  border-color: var(--md-sys-color-primary);
   outline: 2px solid transparent;
   outline-offset: 2px;
 }
 
 @media (prefers-color-scheme: dark) {
   .time-input input {
-    --tw-border-opacity: 1;
-    border-color: rgb(75 85 99 / var(--tw-border-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(243 244 246 / var(--tw-text-opacity, 1));
+    border-color: var(--md-sys-color-outline);
+    color: var(--md-sys-color-on-surface);
   }
 
   .time-input input:focus {
-    --tw-border-opacity: 1;
-    border-color: rgb(249 115 22 / var(--tw-border-opacity, 1));
+    border-color: var(--md-sys-color-primary);
   }
 }
 
@@ -1621,14 +1591,12 @@ html.dark {
   white-space: nowrap;
   padding-left: 0.25rem;
   text-align: left;
-  --tw-text-opacity: 1;
-  color: rgb(82 68 61 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 @media (prefers-color-scheme: dark) {
   .time-input .unit {
-    --tw-text-opacity: 1;
-    color: rgb(229 231 235 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-on-surface-variant);
   }
 }
 
@@ -1645,11 +1613,9 @@ html.dark {
   align-items: flex-start;
   gap: 0.75rem;
   border-radius: 12px;
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 248 246 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-surface);
   padding: 1rem;
-  --tw-text-opacity: 1;
-  color: rgb(32 26 24 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface);
   --tw-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
@@ -1657,10 +1623,8 @@ html.dark {
 
 @media (prefers-color-scheme: dark) {
   .inline-notification {
-    --tw-bg-opacity: 1;
-    background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
-    --tw-text-opacity: 1;
-    color: rgb(243 244 246 / var(--tw-text-opacity, 1));
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
   }
 }
 
@@ -1675,14 +1639,12 @@ html.dark {
 .inline-notification .material-symbols-rounded {
   font-size: 1.5rem;
   line-height: 2rem;
-  --tw-text-opacity: 1;
-  color: rgb(185 94 32 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-primary);
 }
 
 @media (prefers-color-scheme: dark) {
   .inline-notification .material-symbols-rounded {
-    --tw-text-opacity: 1;
-    color: rgb(249 115 22 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-primary);
   }
 }
 
@@ -1693,14 +1655,12 @@ html.dark {
 .inline-notification .notification-content strong {
   margin-bottom: 0.25rem;
   display: block;
-  --tw-text-opacity: 1;
-  color: rgb(32 26 24 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface);
 }
 
 @media (prefers-color-scheme: dark) {
   .inline-notification .notification-content strong {
-    --tw-text-opacity: 1;
-    color: rgb(243 244 246 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-on-surface);
   }
 }
 
@@ -1708,14 +1668,77 @@ html.dark {
   margin: 0px;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  --tw-text-opacity: 1;
-  color: rgb(82 68 61 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 @media (prefers-color-scheme: dark) {
   .inline-notification .notification-content p {
-    --tw-text-opacity: 1;
-    color: rgb(229 231 235 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-on-surface-variant);
+  }
+}
+
+.theme-option {
+  cursor: pointer;
+  border-width: 2px;
+  border-color: transparent;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+.theme-option:hover {
+  --tw-scale-x: 1.05;
+  --tw-scale-y: 1.05;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+  --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.theme-option.selected {
+  border-color: var(--md-sys-color-primary);
+  background-color: var(--md-sys-color-primary-container);
+}
+
+@media (prefers-color-scheme: dark) {
+  .theme-option.selected {
+    border-color: var(--md-sys-color-primary);
+    background-color: var(--md-sys-color-primary-container);
+  }
+}
+
+.theme-option.selected span {
+  font-weight: 500;
+  color: var(--md-sys-color-on-primary-container);
+}
+
+@media (prefers-color-scheme: dark) {
+  .theme-option.selected span {
+    color: var(--md-sys-color-on-primary-container);
+  }
+}
+
+/* Theme mode switch additional styles */
+
+.switch input:checked + .slider {
+  border-color: var(--md-sys-color-primary);
+  background-color: var(--md-sys-color-primary);
+}
+
+@media (prefers-color-scheme: dark) {
+  .switch input:checked + .slider {
+    border-color: var(--md-sys-color-primary);
+    background-color: var(--md-sys-color-primary);
+  }
+}
+
+.switch input:checked + .slider:before {
+  background-color: var(--md-sys-color-on-primary);
+}
+
+@media (prefers-color-scheme: dark) {
+  .switch input:checked + .slider:before {
+    background-color: var(--md-sys-color-on-primary);
   }
 }
 
@@ -1805,6 +1828,10 @@ html.dark {
   margin-bottom: 0.25rem;
 }
 
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+
 .mb-4 {
   margin-bottom: 1rem;
 }
@@ -1853,6 +1880,10 @@ html.dark {
   height: 2.5rem;
 }
 
+.h-6 {
+  height: 1.5rem;
+}
+
 .h-8 {
   height: 2rem;
 }
@@ -1895,6 +1926,14 @@ html.dark {
 
 .w-10 {
   width: 2.5rem;
+}
+
+.w-6 {
+  width: 1.5rem;
+}
+
+.w-8 {
+  width: 2rem;
 }
 
 .w-\[52px\] {
@@ -1963,6 +2002,10 @@ html.dark {
 
 .grid-cols-1 {
   grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .grid-cols-\[auto_1fr\] {
@@ -2043,6 +2086,10 @@ html.dark {
   white-space: nowrap;
 }
 
+.rounded {
+  border-radius: 0.25rem;
+}
+
 .rounded-full {
   border-radius: 9999px;
 }
@@ -2068,18 +2115,15 @@ html.dark {
 }
 
 .border-outline {
-  --tw-border-opacity: 1;
-  border-color: rgb(133 116 107 / var(--tw-border-opacity, 1));
+  border-color: var(--md-sys-color-outline);
 }
 
 .bg-surface {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 248 246 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-surface);
 }
 
 .bg-surface-variant {
-  --tw-bg-opacity: 1;
-  background-color: rgb(244 222 212 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-surface-variant);
 }
 
 .bg-transparent {
@@ -2182,6 +2226,11 @@ html.dark {
   line-height: 1.75rem;
 }
 
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
 .font-light {
   font-weight: 300;
 }
@@ -2212,23 +2261,19 @@ html.dark {
 }
 
 .text-on-surface {
-  --tw-text-opacity: 1;
-  color: rgb(32 26 24 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface);
 }
 
 .text-on-surface-variant {
-  --tw-text-opacity: 1;
-  color: rgb(82 68 61 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .text-on-surface-variant-dark {
-  --tw-text-opacity: 1;
-  color: rgb(229 231 235 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .text-primary {
-  --tw-text-opacity: 1;
-  color: rgb(185 94 32 / var(--tw-text-opacity, 1));
+  color: var(--md-sys-color-primary);
 }
 
 .opacity-0 {
@@ -2237,6 +2282,10 @@ html.dark {
 
 .opacity-100 {
   opacity: 1;
+}
+
+.opacity-80 {
+  opacity: 0.8;
 }
 
 .opacity-90 {
@@ -2296,15 +2345,15 @@ html.dark {
 /* Custom utility for scrollbar */
 
 .dark .scrollbar-custom::-webkit-scrollbar-track {
-  background: #374151;
+  background: var(--md-sys-color-surface-variant);
 }
 
 .dark .scrollbar-custom::-webkit-scrollbar-thumb {
-  background: #4B5563;
+  background: var(--md-sys-color-outline);
 }
 
 .dark .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-  background: #F97316;
+  background: var(--md-sys-color-primary);
 }
 
 /* Add keyframes for animations */
@@ -2332,6 +2381,8 @@ html.dark {
     opacity: 0;
   }
 }
+
+/* Theme selection styles */
 
 .before\:absolute::before {
   content: var(--tw-content);
@@ -2365,8 +2416,7 @@ html.dark {
 
 .before\:bg-outline::before {
   content: var(--tw-content);
-  --tw-bg-opacity: 1;
-  background-color: rgb(133 116 107 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-outline);
 }
 
 .before\:transition-all::before {
@@ -2391,14 +2441,16 @@ html.dark {
   content: var(--tw-content);
 }
 
+.hover\:bg-primary-container:hover {
+  background-color: var(--md-sys-color-primary-container);
+}
+
 .hover\:bg-surface-variant:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(244 222 212 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-surface-variant);
 }
 
 .focus\:border-primary:focus {
-  --tw-border-opacity: 1;
-  border-color: rgb(185 94 32 / var(--tw-border-opacity, 1));
+  border-color: var(--md-sys-color-primary);
 }
 
 .focus\:outline-none:focus {
@@ -2407,13 +2459,11 @@ html.dark {
 }
 
 .peer:checked ~ .peer-checked\:border-primary {
-  --tw-border-opacity: 1;
-  border-color: rgb(185 94 32 / var(--tw-border-opacity, 1));
+  border-color: var(--md-sys-color-primary);
 }
 
 .peer:checked ~ .peer-checked\:bg-primary-container {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 219 202 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-primary-container);
 }
 
 .peer:checked ~ .peer-checked\:before\:translate-x-5::before {
@@ -2424,8 +2474,7 @@ html.dark {
 
 .peer:checked ~ .peer-checked\:before\:bg-primary::before {
   content: var(--tw-content);
-  --tw-bg-opacity: 1;
-  background-color: rgb(185 94 32 / var(--tw-bg-opacity, 1));
+  background-color: var(--md-sys-color-primary);
 }
 
 @media (min-width: 768px) {
@@ -2435,6 +2484,10 @@ html.dark {
 
   .md\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .md\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .md\:flex-row {
@@ -2448,64 +2501,56 @@ html.dark {
 
 @media (prefers-color-scheme: dark) {
   .dark\:border-outline-dark {
-    --tw-border-opacity: 1;
-    border-color: rgb(75 85 99 / var(--tw-border-opacity, 1));
+    border-color: var(--md-sys-color-outline);
   }
 
   .dark\:bg-surface-dark {
-    --tw-bg-opacity: 1;
-    background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+    background-color: var(--md-sys-color-surface);
   }
 
   .dark\:bg-surface-variant-dark {
-    --tw-bg-opacity: 1;
-    background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
+    background-color: var(--md-sys-color-surface-variant);
   }
 
   .dark\:text-on-surface-dark {
-    --tw-text-opacity: 1;
-    color: rgb(243 244 246 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-on-surface);
   }
 
   .dark\:text-on-surface-variant-dark {
-    --tw-text-opacity: 1;
-    color: rgb(229 231 235 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-on-surface-variant);
   }
 
   .dark\:text-primary-dark {
-    --tw-text-opacity: 1;
-    color: rgb(249 115 22 / var(--tw-text-opacity, 1));
+    color: var(--md-sys-color-primary);
   }
 
   .dark\:before\:bg-outline-dark::before {
     content: var(--tw-content);
-    --tw-bg-opacity: 1;
-    background-color: rgb(75 85 99 / var(--tw-bg-opacity, 1));
+    background-color: var(--md-sys-color-outline);
+  }
+
+  .dark\:hover\:bg-primary-container-dark:hover {
+    background-color: var(--md-sys-color-primary-container);
   }
 
   .dark\:hover\:bg-surface-variant-dark:hover {
-    --tw-bg-opacity: 1;
-    background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
+    background-color: var(--md-sys-color-surface-variant);
   }
 
   .dark\:focus\:border-primary-dark:focus {
-    --tw-border-opacity: 1;
-    border-color: rgb(249 115 22 / var(--tw-border-opacity, 1));
+    border-color: var(--md-sys-color-primary);
   }
 
   .peer:checked ~ .dark\:peer-checked\:border-primary-dark {
-    --tw-border-opacity: 1;
-    border-color: rgb(249 115 22 / var(--tw-border-opacity, 1));
+    border-color: var(--md-sys-color-primary);
   }
 
   .peer:checked ~ .dark\:peer-checked\:bg-primary-container-dark {
-    --tw-bg-opacity: 1;
-    background-color: rgb(124 45 3 / var(--tw-bg-opacity, 1));
+    background-color: var(--md-sys-color-primary-container);
   }
 
   .peer:checked ~ .dark\:peer-checked\:before\:bg-primary-dark::before {
     content: var(--tw-content);
-    --tw-bg-opacity: 1;
-    background-color: rgb(249 115 22 / var(--tw-bg-opacity, 1));
+    background-color: var(--md-sys-color-primary);
   }
-} 
+}

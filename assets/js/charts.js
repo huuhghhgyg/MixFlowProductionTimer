@@ -28,6 +28,27 @@ class Charts {
         this.updateGanttChart();
         this.updateHeatmap();
         this.setupEventListeners();
+        this.setupThemeListener();
+    }
+
+    static setupThemeListener() {
+        // 监听主题变化事件
+        document.addEventListener('mfpt:themeChanged', () => {
+            // 主题变化时刷新图表
+            setTimeout(() => {
+                this.refreshChartsTheme();
+            }, 100); // 稍微延迟以确保CSS变量已更新
+        });
+    }
+
+    static refreshChartsTheme() {
+        // 重新渲染图表以应用新的主题配色
+        if (this.ganttChart) {
+            this.updateGanttChart();
+        }
+        if (this.workloadHeatmap) {
+            this.updateHeatmap();
+        }
     }
 
     static setupEventListeners() {
