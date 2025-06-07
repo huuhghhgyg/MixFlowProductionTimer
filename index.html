@@ -42,7 +42,7 @@
                     <p id="currentTaskName" class="text-on-surface dark:text-on-surface-dark">-- 无活动 --</p>
                     <div class="timer text-5xl font-medium text-primary dark:text-primary-dark tracking-[0.05em] my-4" id="currentTimer">00:00:00</div>
                     <div class="activity-buttons flex gap-2 justify-center mt-4">
-                        <button class="btn-tonal" id="stopActivityButton">
+                        <button class="btn-severe" id="stopActivityButton">
                             <span class="material-symbols-rounded">stop</span>
                             停止计时
                         </button>
@@ -152,12 +152,12 @@
                     <span id="currentStorageLocationText" class="text-sm text-on-surface-variant dark:text-on-surface-variant-dark">当前存储: 浏览器内部存储</span>
                 </div>
 
-                <div class="buttons-group flex flex-col sm:flex-row gap-3 mt-2">
-                    <button id="selectDataFolderButton" class="btn-tonal w-full sm:w-auto flex-1 flex items-center justify-center gap-2 min-w-[140px]">
+                <div class="buttons-group flex gap-2 justify-center mb-4">
+                    <button id="selectDataFolderButton" class="btn-tonal min-w-[140px]">
                         <span class="material-symbols-rounded">folder_open</span>
                         <span>选择文件夹</span>
                     </button>
-                    <button id="clearSelectedFolderButton" class="btn-tonal w-full sm:w-auto flex-1 flex items-center justify-center gap-2 min-w-[140px]">
+                    <button id="clearSelectedFolderButton" class="btn-tonal min-w-[140px]">
                         <span class="material-symbols-rounded">replay</span>
                         <span>恢复默认</span>
                     </button>

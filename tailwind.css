@@ -102,6 +102,12 @@
     @apply hover:opacity-90 active:opacity-80;
   }
 
+  .btn-severe {
+    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
+    @apply bg-error-container dark:bg-error-container-dark text-on-error-container dark:text-on-error-container-dark;
+    @apply hover:opacity-90 active:opacity-80;
+  }
+
   .btn-error {
     @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
     @apply bg-error dark:bg-error-dark text-on-error dark:text-on-error-dark;

@@ -766,6 +766,50 @@ html.dark {
   opacity: 0.8;
 }
 
+.btn-severe {
+  position: relative;
+  display: inline-flex;
+  height: 2.5rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  white-space: nowrap;
+  border-radius: 12px;
+  border-style: none;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  transition-property: all;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  --tw-bg-opacity: 1;
+  background-color: rgb(249 222 220 / var(--tw-bg-opacity, 1));
+  --tw-text-opacity: 1;
+  color: rgb(65 14 11 / var(--tw-text-opacity, 1));
+}
+
+@media (prefers-color-scheme: dark) {
+  .btn-severe {
+    --tw-bg-opacity: 1;
+    background-color: rgb(127 29 29 / var(--tw-bg-opacity, 1));
+    --tw-text-opacity: 1;
+    color: rgb(65 14 11 / var(--tw-text-opacity, 1));
+  }
+}
+
+.btn-severe:hover {
+  opacity: 0.9;
+}
+
+.btn-severe:active {
+  opacity: 0.8;
+}
+
 .btn-error {
   position: relative;
   display: inline-flex;
@@ -1773,10 +1817,6 @@ html.dark {
   margin-top: 3.5rem;
 }
 
-.mt-2 {
-  margin-top: 0.5rem;
-}
-
 .mt-4 {
   margin-top: 1rem;
 }
@@ -2386,16 +2426,6 @@ html.dark {
   content: var(--tw-content);
   --tw-bg-opacity: 1;
   background-color: rgb(185 94 32 / var(--tw-bg-opacity, 1));
-}
-
-@media (min-width: 640px) {
-  .sm\:w-auto {
-    width: auto;
-  }
-
-  .sm\:flex-row {
-    flex-direction: row;
-  }
 }
 
 @media (min-width: 768px) {

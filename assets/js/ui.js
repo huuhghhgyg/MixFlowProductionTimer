@@ -1,11 +1,7 @@
 import Timer from './timer.js';
-import Storage from './storage.js';
 import Charts from './charts.js';
 import appState, { initializeAppState } from './core.js';
 import { REST_ID } from './constants.js';
-
-// 创建一个全局 UI 实例的引用，供其他模块使用
-let uiInstance = null;
 
 export function updateTimerDisplay(startTime) {
     if (!startTime) {

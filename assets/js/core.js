@@ -1,4 +1,3 @@
-// 移除 uiInstance 的导入
 import Storage from './storage.js'; // 确保导入 Storage
 import { REST_ID, STORAGE_KEYS } from './constants.js'; // 导入 STORAGE_KEYS
 
