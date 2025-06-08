@@ -90,17 +90,24 @@ class AppState {
             taskName,
             type: taskId === REST_ID ? 'start_rest' : 'start',
             timestamp: this.activeEntry.startTime
-        });
-
-        // 设置定时器
-        this.setupTimers();        await this.saveData();
-        
-        // 记录开始任务的调试信息
-        console.debug(`Task started: ${taskName} (ID: ${taskId}) at ${new Date(this.activeEntry.startTime).toLocaleTimeString()}`);
-
+        });        // 设置定时器
+        this.setupTimers();
+          // 先调用回调函数更新UI，让用户立即看到变化
         if (onStartedCallback && typeof onStartedCallback === 'function') {
             onStartedCallback();
         }
+
+        // 使用setTimeout让保存操作完全异步，不阻塞UI
+        setTimeout(async () => {
+            try {
+                await this.saveData();
+            } catch (error) {
+                console.error('保存数据时出错:', error);
+            }
+        }, 0);
+        
+        // 记录开始任务的调试信息
+        console.debug(`Task started: ${taskName} (ID: ${taskId}) at ${new Date(this.activeEntry.startTime).toLocaleTimeString()}`);
     }
 
     async stopTask(taskId, normalStop = true, onStoppedCallback) { // Add onStoppedCallback
@@ -126,7 +133,19 @@ class AppState {
         }        const stoppedTaskName = this.activeEntry.taskName;
         this.activeEntry = null;
         this.clearTimers();
-        await this.saveData();
+          // 先调用回调函数更新UI，让用户立即看到变化
+        if (onStoppedCallback && typeof onStoppedCallback === 'function') {
+            onStoppedCallback(true); // Indicate success
+        }
+
+        // 使用setTimeout让保存操作完全异步，不阻塞UI
+        setTimeout(async () => {
+            try {
+                await this.saveData();
+            } catch (error) {
+                console.error('保存数据时出错:', error);
+            }
+        }, 0);
 
         console.debug(`Task stopped: ${stoppedTaskName} (ID: ${taskId}) at ${new Date(endTime).toLocaleTimeString()}. Duration: ${duration}ms`);
         
@@ -138,10 +157,6 @@ class AppState {
                 duration: duration 
             } 
         }));
-
-        if (onStoppedCallback && typeof onStoppedCallback === 'function') {
-            onStoppedCallback(true); // Indicate success
-        }
     }
 
     async clearHistory() {
