@@ -31,9 +31,6 @@
 
     --md-sys-color-outline: theme('colors.outline.DEFAULT');
     --md-sys-color-outline-variant: theme('colors.outline-variant.DEFAULT');
-
-    /* TODO: Add state layer opacity variables if needed for effects like hover/pressed */
-    /* TODO: Add elevation variables if needed for shadows */
   }
 
   html.dark {

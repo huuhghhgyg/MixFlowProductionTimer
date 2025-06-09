@@ -22,7 +22,7 @@ export const COLOR_THEMES = {
         id: 'green',
         name: '晨曦绿',
         description: '清新的绿色调，适合早晨工作',
-        timeRange: [6, 10],
+        timeRange: [6, 11],
         colors: {
             light: {
                 primary: '#416900',
@@ -77,7 +77,7 @@ export const COLOR_THEMES = {
         id: 'blue',
         name: '正午蓝',
         description: '深邃的蓝色调，保持专注',
-        timeRange: [10, 13], colors: {
+        timeRange: [11, 14], colors: {
             light: {
                 primary: '#006590',
                 onPrimary: '#FFFFFF',
@@ -131,7 +131,7 @@ export const COLOR_THEMES = {
         id: 'yellow',
         name: '午后黄',
         description: '温暖的黄色调，保持活力',
-        timeRange: [13, 16],
+        timeRange: [14, 16],
         colors: {
             light: {
                 primary: '#7F571F',
