@@ -48,7 +48,8 @@ class UI {
 
         // 检查并请求通知权限
         if ('Notification' in window && Notification.permission !== 'granted') {
-            Notification.requestPermission();        }
+            Notification.requestPermission();
+        }
 
         return ui;
     }
@@ -108,7 +109,7 @@ class UI {
         this.updateSettingsState();
 
         this.renderTasks();
-        this.renderHistory(); // 确保这一行存在且被调用
+        this.renderHistory();
         this.calculateAndRenderMetrics();
         this.updateCurrentActivityDisplay();
         this.updateNotificationStatus();
@@ -389,8 +390,7 @@ class UI {
         this.renderTasks();
         this.calculateAndRenderMetrics();
         this.renderHistory(); // 添加这行
-    }
-      startTask(taskId) {
+    }      startTask(taskId) {
         const tasks = appState.getTasks();
         const task = tasks.find(t => t.id === taskId);
         if (!task) return;
@@ -398,31 +398,26 @@ class UI {
         appState.startTask(taskId, task.name, () => {
             this.updateCurrentActivityDisplay();
             this.renderTasks();
-            this.updatePageTitle(task.name);
-            this.calculateAndRenderMetrics();
-            Charts.updateGanttChart();
-            this.renderTaskChips();  // 这个方法已经存在
-        });    }
-      
-    startRest() {
-        appState.startTask(REST_ID, '休息', () => {
-            this.updateCurrentActivityDisplay();
-            this.renderTasks();
-            this.updatePageTitle('休息中');
             this.calculateAndRenderMetrics();
             Charts.updateGanttChart();
             this.renderTaskChips();  // 这个方法已经存在
         });
     }
-
-    stopCurrentActivity() {
+        startRest() {
+        appState.startTask(REST_ID, '休息', () => {
+            this.updateCurrentActivityDisplay();
+            this.renderTasks();
+            this.calculateAndRenderMetrics();
+            Charts.updateGanttChart();
+            this.renderTaskChips();  // 这个方法已经存在
+        });
+    }    stopCurrentActivity() {
         const activeEntry = appState.getActiveEntry();
         if (!activeEntry) return;
 
         appState.stopTask(activeEntry.taskId);
         this.renderTasks(); // 添加这行来重新渲染任务列表，清除选中状态
         this.updateUI();
-        this.updatePageTitle();
     }
 
     clearHistory() {
@@ -630,12 +625,13 @@ class UI {
 
         if (activeEntry) {
             this.currentTaskNameSpan.textContent = activeEntry.taskName;
+            this.updatePageTitle(activeEntry.taskName);
             Timer.startTimer(activeEntry.startTime);
             this.stopActivityButton.disabled = false;
-            this.startRestButton.disabled = activeEntry.taskId === REST_ID;
-        } else {
+            this.startRestButton.disabled = activeEntry.taskId === REST_ID;        } else {
             this.currentTaskNameSpan.textContent = '-- 无活动 --';
             this.currentTimerSpan.textContent = '00:00:00';
+            this.updatePageTitle(); // 恢复默认标题
             Timer.stopTimer();
             this.stopActivityButton.disabled = true;
             this.startRestButton.disabled = false;

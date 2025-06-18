@@ -1,6 +1,5 @@
 import appState from './core.js';
 import { REST_ID } from './constants.js';
-import Timer from './timer.js';
 
 class Charts {
     static ganttChart = null;

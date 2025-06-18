@@ -577,8 +577,6 @@ video {
   --md-sys-color-on-surface-variant: var(--md-sys-color-on-surface-variant);
   --md-sys-color-outline: var(--md-sys-color-outline);
   --md-sys-color-outline-variant: var(--md-sys-color-outline-variant);
-  /* TODO: Add state layer opacity variables if needed for effects like hover/pressed */
-  /* TODO: Add elevation variables if needed for shadows */
 }
 
 html.dark {
