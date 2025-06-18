@@ -228,18 +228,24 @@ class AppState {
                 timestamp: stopTime
             });
 
-            this.showNotification('超时警告', `任务"${this.activeEntry.taskName}"已超过${this.timerSettings.timeoutMinutes}分钟，任务已停止`);
+            const stoppedTaskId = this.activeEntry.taskId;
+            const stoppedTaskName = this.activeEntry.taskName;
+
+            this.showNotification('超时警告', `任务"${stoppedTaskName}"已超过${this.timerSettings.timeoutMinutes}分钟，任务已停止`);
+
+            // 先清空活动任务和定时器，再派发事件，确保UI能正确更新
+            this.activeEntry = null;
+            this.clearTimers();
 
             // 在停止任务事件中也使用超时时间点
             document.dispatchEvent(new CustomEvent('mfpt:taskStopped', {
                 detail: {
-                    taskId: this.activeEntry.taskId,
-                    taskName: this.activeEntry.taskName,
+                    taskId: stoppedTaskId,
+                    taskName: stoppedTaskName,
                     duration: this.timerSettings.timeoutMinutes * 60 * 1000
                 }
             }));
 
-            this.activeEntry = null;
             this.saveData();
             return;
         }
@@ -285,18 +291,24 @@ class AppState {
 
                     // 发送超时通知并停止任务
                     console.log("触发超时，停止任务");
-                    this.showNotification('超时警告', `任务"${this.activeEntry.taskName}"已超过${this.timerSettings.timeoutMinutes}分钟，任务已停止`);
+                    const stoppedTaskId = this.activeEntry.taskId;
+                    const stoppedTaskName = this.activeEntry.taskName;
+                    
+                    this.showNotification('超时警告', `任务"${stoppedTaskName}"已超过${this.timerSettings.timeoutMinutes}分钟，任务已停止`);
+                    
+                    // 先清空活动任务和定时器，再派发事件，确保UI能正确更新
+                    this.activeEntry = null;
+                    this.clearTimers();
                     
                     // 在停止任务事件中也使用超时时间点
                     document.dispatchEvent(new CustomEvent('mfpt:taskStopped', {
                         detail: {
-                            taskId: this.activeEntry.taskId,
-                            taskName: this.activeEntry.taskName,
+                            taskId: stoppedTaskId,
+                            taskName: stoppedTaskName,
                             duration: this.timerSettings.timeoutMinutes * 60 * 1000
                         }
                     }));
 
-                    this.activeEntry = null;
                     this.saveData();
                 }, timeoutMinutesLeft * 60 * 1000);
             }
@@ -351,18 +363,24 @@ class AppState {
                 timestamp: stopTime
             });
 
-            this.showNotification('超时警告', `任务"${this.activeEntry.taskName}"已超过${this.timerSettings.timeoutMinutes}分钟，任务已停止`);
+            const stoppedTaskId = this.activeEntry.taskId;
+            const stoppedTaskName = this.activeEntry.taskName;
+
+            this.showNotification('超时警告', `任务"${stoppedTaskName}"已超过${this.timerSettings.timeoutMinutes}分钟，任务已停止`);
+            
+            // 先清空活动任务，再派发事件，确保UI能正确更新
+            this.activeEntry = null;
+            this.clearTimers();
             
             // 在停止任务事件中也使用超时时间点
             document.dispatchEvent(new CustomEvent('mfpt:taskStopped', {
                 detail: {
-                    taskId: this.activeEntry.taskId,
-                    taskName: this.activeEntry.taskName,
+                    taskId: stoppedTaskId,
+                    taskName: stoppedTaskName,
                     duration: this.timerSettings.timeoutMinutes * 60 * 1000
                 }
             }));
 
-            this.activeEntry = null;
             this.saveData();
             return;
         }
