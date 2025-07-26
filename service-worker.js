@@ -1,8 +1,27 @@
 const CACHE_NAME = 'mfpt-cache-v1';
 const CACHE_VERSION = '1.0.0';
 
-// 清空预缓存列表，因为我们现在只希望缓存CDN资源
-const ASSETS_TO_CACHE = [];
+// 本地资源预缓存列表
+const ASSETS_TO_CACHE = [
+    '/',
+    '/index.html',
+    '/manifest.json',
+    '/dist/style.css',
+    '/assets/css/theme-transitions.css',
+    '/assets/js/ui.js',
+    '/assets/js/core.js',
+    '/assets/js/storage.js',
+    '/assets/js/timer.js',
+    '/assets/js/charts.js',
+    '/assets/js/constants.js',
+    '/assets/js/theme-manager.js',
+    '/assets/icons/android-chrome-192x192.png',
+    '/assets/icons/android-chrome-512x512.png',
+    '/assets/icons/apple-touch-icon.png',
+    '/assets/icons/favicon-16x16.png',
+    '/assets/icons/favicon-32x32.png',
+    '/assets/icons/favicon.ico'
+];
 
 const CDN_RESOURCES = {
     'fonts.googleapis.com': {
@@ -20,29 +39,36 @@ const CDN_RESOURCES = {
         ]
     },
     'cdn.staticfile.org': { // 添加或修改此条目以匹配 cdn.staticfile.org
-        maxAge: 7 * 24 * 60 * 60 * 1000,  // 7天
+        maxAge: 30 * 24 * 60 * 60 * 1000,  // 30天
         paths: [
             '/echarts/'  // 匹配 ECharts 路径
         ]
     }
 };
 
-const LOCAL_ASSET_MAX_AGE = 24 * 60 * 60 * 1000; // 1 天 (毫秒)
+const LOCAL_ASSET_MAX_AGE = 24 * 60 * 60 * 1000; // 24小时 (毫秒)
+let hasUpdatesAvailable = false;
+let updateCheckInProgress = false;
 
 self.addEventListener('install', (event) => {
+    console.log('Service Worker installing...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                return Promise.all(
+                console.log('Caching app assets...');
+                return Promise.allSettled(
                     ASSETS_TO_CACHE.map(url => {
                         return cache.add(url).catch(error => {
-                            console.error('Failed to cache:', url, error);
+                            console.warn('Failed to cache:', url, error);
                             return Promise.resolve();
                         });
                     })
                 );
             })
-            .then(() => self.skipWaiting())
+            .then(() => {
+                console.log('Assets cached successfully');
+                return self.skipWaiting();
+            })
     );
 });
 
@@ -72,6 +98,135 @@ function isRequestCacheable(url) {
     }
 }
 
+// 检查本地资源是否需要更新
+async function checkForUpdates() {
+    if (updateCheckInProgress) {
+        console.log('更新检查已在进行中，跳过');
+        return;
+    }
+    updateCheckInProgress = true;
+    
+    try {
+        const cache = await caches.open(CACHE_NAME);
+        const updatedResources = [];
+        
+        console.log('开始检查本地资源更新...', ASSETS_TO_CACHE.length, '个资源');
+        
+        // 检查所有本地资源是否有更新
+        for (const url of ASSETS_TO_CACHE) {
+            try {
+                const cachedResponse = await cache.match(url);
+                const networkResponse = await fetch(url, { 
+                    cache: 'no-cache',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate'
+                    }
+                });
+                
+                if (!networkResponse.ok) {
+                    continue;
+                }
+                
+                // 如果没有缓存，说明是新资源，需要缓存
+                if (!cachedResponse) {
+                    console.log(`发现新资源: ${url}`);
+                    updatedResources.push({
+                        url,
+                        response: networkResponse
+                    });
+                    continue;
+                }
+                
+                // 比较ETag或Last-Modified
+                const cachedETag = cachedResponse.headers.get('etag');
+                const networkETag = networkResponse.headers.get('etag');
+                const cachedLastModified = cachedResponse.headers.get('last-modified');
+                const networkLastModified = networkResponse.headers.get('last-modified');
+                
+                let isUpdated = false;
+                if (cachedETag && networkETag) {
+                    isUpdated = cachedETag !== networkETag;
+                } else if (cachedLastModified && networkLastModified) {
+                    isUpdated = cachedLastModified !== networkLastModified;
+                } else {
+                    // 如果没有ETag或Last-Modified，比较内容长度
+                    const cachedLength = cachedResponse.headers.get('content-length');
+                    const networkLength = networkResponse.headers.get('content-length');
+                    if (cachedLength && networkLength) {
+                        isUpdated = cachedLength !== networkLength;
+                    }
+                }
+                
+                if (isUpdated) {
+                    console.log(`发现更新: ${url}`);
+                    updatedResources.push({
+                        url,
+                        response: networkResponse
+                    });
+                }
+            } catch (error) {
+                console.warn(`检查更新失败 ${url}:`, error);
+            }
+        }
+        
+        // 如果有更新的资源，批量下载并缓存所有更新资源
+        if (updatedResources.length > 0) {
+            console.log(`发现 ${updatedResources.length} 个资源需要更新，开始下载...`);
+            
+            // 批量缓存所有更新的资源
+            const cachePromises = updatedResources.map(async ({ url, response }) => {
+                try {
+                    const clonedResponse = response.clone();
+                    const headers = new Headers(clonedResponse.headers);
+                    headers.set('sw-fetched-on', new Date().toISOString());
+                    headers.set('sw-cache-max-age', LOCAL_ASSET_MAX_AGE.toString());
+                    
+                    const responseToCache = new Response(clonedResponse.body, {
+                        status: clonedResponse.status,
+                        statusText: clonedResponse.statusText,
+                        headers: headers
+                    });
+                    
+                    await cache.put(url, responseToCache);
+                    console.log(`缓存更新完成: ${url}`);
+                } catch (error) {
+                    console.error(`缓存更新失败 ${url}:`, error);
+                    throw error;
+                }
+            });
+            
+            // 等待所有资源缓存完成
+            await Promise.all(cachePromises);
+            
+            hasUpdatesAvailable = true;
+            console.log('所有资源更新下载完成，通知用户');
+            
+            // 通知所有客户端有更新可用
+            const clients = await self.clients.matchAll();
+            clients.forEach(client => {
+                client.postMessage({
+                    type: 'UPDATE_AVAILABLE',
+                    message: '应用已更新并下载完成，刷新页面即可使用最新版本',
+                    updatedCount: updatedResources.length
+                });
+            });
+        } else if (updatedResources.length === 0) {
+            console.log('未发现资源更新');
+        }
+    } catch (error) {
+        console.error('检查更新时出错:', error);
+    } finally {
+        updateCheckInProgress = false;
+    }
+}
+
+// 监听客户端消息
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'CHECK_UPDATE') {
+        checkForUpdates();
+    }
+});
+
 // 检查外部资源并获取其缓存策略
 function getExternalResourceStrategy(url) {
     try {
@@ -90,20 +245,19 @@ function getExternalResourceStrategy(url) {
                 };
             }
         }
-        
-        return {
-            isCDN: false,
-            maxAge: 0
-        };
     } catch (e) {
-        return {
-            isCDN: false,
-            maxAge: 0
-        };
+        console.log('Invalid URL:', url, e);
     }
+    // 如果不是已配置的 CDN，返回默认策略
+    return {
+        isCDN: false,
+        maxAge: 0
+    };
 }
 
 self.addEventListener('fetch', (event) => {
+    const url = new URL(event.request.url);
+    
     // 检查请求是否来自已配置的 CDN
     const strategy = getExternalResourceStrategy(event.request.url);
     
@@ -157,55 +311,47 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // 对于本地资源 (HTML, CSS, JS 等)
-    // 仅对 GET 请求和可缓存的 scheme 应用缓存策略
-    if (event.request.method === 'GET' && isRequestCacheable(event.request.url)) {
+    // 对于本地资源 - 使用 cache-first 策略
+    if (event.request.method === 'GET' && isRequestCacheable(event.request.url) && 
+        (url.origin === location.origin || ASSETS_TO_CACHE.some(asset => url.pathname.includes(asset)))) {
+        
         event.respondWith(
             caches.open(CACHE_NAME).then(cache => {
                 return cache.match(event.request).then(cachedResponse => {
-                    const fetchPromise = fetch(event.request).then(networkResponse => {
+                    // 如果有缓存，立即返回缓存
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    }
+                    
+                    // 如果没有缓存，从网络获取并缓存
+                    return fetch(event.request).then(networkResponse => {
                         if (networkResponse && networkResponse.ok) {
                             const clonedResponse = networkResponse.clone();
-                            const headers = new Headers(clonedResponse.headers); // 从原始响应头开始
+                            const headers = new Headers(clonedResponse.headers);
                             headers.set('sw-fetched-on', new Date().toISOString());
-                            headers.set('sw-cache-max-age', LOCAL_ASSET_MAX_AGE.toString()); // 本地资源缓存1天
+                            headers.set('sw-cache-max-age', LOCAL_ASSET_MAX_AGE.toString());
                             
                             const responseToCache = new Response(clonedResponse.body, {
                                 status: clonedResponse.status,
                                 statusText: clonedResponse.statusText,
-                                headers: headers // 使用修改后的头部信息
+                                headers: headers
                             });
                             
                             cache.put(event.request, responseToCache);
                         }
                         return networkResponse;
+                    }).catch(error => {
+                        console.error('Network request failed:', error);
+                        return new Response('Network error for local resource', {
+                            status: 408,
+                            headers: { 'Content-Type': 'text/plain' }
+                        });
                     });
-
-                    // 如果有缓存且未过期（1天内），返回缓存
-                    if (cachedResponse) {
-                        const fetchedOnHeader = cachedResponse.headers.get('sw-fetched-on');
-                        const maxAgeHeader = cachedResponse.headers.get('sw-cache-max-age');
-                        if (fetchedOnHeader && maxAgeHeader) {
-                            const fetchedOn = new Date(fetchedOnHeader);
-                            const maxAge = parseInt(maxAgeHeader);
-                            // 确保解析成功
-                            if (!isNaN(fetchedOn.getTime()) && !isNaN(maxAge) && (Date.now() - fetchedOn.getTime() < maxAge)) {
-                                return cachedResponse;
-                            }
-                        }
-                    }
-
-                    // 否则返回网络请求，同时在后台更新缓存
-                    // 如果 fetchPromise 失败，并且有 cachedResponse (即使是旧的)，则返回它
-                    return fetchPromise.catch(() => cachedResponse || new Response('Network error for local resource', {
-                        status: 408,
-                        headers: { 'Content-Type': 'text/plain' }
-                    }));
                 });
             })
         );
     } else {
-        // 对于非 GET 请求或不可缓存的 scheme，直接从网络获取
+        // 对于非本地资源或非 GET 请求，直接从网络获取
         event.respondWith(fetch(event.request));
     }
 });

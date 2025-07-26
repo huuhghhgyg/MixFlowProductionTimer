@@ -35,11 +35,39 @@ class UI {
         await initializeAppState();
 
         const ui = new UI();
-        Charts.init();        // Service Worker注册移至这里// 注册Service Worker
+        Charts.init();  // 注册Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/service-worker.js')
                 .then(registration => {
                     console.log('Service Worker registered:', registration);
+                    
+                    // 监听Service Worker消息
+                    navigator.serviceWorker.addEventListener('message', (event) => {
+                        if (event.data && event.data.type === 'UPDATE_AVAILABLE') {
+                            ui.showUpdateNotification(event.data.message);
+                        }
+                    });
+                    
+                    // 检查是否有等待中的Service Worker
+                    if (registration.waiting) {
+                        ui.showUpdateNotification('应用已更新，刷新页面即可使用最新版本');
+                    }
+                    
+                    // 监听新的Service Worker安装
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                ui.showUpdateNotification('应用已更新，刷新页面即可使用最新版本');
+                            }
+                        });
+                    });
+                    
+                    // 页面加载完成后检查资源更新
+                    if (navigator.serviceWorker.controller) {
+                        console.log('检查应用资源更新...');
+                        navigator.serviceWorker.controller.postMessage({ type: 'CHECK_UPDATE' });
+                    }
                 })
                 .catch(error => {
                     console.log('Service Worker registration failed:', error);
@@ -908,6 +936,46 @@ class UI {
                 option.style.borderColor = '';
             }
         });
+    }
+
+    // 显示应用更新通知
+    showUpdateNotification(message) {
+        // 移除已存在的更新通知
+        const existingNotification = document.querySelector('.update-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        // 创建简洁的更新通知
+        const notification = document.createElement('div');
+        notification.className = 'update-notification fixed top-4 left-1/2 transform -translate-x-1/2 z-[2000] bg-primary dark:bg-primary-dark text-on-primary dark:text-on-primary-dark px-6 py-4 rounded-lg shadow-lg flex items-center gap-3';
+        notification.innerHTML = `
+            <span class="material-symbols-rounded">system_update</span>
+            <span class="text-sm font-medium">${message}</span>
+            <button class="refresh-button bg-on-primary dark:bg-on-primary-dark text-primary dark:text-primary-dark px-3 py-1 rounded text-sm font-medium hover:opacity-90 transition-opacity">
+                刷新
+            </button>
+            <button class="close-button text-on-primary dark:text-on-primary-dark hover:opacity-70 transition-opacity">
+                <span class="material-symbols-rounded text-sm">close</span>
+            </button>
+        `;
+
+        document.body.appendChild(notification);
+
+        // 添加事件监听器
+        const refreshButton = notification.querySelector('.refresh-button');
+        const closeButton = notification.querySelector('.close-button');
+
+        refreshButton.addEventListener('click', () => {
+            // 立即刷新页面
+            window.location.reload();
+        });
+
+        closeButton.addEventListener('click', () => {
+            notification.remove();
+        });
+
+        // 不自动移除，让用户自己决定何时刷新
     }
 }
 
