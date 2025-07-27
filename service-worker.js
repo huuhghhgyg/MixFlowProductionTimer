@@ -38,7 +38,7 @@ const CDN_RESOURCES = {
             '/s/googlesanstext'           // Google Sans Text 字体文件
         ]
     },
-    'cdn.staticfile.org': { // 添加或修改此条目以匹配 cdn.staticfile.org
+    's4.zstatic.net': { // 添加或修改此条目以匹配 cdn.staticfile.org
         maxAge: 30 * 24 * 60 * 60 * 1000,  // 30天
         paths: [
             '/echarts/'  // 匹配 ECharts 路径
@@ -102,6 +102,11 @@ function isRequestCacheable(url) {
 async function checkForUpdates() {
     if (updateCheckInProgress) {
         console.log('更新检查已在进行中，跳过');
+        return;
+    }
+    // 在检查更新之前，先确认是否在线
+    if (!navigator.onLine) {
+        console.log('浏览器离线，跳过更新检查');
         return;
     }
     updateCheckInProgress = true;
@@ -256,102 +261,40 @@ function getExternalResourceStrategy(url) {
 }
 
 self.addEventListener('fetch', (event) => {
-    const url = new URL(event.request.url);
-    
-    // 检查请求是否来自已配置的 CDN
-    const strategy = getExternalResourceStrategy(event.request.url);
-    
-    if (strategy.isCDN) {
-        // 对于 CDN 资源，使用 stale-while-revalidate 策略
-        event.respondWith(
-            caches.open(CACHE_NAME).then(cache => {
-                return cache.match(event.request).then(cachedResponse => {
-                    const fetchPromise = fetch(event.request).then(networkResponse => {
-                        if (networkResponse && networkResponse.ok) {
-                            // 克隆响应，因为它只能使用一次
-                            const clonedResponse = networkResponse.clone();
-                            
-                            // 设置缓存的过期时间
-                            const headers = new Headers(clonedResponse.headers);
-                            headers.set('sw-fetched-on', new Date().toISOString());
-                            headers.set('sw-cache-max-age', strategy.maxAge.toString());
-                            
-                            const responseToCache = new Response(clonedResponse.body, {
-                                status: clonedResponse.status,
-                                statusText: clonedResponse.statusText,
-                                headers: headers
-                            });
-                            
-                            cache.put(event.request, responseToCache);
-                        }
-                        return networkResponse;
-                    });
-
-                    // 如果有缓存且未过期，返回缓存
-                    if (cachedResponse) {
-                        const fetchedOnHeader = cachedResponse.headers.get('sw-fetched-on');
-                        const maxAgeHeader = cachedResponse.headers.get('sw-cache-max-age');
-                        if (fetchedOnHeader && maxAgeHeader) {
-                            const fetchedOn = new Date(fetchedOnHeader);
-                            const maxAge = parseInt(maxAgeHeader);
-                            if (!isNaN(fetchedOn.getTime()) && !isNaN(maxAge) && (Date.now() - fetchedOn.getTime() < maxAge)) {
-                                return cachedResponse;
-                            }
-                        }
-                    }
-
-                    // 否则返回网络请求，同时在后台更新缓存
-                    return fetchPromise.catch(() => cachedResponse || new Response('Network error for CDN resource', {
-                        status: 408,
-                        headers: { 'Content-Type': 'text/plain' }
-                    }));
-                });
-            })
-        );
+    // 只缓存 GET 请求
+    if (event.request.method !== 'GET' || !isRequestCacheable(event.request.url)) {
+        event.respondWith(fetch(event.request));
         return;
     }
 
-    // 对于本地资源 - 使用 cache-first 策略
-    if (event.request.method === 'GET' && isRequestCacheable(event.request.url) && 
-        (url.origin === location.origin || ASSETS_TO_CACHE.some(asset => url.pathname.includes(asset)))) {
-        
-        event.respondWith(
-            caches.open(CACHE_NAME).then(cache => {
-                return cache.match(event.request).then(cachedResponse => {
-                    // 如果有缓存，立即返回缓存
-                    if (cachedResponse) {
-                        return cachedResponse;
+    // 对所有 GET 请求应用 Cache-First 策略
+    event.respondWith(
+        caches.open(CACHE_NAME).then(cache => {
+            return cache.match(event.request).then(cachedResponse => {
+                // 如果有缓存，直接返回缓存
+                if (cachedResponse) {
+                    // console.log(`[Cache] 从缓存中提供: ${event.request.url}`);
+                    return cachedResponse;
+                }
+
+                // 如果没有缓存，从网络获取
+                console.log(`[Network] 缓存中未找到，从网络获取: ${event.request.url}`);
+                return fetch(event.request).then(networkResponse => {
+                    if (networkResponse && networkResponse.ok) {
+                        const responseToCache = networkResponse.clone();
+                        cache.put(event.request, responseToCache);
+                        // console.log(`[Network] 获取并缓存成功: ${event.request.url}`);
                     }
-                    
-                    // 如果没有缓存，从网络获取并缓存
-                    return fetch(event.request).then(networkResponse => {
-                        if (networkResponse && networkResponse.ok) {
-                            const clonedResponse = networkResponse.clone();
-                            const headers = new Headers(clonedResponse.headers);
-                            headers.set('sw-fetched-on', new Date().toISOString());
-                            headers.set('sw-cache-max-age', LOCAL_ASSET_MAX_AGE.toString());
-                            
-                            const responseToCache = new Response(clonedResponse.body, {
-                                status: clonedResponse.status,
-                                statusText: clonedResponse.statusText,
-                                headers: headers
-                            });
-                            
-                            cache.put(event.request, responseToCache);
-                        }
-                        return networkResponse;
-                    }).catch(error => {
-                        console.error('Network request failed:', error);
-                        return new Response('Network error for local resource', {
-                            status: 408,
-                            headers: { 'Content-Type': 'text/plain' }
-                        });
+                    return networkResponse;
+                }).catch(error => {
+                    console.error('网络请求失败:', event.request.url, error);
+                    // 可选：返回一个通用的离线占位响应
+                    return new Response('网络错误，无法加载资源', {
+                        status: 408,
+                        headers: { 'Content-Type': 'text/plain' }
                     });
                 });
-            })
-        );
-    } else {
-        // 对于非本地资源或非 GET 请求，直接从网络获取
-        event.respondWith(fetch(event.request));
-    }
+            });
+        })
+    );
 });
