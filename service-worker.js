@@ -112,37 +112,36 @@ async function checkForUpdates() {
         
         console.log('开始检查本地资源更新...', ASSETS_TO_CACHE.length, '个资源');
         
-        // 检查所有本地资源是否有更新
+        // 优化：先用 HEAD 请求比对资源头部，只有有更新时才用 GET 请求下载完整内容
         for (const url of ASSETS_TO_CACHE) {
             try {
                 const cachedResponse = await cache.match(url);
-                const networkResponse = await fetch(url, { 
-                    cache: 'no-cache',
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate'
-                    }
-                });
-                
-                if (!networkResponse.ok) {
-                    continue;
+                let headResponse;
+                try {
+                    headResponse = await fetch(url, { method: 'HEAD', cache: 'no-cache', headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' } });
+                } catch (e) {
+                    console.warn(`HEAD 请求失败，尝试 GET: ${url}`);
+                    headResponse = await fetch(url, { cache: 'no-cache', headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' } });
                 }
-                
+                if (!headResponse.ok) continue;
+
                 // 如果没有缓存，说明是新资源，需要缓存
                 if (!cachedResponse) {
                     console.log(`发现新资源: ${url}`);
-                    updatedResources.push({
-                        url,
-                        response: networkResponse
-                    });
+                    // 新资源需要完整下载
+                    const networkResponse = await fetch(url, { cache: 'no-cache', headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' } });
+                    if (networkResponse.ok) {
+                        updatedResources.push({ url, response: networkResponse });
+                    }
                     continue;
                 }
-                
+
                 // 比较ETag或Last-Modified
                 const cachedETag = cachedResponse.headers.get('etag');
-                const networkETag = networkResponse.headers.get('etag');
+                const networkETag = headResponse.headers.get('etag');
                 const cachedLastModified = cachedResponse.headers.get('last-modified');
-                const networkLastModified = networkResponse.headers.get('last-modified');
-                
+                const networkLastModified = headResponse.headers.get('last-modified');
+
                 let isUpdated = false;
                 if (cachedETag && networkETag) {
                     isUpdated = cachedETag !== networkETag;
@@ -151,18 +150,19 @@ async function checkForUpdates() {
                 } else {
                     // 如果没有ETag或Last-Modified，比较内容长度
                     const cachedLength = cachedResponse.headers.get('content-length');
-                    const networkLength = networkResponse.headers.get('content-length');
+                    const networkLength = headResponse.headers.get('content-length');
                     if (cachedLength && networkLength) {
                         isUpdated = cachedLength !== networkLength;
                     }
                 }
-                
+
                 if (isUpdated) {
                     console.log(`发现更新: ${url}`);
-                    updatedResources.push({
-                        url,
-                        response: networkResponse
-                    });
+                    // 有更新时才完整下载
+                    const networkResponse = await fetch(url, { cache: 'no-cache', headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' } });
+                    if (networkResponse.ok) {
+                        updatedResources.push({ url, response: networkResponse });
+                    }
                 }
             } catch (error) {
                 console.warn(`检查更新失败 ${url}:`, error);

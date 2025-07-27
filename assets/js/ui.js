@@ -734,8 +734,6 @@ class UI {
         document.title = taskName ? `MFPT - ${taskName}` : 'Mixed-Flow Production Timer';
     }
 
-    // Rest of the existing class methods...
-
     updateTimer(duration) {
         this.timerDisplay.textContent = Timer.formatDuration(duration);
     }

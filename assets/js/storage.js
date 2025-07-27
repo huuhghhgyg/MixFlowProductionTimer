@@ -173,8 +173,11 @@ const Storage = {
     async getHistory() {
         if (this.dataFolderHandle) {
             try {
+                const startTime = performance.now();
                 const fileHandle = await getFileHandle(this.dataFolderHandle, 'history.json');
                 const history = await readFile(fileHandle);
+                const endTime = performance.now();
+                console.log(`读取 history.json 耗时: ${(endTime - startTime).toFixed(2)}ms`);
                 return history || [];
             } catch (error) {
                 console.warn("Failed to load history from file system, falling back to localStorage", error);
