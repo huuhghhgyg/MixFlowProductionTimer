@@ -15,6 +15,7 @@ const ASSETS_TO_CACHE = [
     '/assets/js/charts.js',
     '/assets/js/constants.js',
     '/assets/js/theme-manager.js',
+    '/assets/js/echarts.min.js',
     '/assets/icons/android-chrome-192x192.png',
     '/assets/icons/android-chrome-512x512.png',
     '/assets/icons/apple-touch-icon.png',
