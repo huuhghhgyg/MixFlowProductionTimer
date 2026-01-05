@@ -564,6 +564,7 @@ class Charts {
         return {
             tooltip: {
                 position: 'top',
+                appendToBody: true, // 避免被容器裁剪
                 formatter: function (params) {
                     const date = new Date(params.data[0]);
                     const minutes = params.data[1];

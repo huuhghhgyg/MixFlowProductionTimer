@@ -1,6 +1,8 @@
 {
   "scripts": {
-    "build:css": "tailwindcss -i ./tailwind.css -o ./dist/style.css --watch"
+    "build:css": "tailwindcss -i ./tailwind.css -o ./dist/style.css --minify",
+    "dev:css": "tailwindcss -i ./tailwind.css -o ./dist/style.css --watch",
+    "build": "npm run build:css"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.17"

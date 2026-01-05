@@ -14,6 +14,9 @@ class AppState {
         };
         this.reminderTimeout = null;
         this.timeoutTimeout = null;
+        this.reloadScheduled = false;
+        this.notificationListenersReady = false;
+        this.pendingNotifications = [];
         // loadData 现在是异步的，但构造函数不能是异步的。
         // 我们将启动加载过程，但依赖于一个单独的初始化函数来确保在使用 appState 之前数据已加载。
         // this.loadData(); // 不再在构造函数中直接调用
@@ -179,8 +182,31 @@ class AppState {
         return [...this.tasks];
     }
 
-    getHistory() {
-        return [...this.history];
+    getHistory(options = {}) {
+        const {
+            newestFirst = false,
+            limit = null,
+            offset = 0
+        } = options;
+
+        let historyData = [...this.history];
+
+        // 按需截取片段，避免一次性返回全部
+        if (typeof limit === 'number' && limit > 0) {
+            const start = Math.max(historyData.length - offset - limit, 0);
+            const end = Math.max(historyData.length - offset, 0);
+            historyData = historyData.slice(start, end);
+        } else if (offset > 0) {
+            // 没有限制但有偏移，从末尾偏移开始
+            const end = Math.max(historyData.length - offset, 0);
+            historyData = historyData.slice(0, end);
+        }
+
+        if (newestFirst) {
+            historyData = historyData.reverse();
+        }
+
+        return historyData;
     }
 
     getActiveEntry() {
@@ -278,38 +304,9 @@ class AppState {
             if (timeoutMinutesLeft > 0) {
                 console.log(`设置超时: ${timeoutMinutesLeft.toFixed(2)}分钟后触发`);
                 this.timeoutTimeout = setTimeout(() => {
-                    // 计算实际的停止时间（开始时间 + 超时时间）
-                    const stopTime = this.activeEntry.startTime + (this.timerSettings.timeoutMinutes * 60 * 1000);
-                    
-                    // 记录停止事件，使用超时时间点而不是当前时间
-                    this.history.push({
-                        taskId: this.activeEntry.taskId,
-                        taskName: this.activeEntry.taskName,
-                        type: 'stop',
-                        timestamp: stopTime
-                    });
-
-                    // 发送超时通知并停止任务
-                    console.log("触发超时，停止任务");
-                    const stoppedTaskId = this.activeEntry.taskId;
-                    const stoppedTaskName = this.activeEntry.taskName;
-                    
-                    this.showNotification('超时警告', `任务"${stoppedTaskName}"已超过${this.timerSettings.timeoutMinutes}分钟，任务已停止`);
-                    
-                    // 先清空活动任务和定时器，再派发事件，确保UI能正确更新
-                    this.activeEntry = null;
-                    this.clearTimers();
-                    
-                    // 在停止任务事件中也使用超时时间点
-                    document.dispatchEvent(new CustomEvent('mfpt:taskStopped', {
-                        detail: {
-                            taskId: stoppedTaskId,
-                            taskName: stoppedTaskName,
-                            duration: this.timerSettings.timeoutMinutes * 60 * 1000
-                        }
-                    }));
-
-                    this.saveData();
+                    // 先刷新页面，由初始化阶段统一处理超时结算和通知
+                    console.log("触发超时，准备刷新后进行结算");
+                    this.scheduleTimeoutReload();
                 }, timeoutMinutesLeft * 60 * 1000);
             }
         }
@@ -390,6 +387,16 @@ class AppState {
         this.setupTimers();
     }
 
+    scheduleTimeoutReload() {
+        if (this.reloadScheduled) return;
+
+        this.reloadScheduled = true;
+        // 略微延迟以确保保存动作完成，再触发页面刷新
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+    }
+
     clearTimers() {
         if (this.reminderTimeout) {
             clearTimeout(this.reminderTimeout);
@@ -403,12 +410,17 @@ class AppState {
 
     showNotification(title, message) {
         console.log(`发送通知: ${title} - ${message}`);
+        const notificationDetail = { title, message, timestamp: Date.now() };
         
-        // 触发自定义事件，用于显示内联通知
-        document.dispatchEvent(new CustomEvent('mfpt:notification', {
-            detail: { title, message, timestamp: Date.now() }
-        }));
-
+        if (this.notificationListenersReady) {
+            document.dispatchEvent(new CustomEvent('mfpt:notification', {
+                detail: notificationDetail
+            }));
+        } else {
+            // 缓存通知，待 UI 监听器就绪后再派发
+            this.pendingNotifications.push(notificationDetail);
+        }
+        
         // 尝试发送系统通知
         if ('Notification' in window) {
             if (Notification.permission === 'granted') {
@@ -451,6 +463,20 @@ class AppState {
         } else {
             console.log("该浏览器不支持系统通知");
         }
+    }
+
+    markNotificationListenersReady() {
+        this.notificationListenersReady = true;
+
+        if (this.pendingNotifications.length === 0) return;
+
+        // 派发在 UI 就绪前积压的通知
+        this.pendingNotifications.forEach(notification => {
+            document.dispatchEvent(new CustomEvent('mfpt:notification', {
+                detail: notification
+            }));
+        });
+        this.pendingNotifications = [];
     }
 
     getTimerSettings() {

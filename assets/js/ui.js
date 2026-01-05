@@ -92,6 +92,12 @@ class UI {
         this.currentTaskNameSpan = document.querySelector('#currentTaskName');
         this.currentTimerSpan = document.querySelector('#currentTimer');
         this.historyLogDiv = document.querySelector('#historyLog');
+        this.historyScrollContainer = document.querySelector('#log-scroll-container');
+        this.historyLoadMoreButton = null;
+        this.historyPage = 0;
+        this.historyPageSize = 200;
+        this.historyHasMore = true;
+        this.historyLoading = false;
         this.taskMetricsDiv = document.querySelector('#taskMetrics');
         this.clearHistoryButton = document.querySelector('#clearHistoryButton');
         this.clearDataButton = document.querySelector('#clearDataButton');
@@ -125,6 +131,9 @@ class UI {
         this.manualThemeSelection = document.querySelector('#manualThemeSelection');
         this.themeOptions = document.querySelectorAll('.theme-option');        this.setupEventListeners();
         this.initializeState();
+        this.ensureHistoryLoadMoreButton();
+        // 通知 appState，UI 的通知监听器已就绪，可以派发积压的通知
+        appState.markNotificationListenersReady();
     }
 
     initializeState() {
@@ -137,7 +146,7 @@ class UI {
         this.updateSettingsState();
 
         this.renderTasks();
-        this.renderHistory();
+        this.renderHistory({ reset: true });
         this.calculateAndRenderMetrics();
         this.updateCurrentActivityDisplay();
         this.updateNotificationStatus();
@@ -181,6 +190,14 @@ class UI {
                 this.toggleFullscreen();
             }
         });
+
+        // 让鼠标滚轮横向滚动 chips，避免显示滚动条
+        this.taskChips?.addEventListener('wheel', (e) => {
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                e.preventDefault();
+                this.taskChips.scrollLeft += e.deltaY;
+            }
+        }, { passive: false });
 
         // Task list delegation
         this.taskList.addEventListener('click', async (e) => { // Add async
@@ -236,6 +253,9 @@ class UI {
         document.addEventListener('dateChange', (e) => {
             this.calculateAndRenderMetrics();
         });
+
+        // 日志懒加载滚动监听
+        this.historyLogDiv?.addEventListener('scroll', () => this.handleHistoryScroll());
 
         // Timer settings
         this.reminderMinutesInput.addEventListener('change', () => {
@@ -310,7 +330,13 @@ class UI {
 
         if (this.toggleHistoryLogButton && logSectionElement) {
             this.toggleHistoryLogButton.addEventListener('click', () => {
-                logSectionElement.classList.toggle('collapsed');
+                const nowCollapsed = logSectionElement.classList.toggle('collapsed');
+                if (nowCollapsed) {
+                    this.historyLogDiv.innerHTML = '';
+                } else {
+                    this.renderHistory({ reset: true });
+                }
+                this.updateLoadMoreButtonState();
                 // CSS will handle the icon rotation based on the .collapsed class
             });
         }
@@ -331,7 +357,7 @@ class UI {
         this.updateSettingsState();
 
         this.renderTasks();
-        this.renderHistory(); // 确保这一行存在且被调用
+        this.renderHistory({ reset: true }); // 确保这一行存在且被调用
         this.calculateAndRenderMetrics();
         this.updateCurrentActivityDisplay();
         this.updateNotificationStatus();
@@ -353,6 +379,96 @@ class UI {
         } else {
             this.timeoutMinutesInput.disabled = true;
         }
+    }
+
+    ensureHistoryLoadMoreButton() {
+        // 不再使用按钮加载更多，改为滚动触底自动加载
+        return;
+    }
+
+    resetHistoryPagination() {
+        this.historyPage = 0;
+        this.historyHasMore = true;
+        this.historyLoading = false;
+        if (this.historyLogDiv) {
+            this.historyLogDiv.innerHTML = '';
+        }
+        this.updateLoadMoreButtonState();
+    }
+
+    updateLoadMoreButtonState() {
+        if (!this.historyLoadMoreButton) return;
+        const historySection = document.getElementById('historySection');
+        const collapsed = historySection?.classList.contains('collapsed');
+
+        if (collapsed || !this.historyHasMore) {
+            this.historyLoadMoreButton.classList.add('hidden');
+        } else {
+            this.historyLoadMoreButton.classList.remove('hidden');
+        }
+
+        this.historyLoadMoreButton.disabled = this.historyLoading || !this.historyHasMore;
+        this.historyLoadMoreButton.textContent = this.historyLoading ? '加载中...' : '加载更多';
+    }
+
+    handleHistoryScroll() {
+        if (!this.historyHasMore || this.historyLoading) return;
+        if (!this.historyLogDiv) return;
+        const threshold = 40;
+        const nearBottom = this.historyLogDiv.scrollTop + this.historyLogDiv.clientHeight >= this.historyLogDiv.scrollHeight - threshold;
+        if (nearBottom) {
+            this.loadMoreHistory();
+        }
+    }
+
+    sortHistoryEntries(history) {
+        return [...history].sort((a, b) => {
+            const timeCompare = b.timestamp - a.timestamp;
+            if (timeCompare !== 0) return timeCompare;
+            if (a.type.startsWith('stop') && b.type.startsWith('start')) return -1;
+            if (a.type.startsWith('start') && b.type.startsWith('stop')) return 1;
+            return 0;
+        });
+    }
+
+    appendHistoryEntries(entries) {
+        entries.forEach(entry => {
+            const p = document.createElement('p');
+            p.className = 'log-entry';
+            const time = new Date(entry.timestamp).toLocaleTimeString();
+            let icon = '';
+            switch (entry.type) {
+                case 'start':
+                    icon = 'play_arrow';
+                    break;
+                case 'stop':
+                    icon = 'stop';
+                    break;
+                case 'start_rest':
+                    icon = 'coffee';
+                    break;
+                case 'stop_rest':
+                    icon = 'coffee';
+                    break;
+                default:
+                    icon = 'info';
+            }
+
+            const actionText = entry.type.startsWith('start') ?
+                (entry.type === 'start_rest' ? '开始休息' : '开始任务') :
+                (entry.type === 'stop_rest' ? '结束休息' : '停止任务');
+
+            p.innerHTML = `
+                <span class="material-symbols-rounded">${icon}</span>
+                <span>[${time}] ${actionText}: ${entry.taskName}</span>
+            `;
+            this.historyLogDiv.appendChild(p);
+        });
+    }
+
+    loadHistoryScrollBottom() {
+        if (!this.historyLogDiv) return;
+        this.historyLogDiv.scrollTop = this.historyLogDiv.scrollHeight;
     }
 
     updateNotificationStatus() {
@@ -392,7 +508,7 @@ class UI {
     updateUI() {
         this.updateCurrentActivityDisplay();
         this.calculateAndRenderMetrics();
-        this.renderHistory(); // 增加这行，确保活动日志随状态更新
+        this.renderHistory({ reset: true }); // 增加这行，确保活动日志随状态更新
         Charts.updateGanttChart();
         this.updateFullscreenDisplay();
     }
@@ -407,7 +523,7 @@ class UI {
         appState.addTask(taskName);
         this.newTaskInput.value = '';
         this.renderTasks();
-        this.renderHistory(); // 添加这行
+        this.renderHistory({ reset: true }); // 添加这行
     }
 
     deleteTask(taskId) {
@@ -417,7 +533,7 @@ class UI {
         appState.deleteTask(taskId);
         this.renderTasks();
         this.calculateAndRenderMetrics();
-        this.renderHistory(); // 添加这行
+        this.renderHistory({ reset: true }); // 添加这行
     }      startTask(taskId) {
         const tasks = appState.getTasks();
         const task = tasks.find(t => t.id === taskId);
@@ -493,51 +609,61 @@ class UI {
         });
     }
 
-    renderHistory() {
-        this.historyLogDiv.innerHTML = '';
-        const history = appState.getHistory();
-        const sortedHistory = [...history].sort((a, b) => {
-            const timeCompare = b.timestamp - a.timestamp;
-            if (timeCompare !== 0) return timeCompare;
-            if (a.type.startsWith('stop') && b.type.startsWith('start')) return -1;
-            if (a.type.startsWith('start') && b.type.startsWith('stop')) return 1;
-            return 0;
-        }); 
+    async loadMoreHistory() {
+        const historySection = document.getElementById('historySection');
+        if (historySection?.classList.contains('collapsed')) return;
+        if (this.historyLoading || !this.historyHasMore) return;
 
-        sortedHistory.forEach(entry => {
-            const p = document.createElement('p');
-            p.className = 'log-entry';
-            const time = new Date(entry.timestamp).toLocaleTimeString();
-            let icon = '';
-            switch (entry.type) {
-                case 'start':
-                    icon = 'play_arrow';
-                    break;
-                case 'stop':
-                    icon = 'stop';
-                    break;
-                case 'start_rest':
-                    icon = 'coffee';
-                    break;
-                case 'stop_rest':
-                    icon = 'coffee';
-                    break;
-                default:
-                    icon = 'info';
-            }
+        this.historyLoading = true;
+        this.updateLoadMoreButtonState();
 
-            const actionText = entry.type.startsWith('start') ?
-                (entry.type === 'start_rest' ? '开始休息' : '开始任务') :
-                (entry.type === 'stop_rest' ? '结束休息' : '停止任务');
-
-            p.innerHTML = `
-                <span class="material-symbols-rounded">${icon}</span>
-                <span>[${time}] ${actionText}: ${entry.taskName}</span>
-            `;
-            this.historyLogDiv.appendChild(p);
+        const offset = this.historyPage * this.historyPageSize;
+        const history = appState.getHistory({
+            newestFirst: true,
+            limit: this.historyPageSize,
+            offset
         });
+        const sortedHistory = this.sortHistoryEntries(history);
 
-        this.historyLogDiv.scrollTop = this.historyLogDiv.scrollHeight;
+        if (sortedHistory.length === 0) {
+            this.historyHasMore = false;
+            this.historyLoading = false;
+            this.updateLoadMoreButtonState();
+            return;
+        }
+
+        this.appendHistoryEntries(sortedHistory);
+        this.historyPage += 1;
+        // 如果本次不足一整页，说明已经到底
+        this.historyHasMore = sortedHistory.length === this.historyPageSize;
+        this.historyLoading = false;
+        this.updateLoadMoreButtonState();
+
+        if (this.historyPage === 1) {
+            // 初次加载保持在列表底部，避免跳动
+            this.loadHistoryScrollBottom();
+        }
+    }
+
+    renderHistory({ reset = false } = {}) {
+        const historySection = document.getElementById('historySection');
+        if (historySection?.classList.contains('collapsed')) {
+            this.historyLogDiv.innerHTML = '';
+            this.updateLoadMoreButtonState();
+            return;
+        }
+
+        if (reset) {
+            this.resetHistoryPagination();
+        }
+
+        if (!this.historyLogDiv.children.length) {
+            // 初次或重置时加载第一页
+            this.loadMoreHistory();
+        } else {
+            // 已有内容时，只更新按钮状态
+            this.updateLoadMoreButtonState();
+        }
     }
 
     calculateAndRenderMetrics() {
@@ -724,9 +850,16 @@ class UI {
         this.fullscreenToggle.querySelector('.material-symbols-rounded').textContent =
             isFullscreen ? 'fullscreen' : 'fullscreen_exit';
 
+        // 切换页面滚动状态，避免全屏模式出现滚动条
+        if (!isFullscreen) {
+            document.body.classList.add('fullscreen-active');
+        }
+
         if (!isFullscreen) {
             this.renderTaskChips();
             this.updateFullscreenDisplay();
+        } else {
+            document.body.classList.remove('fullscreen-active');
         }
     }
 
@@ -826,6 +959,11 @@ class UI {
 
             // 显示成功通知
             this.showNotification('存储设置', `已成功切换到本地文件夹存储：${folderHandle.name}`);
+
+            // 刷新页面以确保后续读写都指向新选择的文件夹
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
         } catch (error) {
             if (error.name === 'AbortError') {
                 // 用户取消了文件夹选择，不显示错误
