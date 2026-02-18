@@ -1,5 +1,5 @@
 const CACHE_NAME = 'mfpt-cache-v1';
-const CACHE_VERSION = '1.0.0';
+const CACHE_VERSION = '1.1.0';
 
 // 本地资源预缓存列表
 const ASSETS_TO_CACHE = [
@@ -18,6 +18,8 @@ const ASSETS_TO_CACHE = [
     '/assets/js/echarts.min.js',
     '/assets/icons/android-chrome-192x192.png',
     '/assets/icons/android-chrome-512x512.png',
+    '/assets/icons/android-chrome-maskable-192x192.png',
+    '/assets/icons/android-chrome-maskable-512x512.png',
     '/assets/icons/apple-touch-icon.png',
     '/assets/icons/favicon-16x16.png',
     '/assets/icons/favicon-32x32.png',
