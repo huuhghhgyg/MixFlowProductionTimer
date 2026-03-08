@@ -51,12 +51,12 @@
             <p class="headline-small text-xl font-normal text-on-secondary-container dark:text-on-secondary-container-dark opacity-90">可视化呈现时间轨迹</p>
         </header>
 
-        <div class="add-task card flex flex-col md:flex-row gap-4 items-stretch md:items-center">
-            <m3e-form-field variant="outlined" class="w-full flex-1 min-w-0">
+        <div class="add-task card flex flex-col md:flex-row gap-4 items-stretch md:items-end">
+            <m3e-form-field variant="outlined" hide-subscript="always" class="add-task-field w-full flex-1 min-w-0">
                 <label slot="label" for="newTaskInput">输入新任务名称</label>
                 <input type="text" id="newTaskInput">
             </m3e-form-field>
-            <m3e-button variant="filled" class="w-full md:w-auto" id="addTaskButton">
+            <m3e-button variant="filled" size="medium" class="add-task-button w-full md:w-auto" id="addTaskButton">
                 <m3e-icon slot="icon" variant="rounded" name="add"></m3e-icon>
                 添加任务
             </m3e-button>
@@ -102,23 +102,20 @@
             <header class="section-header flex justify-between items-center gap-2 mb-4">
                 <h2 class="section-header-title flex-1 whitespace-nowrap overflow-hidden text-ellipsis">任务时间轴</h2>
                 <div class="date-selector flex items-center shrink-0">
-                    <input type="date" id="ganttDatePicker" class="px-2 py-1 h-8 border border-outline rounded-md-small bg-surface text-on-surface font-sans text-sm">
+                    <m3e-form-field variant="outlined" hide-subscript="always" class="date-field w-[156px]">
+                        <input type="date" id="ganttDatePicker" aria-label="选择日期">
+                    </m3e-form-field>
                 </div>
             </header>
             <div id="ganttChart" class="w-full h-[300px] rounded-md-small overflow-hidden"></div>
         </div>
 
-        <div id="heatmapSection" class="card content-section transition-all duration-300 ease-in-out collapsed">
-            <header class="section-header flex justify-between items-center gap-2 mb-4">
-                <h2 class="section-header-title flex-1 whitespace-nowrap overflow-hidden text-ellipsis">工作时长热力图</h2>
-                <button class="btn-toggle-expand" id="toggleHeatmapButton">
-                    <span class="material-symbols-rounded transition-transform duration-300 ease-in-out">expand_more</span>
-                </button>
-            </header>
-            <div class="heatmap-scroll-container w-full h-[240px] transition-all duration-300 ease-in-out overflow-x-auto overflow-y-hidden flex justify-center">
-                <div id="workloadHeatmap" class="w-full min-w-[800px] max-w-[1200px] h-full opacity-100 transition-opacity duration-300 ease-in-out"></div>
+        <m3e-expansion-panel id="heatmapPanel" class="expansion-section">
+            <span slot="header" class="section-header-title">工作时长热力图</span>
+            <div class="heatmap-scroll-container w-full h-[240px] overflow-x-auto overflow-y-hidden flex justify-center">
+                <div id="workloadHeatmap" class="w-full min-w-[800px] max-w-[1200px] h-full opacity-100"></div>
             </div>
-        </div>
+        </m3e-expansion-panel>
 
         <div class="timer-settings-section card">
             <header class="section-header flex justify-between items-center mb-4">
@@ -129,7 +126,7 @@
                     <span class="material-symbols-rounded">info</span>
                     正在检查通知权限...
                 </div>
-                <div class="setting-item flex flex-col gap-3 p-4 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small">
+                <div class="setting-item">
                     <div class="setting-item-header flex justify-between items-center gap-3">
                         <span class="setting-label flex items-center gap-2 text-base">
                             <span class="material-symbols-rounded text-xl">notifications</span>
@@ -137,12 +134,14 @@
                         </span>
                         <m3e-switch id="reminderEnabled" checked></m3e-switch>
                     </div>
-                    <div class="time-input grid grid-cols-[auto_1fr] items-center gap-2 max-w-[200px]">
-                        <input type="number" id="reminderMinutes" min="1" value="30" class="w-full max-w-[72px] px-3 py-2 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-on-surface dark:text-on-surface-dark text-base focus:outline-none focus:border-primary dark:focus:border-primary-dark">
+                    <div class="time-input grid grid-cols-[auto_1fr] items-center gap-2 max-w-[168px]">
+                        <m3e-form-field variant="outlined" hide-subscript="always" class="minutes-field w-full max-w-[88px]">
+                            <input type="number" id="reminderMinutes" min="1" value="30" aria-label="提醒分钟数">
+                        </m3e-form-field>
                         <span class="unit text-on-secondary-container dark:text-on-secondary-container-dark whitespace-nowrap min-w-[32px] text-left pl-1">分钟</span>
                     </div>
                 </div>
-                <div class="setting-item flex flex-col gap-3 p-4 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small">
+                <div class="setting-item">
                     <div class="setting-item-header flex justify-between items-center gap-3">
                         <span class="setting-label flex items-center gap-2 text-base">
                             <span class="material-symbols-rounded text-xl">timer_off</span>
@@ -150,8 +149,10 @@
                         </span>
                         <m3e-switch id="timeoutEnabled" checked></m3e-switch>
                     </div>
-                    <div class="time-input grid grid-cols-[auto_1fr] items-center gap-2 max-w-[200px]">
-                        <input type="number" id="timeoutMinutes" min="1" value="60" class="w-full max-w-[72px] px-3 py-2 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-on-surface dark:text-on-surface-dark text-base focus:outline-none focus:border-primary dark:focus:border-primary-dark">
+                    <div class="time-input grid grid-cols-[auto_1fr] items-center gap-2 max-w-[168px]">
+                        <m3e-form-field variant="outlined" hide-subscript="always" class="minutes-field w-full max-w-[88px]">
+                            <input type="number" id="timeoutMinutes" min="1" value="60" aria-label="超时分钟数">
+                        </m3e-form-field>
                         <span class="unit text-on-secondary-container dark:text-on-secondary-container-dark whitespace-nowrap min-w-[32px] text-left pl-1">分钟</span>
                     </div>
                 </div>
@@ -221,19 +222,25 @@
                 </div>
 
                 <!-- 手动主题选择 -->
-                <div id="manualThemeSelection" class="manual-theme-selection" style="display: none;">                    <div class="theme-grid grid grid-cols-2 md:grid-cols-5 gap-3">                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="green">
+                <div id="manualThemeSelection" class="manual-theme-selection is-hidden" aria-hidden="true">
+                    <div class="theme-grid grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="green">
                             <div class="w-8 h-8 rounded-full border-2 border-outline dark:border-outline-dark" style="background-color: #416900;"></div>
                             <span class="text-xs text-center text-on-secondary-container dark:text-on-secondary-container-dark">晨曦绿</span>
-                        </button>                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="blue">
+                        </button>
+                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="blue">
                             <div class="w-8 h-8 rounded-full border-2 border-outline dark:border-outline-dark" style="background-color: #006590;"></div>
                             <span class="text-xs text-center text-on-secondary-container dark:text-on-secondary-container-dark">正午蓝</span>
-                        </button>                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="yellow">
+                        </button>
+                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="yellow">
                             <div class="w-8 h-8 rounded-full border-2 border-outline dark:border-outline-dark" style="background-color: #7F571F;"></div>
                             <span class="text-xs text-center text-on-secondary-container dark:text-on-secondary-container-dark">午后黄</span>
-                        </button>                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="orange">
+                        </button>
+                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="orange">
                             <div class="w-8 h-8 rounded-full border-2 border-outline dark:border-outline-dark" style="background-color: #8C4E42;"></div>
                             <span class="text-xs text-center text-on-secondary-container dark:text-on-secondary-container-dark">夕阳橙</span>
-                        </button><button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small transition-all duration-200 hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="purple">
+                        </button>
+                        <button class="theme-option flex flex-col items-center gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small hover:bg-primary-container dark:hover:bg-primary-container-dark" data-theme="purple">
                             <div class="w-8 h-8 rounded-full border-2 border-outline dark:border-outline-dark" style="background-color: #6D5585;"></div>
                             <span class="text-xs text-center text-on-secondary-container dark:text-on-secondary-container-dark">夜幕紫</span>
                         </button>
@@ -242,13 +249,8 @@
             </div>
         </div>
 
-        <div id="historySection" class="card collapsed">
-            <header class="section-header flex justify-between items-center gap-2 mb-4">
-                <h2 class="section-header-title">活动日志</h2>
-                <button class="btn-toggle-expand" id="toggleHistoryLogButton">
-                    <span class="material-symbols-rounded transition-transform duration-300 ease-in-out">expand_more</span>
-                </button>
-            </header>
+        <m3e-expansion-panel id="historyPanel" class="expansion-section">
+            <span slot="header" class="section-header-title">活动日志</span>
             <div id="log-scroll-container" class="overflow-hidden max-h-[800px]">
                 <div class="history-actions flex gap-2 justify-center mb-4"> 
                     <m3e-button variant="tonal" class="min-w-[140px]" id="clearHistoryButton">
@@ -264,7 +266,7 @@
                     <!-- 日志条目将由JS动态插入 -->
                 </div>
             </div>
-        </div>
+        </m3e-expansion-panel>
 
     </div>
 
@@ -273,7 +275,7 @@
         <div class="task-chips fixed bottom-8 left-12 right-0 flex gap-2 justify-start overflow-x-auto"></div>
     </div>
 
-    <button class="fullscreen-toggle fixed right-6 top-6 w-10 h-10 rounded-full text-on-secondary-container dark:text-on-secondary-container-dark flex items-center justify-center cursor-pointer transition-colors duration-200 ease-in-out z-[1001] bg-transparent hover:bg-secondary-container dark:hover:bg-secondary-container-dark">
+    <button class="fullscreen-toggle fixed right-6 top-6 w-10 h-10 rounded-full text-on-secondary-container dark:text-on-secondary-container-dark flex items-center justify-center cursor-pointer z-[1001] bg-transparent hover:bg-secondary-container dark:hover:bg-secondary-container-dark">
         <span class="material-symbols-rounded">fullscreen</span>
     </button>
     </m3e-theme>
@@ -296,10 +298,15 @@
             "@m3e/web/core/layout": "/node_modules/@m3e/web/dist/core-layout.js",
             "@m3e/web/core/platform": "/node_modules/@m3e/web/dist/core-platform.js",
             "@m3e/web/button": "/node_modules/@m3e/web/dist/button.js",
+            "@m3e/web/icon-button": "/node_modules/@m3e/web/dist/icon-button.js",
             "@m3e/web/form-field": "/node_modules/@m3e/web/dist/form-field.js",
             "@m3e/web/icon": "/node_modules/@m3e/web/dist/icon.js",
             "@m3e/web/switch": "/node_modules/@m3e/web/dist/switch.js",
-            "@m3e/web/theme": "/node_modules/@m3e/web/dist/theme.js"
+            "@m3e/web/theme": "/node_modules/@m3e/web/dist/theme.js",
+            "@m3e/web/list": "/node_modules/@m3e/web/dist/list.js",
+            "@m3e/web/chips": "/node_modules/@m3e/web/dist/chips.js",
+            "@m3e/web/snackbar": "/node_modules/@m3e/web/dist/snackbar.js",
+            "@m3e/web/expansion-panel": "/node_modules/@m3e/web/dist/expansion-panel.js"
           }
         }
     </script>

@@ -5,6 +5,7 @@ class ThemeManager {    constructor() {
         this.currentTheme = null;
         this.themeMode = THEME_MODES.AUTO;
         this.autoSwitchInterval = null;
+        this.themeTransitionTimer = null;
         this.settings = {
             themeMode: THEME_MODES.AUTO,
             currentTheme: null
@@ -124,7 +125,13 @@ class ThemeManager {    constructor() {
         const root = document.documentElement;
         const body = document.body;
 
-        // 添加过渡动画类
+        // 添加过渡动画类（fade through）
+        if (this.themeTransitionTimer) {
+            clearTimeout(this.themeTransitionTimer);
+            this.themeTransitionTimer = null;
+        }
+        body.classList.remove('theme-transition');
+        void body.offsetWidth;
         body.classList.add('theme-transition');
 
         // 应用完整的Material Design 3颜色系统
@@ -177,9 +184,10 @@ class ThemeManager {    constructor() {
         }
 
         // 移除过渡动画类（在动画完成后）
-        setTimeout(() => {
+        this.themeTransitionTimer = setTimeout(() => {
             body.classList.remove('theme-transition');
-        }, 600);
+            this.themeTransitionTimer = null;
+        }, 320);
 
         console.log(`Applied theme: ${theme.name} (${colorScheme} mode)`);
     }
@@ -230,6 +238,10 @@ class ThemeManager {    constructor() {
 
     destroy() {
         this.stopAutoSwitch();
+        if (this.themeTransitionTimer) {
+            clearTimeout(this.themeTransitionTimer);
+            this.themeTransitionTimer = null;
+        }
     }
 }
 

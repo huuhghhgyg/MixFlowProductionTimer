@@ -74,11 +74,63 @@
     display: block;
   }
 
+  /* Align add-task field and action button on desktop */
+  .add-task .add-task-field {
+    --m3e-form-field-width: 100%;
+  }
+
+  .add-task {
+    --md-sys-density-scale: -2;
+  }
+
+  .add-task .add-task-button {
+    align-self: stretch;
+  }
+
+  @media (min-width: 768px) {
+    .add-task .add-task-button {
+      align-self: flex-end;
+    }
+  }
+
   m3e-form-field > input {
     @apply w-full min-w-0 bg-transparent text-on-surface dark:text-on-surface-dark font-sans;
     border: 0;
     outline: none;
     box-sizing: border-box;
+  }
+
+  /* M3 Expressive buttons: keep state layers and shape, minimize elevation usage */
+  m3e-button {
+    --m3e-filled-button-container-elevation: none;
+    --m3e-filled-button-hover-container-elevation: none;
+    --m3e-filled-button-focus-container-elevation: none;
+    --m3e-filled-button-pressed-container-elevation: none;
+    --m3e-tonal-button-container-elevation: none;
+    --m3e-tonal-button-hover-container-elevation: none;
+    --m3e-tonal-button-focus-container-elevation: none;
+    --m3e-tonal-button-pressed-container-elevation: none;
+    --m3e-elevated-button-container-elevation: none;
+    --m3e-elevated-button-hover-container-elevation: none;
+    --m3e-elevated-button-focus-container-elevation: none;
+    --m3e-elevated-button-pressed-container-elevation: none;
+  }
+
+  /* Collapsible cards use official expansion panel pattern */
+  .expansion-section {
+    --m3e-expansion-panel-container-color: var(--md-sys-color-surface);
+    --m3e-expansion-panel-elevation: none;
+    --m3e-expansion-panel-open-elevation: none;
+    --m3e-expansion-panel-shape: 16px;
+    --m3e-expansion-panel-open-shape: 16px;
+    --_expansion-panel-open-spacing: 0;
+    --m3e-expansion-header-collapsed-height: 3.5rem;
+    --m3e-expansion-header-expanded-height: 3.5rem;
+    --m3e-expansion-panel-content-padding: 0 1.5rem 1.25rem 1.5rem;
+    --m3e-expansion-panel-actions-divider-thickness: 0;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 16px;
+    overflow: hidden;
   }
 
   .setting-item-header m3e-switch {
@@ -92,7 +144,13 @@
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
+    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer relative overflow-hidden whitespace-nowrap shrink-0;
+    transition:
+      background-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      border-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      box-shadow var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
     /* Add base hover/active state layer effect using ::before */
     &::before {
       content: '';
@@ -108,36 +166,52 @@
   }
 
   .btn-filled {
-    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
+    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer relative overflow-hidden whitespace-nowrap shrink-0;
     @apply bg-primary dark:bg-primary-dark text-on-primary dark:text-on-primary-dark;
+    transition:
+      background-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      border-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      box-shadow var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
     /* Adding a subtle hover/active effect as an approximation of the state layer */
     @apply hover:opacity-90 active:opacity-80;
   }
 
   .btn-tonal {
-    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
+    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer relative overflow-hidden whitespace-nowrap shrink-0;
     @apply bg-secondary-container dark:bg-secondary-container-dark text-on-secondary-container dark:text-on-secondary-container-dark;
+    transition:
+      background-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      border-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      box-shadow var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
     /* Adding a subtle hover/active effect */
     @apply hover:opacity-90 active:opacity-80;
   }
   
   .btn-tertiary {
-    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
+    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer relative overflow-hidden whitespace-nowrap shrink-0;
     @apply bg-tertiary-container dark:bg-tertiary-container-dark text-on-tertiary-container dark:text-on-tertiary-container-dark;
+    transition:
+      background-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      border-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      box-shadow var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
     @apply hover:opacity-90 active:opacity-80;
   }
 
   .btn-error {
-    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
+    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer relative overflow-hidden whitespace-nowrap shrink-0;
     @apply bg-error dark:bg-error-dark text-on-error dark:text-on-error-dark;
-    @apply hover:opacity-90 active:opacity-80;
-  }
-
-  .btn-toggle-expand {
-    /* Applying necessary utility classes from .btn and specific styles */
-    @apply inline-flex cursor-pointer relative overflow-hidden whitespace-nowrap shrink-0 transition-all duration-200 ease-in-out;
-    @apply bg-secondary-container dark:bg-secondary-container-dark text-on-secondary-container dark:text-on-secondary-container-dark p-2 h-9 min-w-[36px] rounded-md-small flex items-center justify-center;
-    /* Adding a subtle hover/active effect */
+    transition:
+      background-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      border-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      box-shadow var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
     @apply hover:opacity-90 active:opacity-80;
   }
 
@@ -152,7 +226,12 @@
   }
 
   .text-field-label {
-    @apply absolute left-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant dark:text-on-surface-variant-dark transition-all duration-200 ease-in-out bg-surface dark:bg-surface-dark px-1 pointer-events-none;
+    @apply absolute left-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant dark:text-on-surface-variant-dark bg-surface dark:bg-surface-dark px-1 pointer-events-none;
+    transition:
+      top var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      background-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
     /* Label floats up when input is focused or has content, remaining left-aligned */
     @apply peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:scale-90 peer-focus:text-primary dark:peer-focus:text-primary-dark;
     @apply peer-[&:not(:placeholder-shown)]:top-0 peer-[&:not(:placeholder-shown)]:-translate-y-1/2 peer-[&:not(:placeholder-shown)]:scale-90 peer-[&:not(:placeholder-shown)]:text-primary dark:peer-[&:not(:placeholder-shown)]:text-primary-dark;
@@ -166,8 +245,70 @@
     @apply text-lg font-medium text-on-surface dark:text-on-surface-dark;
   }
 
+  .m3e-task-list,
+  .m3e-task-selection-list {
+    @apply w-full;
+    --m3e-segmented-list-segment-gap: 0.5rem;
+    --m3e-segmented-list-container-shape: 1rem;
+    --m3e-segmented-list-item-container-shape: 0.5rem;
+    --m3e-segmented-list-item-hover-container-shape: 0.625rem;
+    --m3e-segmented-list-item-focus-container-shape: 0.75rem;
+    --m3e-segmented-list-item-selected-container-shape: 999px;
+    --m3e-list-item-container-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 36%, var(--md-sys-color-surface));
+    --m3e-list-item-label-text-color: var(--md-sys-color-on-surface);
+    --m3e-list-item-selected-container-color: var(--md-sys-color-secondary-container);
+    --m3e-list-item-selected-label-text-color: var(--md-sys-color-on-secondary-container);
+    --m3e-list-item-selected-container-shape: 999px;
+    --m3e-list-item-hover-state-layer-opacity: 10%;
+    --m3e-list-item-pressed-state-layer-opacity: 14%;
+  }
+
+  .m3e-task-list-option {
+    --m3e-list-item-one-line-height: 3rem;
+    --m3e-list-item-padding-inline: 1rem;
+    --m3e-list-item-padding-block: 0.375rem;
+    --m3e-list-item-font-weight: 500;
+  }
+
+  .m3e-task-list-option .task-delete-button {
+    opacity: 0;
+    color: var(--md-sys-color-on-surface-variant);
+    --m3e-icon-button-hover-state-layer-color: var(--md-sys-color-on-surface);
+    --m3e-icon-button-hover-state-layer-opacity: 12%;
+    --m3e-icon-button-focus-state-layer-color: var(--md-sys-color-on-surface);
+    --m3e-icon-button-focus-state-layer-opacity: 12%;
+    --m3e-icon-button-pressed-state-layer-color: var(--md-sys-color-error);
+    --m3e-icon-button-pressed-state-layer-opacity: 14%;
+    transition:
+      opacity var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
+  }
+
+  .m3e-task-list-option:hover .task-delete-button,
+  .m3e-task-list-option:focus-within .task-delete-button {
+    opacity: 1;
+  }
+
+  .m3e-task-list-option .task-delete-button:hover,
+  .m3e-task-list-option .task-delete-button:focus-visible {
+    color: var(--md-sys-color-error);
+    transform: scale(1.03);
+  }
+
+  @media (max-width: 767px) {
+    .m3e-task-list-option .task-delete-button {
+      opacity: 1;
+    }
+  }
+
   .task-item {
-    @apply flex items-center justify-between p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small cursor-pointer text-on-secondary-container dark:text-on-secondary-container-dark transition-all duration-150 ease-in-out border border-transparent box-border;
+    @apply flex items-center justify-between p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small cursor-pointer text-on-secondary-container dark:text-on-secondary-container-dark border border-transparent box-border;
+    transition:
+      background-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      border-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
     /* Simulating state layer with opacity */
     @apply hover:bg-opacity-80 dark:hover:bg-opacity-80;
   }
@@ -211,7 +352,7 @@
   /* For the progress bar, JS will need to set the width via style="width: var(--progress)" on this element */
   .metric-item-progress-bar {
     @apply absolute top-0 left-0 h-full opacity-10 z-0;
-    transition: width 0.3s ease-in-out;
+    transition: width var(--mf-motion-duration-medium, 300ms) var(--mf-motion-easing-standard, ease);
     background-color: var(--bar-color, theme('colors.primary.DEFAULT'));
     width: var(--progress, 0%);
   }
@@ -227,7 +368,13 @@
   }
 
   .task-chip {
-    @apply inline-flex flex-none items-center gap-2 h-8 px-4 bg-transparent text-on-surface dark:text-on-surface-dark border border-outline dark:border-outline-dark rounded-md-small cursor-pointer transition-all duration-200 ease-in-out whitespace-nowrap text-sm relative overflow-visible select-none outline-none box-border;
+    @apply inline-flex flex-none items-center gap-2 h-8 px-4 bg-transparent text-on-surface dark:text-on-surface-dark border border-outline dark:border-outline-dark rounded-md-small cursor-pointer whitespace-nowrap text-sm relative overflow-visible select-none outline-none box-border;
+    transition:
+      background-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      border-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      box-shadow var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
     @apply hover:border-on-surface dark:hover:border-on-surface-dark hover:opacity-90;
   }
   .task-chip.active {
@@ -247,11 +394,90 @@
     @apply ml-auto;
   }
 
+  .task-chips .fullscreen-chip-set {
+    flex-wrap: nowrap;
+    --m3e-chip-set-spacing: 0.5rem;
+  }
+
+  .task-chips m3e-filter-chip {
+    flex: none;
+    --m3e-chip-container-height: 2.125rem;
+    --m3e-chip-padding-start: 0.75rem;
+    --m3e-chip-padding-end: 0.875rem;
+    --m3e-chip-with-icon-padding-start: 0.75rem;
+    --m3e-chip-with-icon-padding-end: 0.875rem;
+    --m3e-chip-spacing: 0.375rem;
+    --m3e-elevated-chip-elevation: none;
+    --m3e-elevated-chip-hover-elevation: none;
+    --m3e-chip-unselected-label-text-color: var(--md-sys-color-on-surface-variant);
+    --m3e-chip-selected-container-color: var(--md-sys-color-secondary-container);
+    --m3e-chip-selected-label-text-color: var(--md-sys-color-on-secondary-container);
+    --m3e-chip-selected-leading-icon-color: var(--md-sys-color-on-secondary-container);
+    --m3e-chip-selected-hover-elevation: none;
+  }
+
+  .task-chips m3e-filter-chip:not([selected]):not(.rest-chip) {
+    --m3e-chip-padding-start: 0.875rem;
+    --m3e-chip-padding-end: 0.875rem;
+    --m3e-chip-spacing: 0.375rem;
+    --m3e-chip-with-icon-padding-start: 0.375rem;
+  }
+
+  .task-chips m3e-filter-chip[selected] {
+    --m3e-chip-container-shape: 999px;
+  }
+
+  .task-chips m3e-filter-chip.rest-chip {
+    --m3e-chip-with-icon-padding-start: 0.625rem;
+  }
+
+  .date-field,
+  .minutes-field {
+    --m3e-form-field-width: 100%;
+    --m3e-outlined-form-field-container-shape: 12px;
+  }
+
+  .date-field {
+    --md-sys-density-scale: -2;
+  }
+
+  .minutes-field {
+    --md-sys-density-scale: -3;
+    --m3e-form-field-width: 5.5rem;
+  }
+
   .fullscreen-mode {
-    @apply hidden; /* Default to hidden */
+    @apply flex;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.985);
+    transform-origin: center;
+    pointer-events: none;
+    will-change: transform, opacity;
+    transition:
+      opacity var(--mf-motion-duration-medium, 300ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-medium, 300ms) var(--mf-motion-easing-standard, ease),
+      visibility 0s linear var(--mf-motion-duration-medium, 300ms);
   }
   .fullscreen-mode.active {
-    @apply flex; /* Or 'block', depending on desired layout. 'flex' was on the HTML element */
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    transition:
+      opacity var(--mf-motion-duration-medium, 300ms) var(--mf-motion-easing-standard-decelerate, ease),
+      transform var(--mf-motion-duration-medium, 300ms) var(--mf-motion-easing-emphasized, ease),
+      visibility 0s linear 0s;
+  }
+
+  .fullscreen-mode.active.leaving {
+    opacity: 0;
+    transform: translateY(0.375rem) scale(0.988);
+    pointer-events: none;
+    transition:
+      opacity var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-medium, 300ms) var(--mf-motion-easing-standard, ease),
+      visibility 0s linear 0s;
   }
 
   .notification-status {
@@ -272,44 +498,12 @@
     @apply text-center text-on-secondary-container dark:text-on-secondary-container-dark py-4 text-sm;
   } */
 
-  /* Collapsible section styles */
-  /* Heatmap Section */
-  #heatmapSection.collapsed .heatmap-scroll-container {
-    @apply h-0 opacity-0;
-  }
-  #heatmapSection .btn-toggle-expand .material-symbols-rounded {
-    @apply transition-transform duration-300 ease-in-out; /* Ensure transition is applied */
-  }
-  #heatmapSection.collapsed .btn-toggle-expand .material-symbols-rounded {
-    @apply rotate-180;
-  }
-
-  /* History Log Section */
-  #historySection #log-scroll-container {
-    @apply overflow-hidden max-h-[800px];
-    transition: max-height 0.5s ease-in-out, opacity 0.2s ease-out;
-  }
-  #historySection.collapsed #log-scroll-container {
-    @apply max-h-0 opacity-0; /* Opacity can still transition if transition-all was on parent, or add transition-opacity here if needed */
-    /* For smoother collapse, ensure padding/margin also transition or are removed */
-    @apply p-0 m-0; /* Apply p-0 and m-0 for Tailwind equivalent of padding:0 and margin:0 */
-  }
-  #historySection.collapsed #log-scroll-container #historyLog {
-    @apply mt-0;
-  }
-   #historySection .btn-toggle-expand .material-symbols-rounded {
-    @apply transition-transform duration-300 ease-in-out; /* Ensure transition is applied */
-  }
-  #historySection.collapsed .btn-toggle-expand .material-symbols-rounded {
-    @apply rotate-180;
-  }
-
   .section-header {
     @apply flex justify-between items-center mb-4;
   }
 
   .setting-item {
-    @apply flex flex-col gap-3 p-4 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small;
+    @apply flex flex-col gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small;
   }
 
   .setting-item-header {
@@ -317,11 +511,11 @@
   }
 
   .time-input {
-    @apply grid grid-cols-[auto_1fr] items-center gap-2 max-w-[200px];
+    @apply grid grid-cols-[auto_1fr] items-center gap-2 max-w-[168px];
   }
 
   .time-input input {
-    @apply w-full max-w-[72px] px-3 py-2 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-base text-on-surface dark:text-on-surface-dark focus:outline-none focus:border-primary dark:focus:border-primary-dark;
+    @apply w-full min-w-[72px] max-w-[88px] px-2 py-1 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-base tabular-nums text-center text-on-surface dark:text-on-surface-dark focus:outline-none focus:border-primary dark:focus:border-primary-dark;
   }
 
   .time-input .unit {
@@ -411,11 +605,13 @@
 /* Theme selection styles */
 @layer components {
   .theme-option {
-    @apply transition-all duration-200 cursor-pointer border-2 border-transparent;
-  }
-
-  .theme-option:hover {
-    @apply scale-105 shadow-sm;
+    @apply cursor-pointer border-2 border-transparent;
+    transition:
+      background-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      border-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      box-shadow var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
   }
 
   .theme-option.selected {

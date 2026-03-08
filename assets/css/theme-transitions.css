@@ -1,98 +1,157 @@
-/* Theme transition animations */
+/* Theme transition tokens and scoped motion behavior */
 :root {
-  /* 主题切换时所有颜色属性的过渡效果 */
-  transition: 
-    --md-sys-color-primary 0.3s linear,
-    --md-sys-color-on-primary 0.3s linear,
-    --md-sys-color-primary-container 0.3s linear,
-    --md-sys-color-on-primary-container 0.3s linear,
-    --md-sys-color-secondary 0.3s linear,
-    --md-sys-color-on-secondary 0.3s linear,
-    --md-sys-color-secondary-container 0.3s linear,
-    --md-sys-color-on-secondary-container 0.3s linear,
-    --md-sys-color-tertiary 0.3s linear,
-    --md-sys-color-on-tertiary 0.3s linear,
-    --md-sys-color-tertiary-container 0.3s linear,
-    --md-sys-color-on-tertiary-container 0.3s linear,
-    --md-sys-color-error 0.3s linear,
-    --md-sys-color-on-error 0.3s linear,
-    --md-sys-color-error-container 0.3s linear,
-    --md-sys-color-on-error-container 0.3s linear,
-    --md-sys-color-surface 0.3s linear,
-    --md-sys-color-on-surface 0.3s linear,
-    --md-sys-color-surface-variant 0.3s linear,
-    --md-sys-color-on-surface-variant 0.3s linear,
-    --md-sys-color-outline 0.3s linear,
-    --md-sys-color-outline-variant 0.3s linear;
+  --mf-motion-duration-short: var(--md-sys-motion-duration-short-4, 200ms);
+  --mf-motion-duration-medium: var(--md-sys-motion-duration-medium-2, 300ms);
+  --mf-motion-duration-spatial: var(--md-sys-motion-duration-medium-3, 350ms);
+  --mf-motion-duration-long: var(--md-sys-motion-duration-long-1, 450ms);
+
+  --mf-motion-easing-standard: var(--md-sys-motion-easing-standard, cubic-bezier(0.2, 0, 0, 1));
+  --mf-motion-easing-standard-decelerate: var(--md-sys-motion-easing-standard-decelerate, cubic-bezier(0, 0, 0, 1));
+  --mf-motion-easing-emphasized: var(--md-sys-motion-easing-emphasized, cubic-bezier(0.2, 0, 0, 1));
+  --mf-motion-spring-spatial: var(--md-sys-motion-spring-fast-spatial, 350ms cubic-bezier(0.42, 1.67, 0.21, 0.9));
 }
 
-/* 所有使用主题颜色的元素都应该有过渡效果 */
-* {
-  transition: 
-    background-color 0.3s linear,
-    color 0.3s linear,
-    border-color 0.3s linear,
-    box-shadow 0.3s linear,
-    fill 0.3s linear,
-    stroke 0.3s linear;
-}
-
-/* 针对特定主题类的样式增强 */
 .theme-morning {
-  --theme-accent: #4CAF50;
-  --theme-shadow: rgba(76, 175, 80, 0.1);
+  --theme-accent: #4caf50;
+  --theme-shadow: rgb(76 175 80 / 10%);
 }
 
 .theme-noon {
-  --theme-accent: #2196F3;
-  --theme-shadow: rgba(33, 150, 243, 0.1);
+  --theme-accent: #2196f3;
+  --theme-shadow: rgb(33 150 243 / 10%);
 }
 
 .theme-afternoon {
-  --theme-accent: #FFC107;
-  --theme-shadow: rgba(255, 193, 7, 0.1);
+  --theme-accent: #ffc107;
+  --theme-shadow: rgb(255 193 7 / 10%);
 }
 
 .theme-evening {
-  --theme-accent: #FF9800;
-  --theme-shadow: rgba(255, 152, 0, 0.1);
+  --theme-accent: #ff9800;
+  --theme-shadow: rgb(255 152 0 / 10%);
 }
 
 .theme-night {
-  --theme-accent: #9C27B0;
-  --theme-shadow: rgba(156, 39, 176, 0.1);
+  --theme-accent: #9c27b0;
+  --theme-shadow: rgb(156 39 176 / 10%);
 }
 
-/* 主题切换时的特殊动画效果 */
-.theme-transition {
-  animation: themeChange 0.6s ease-in-out;
+/* Restrict theme color transitions to key surfaces, avoid global wildcard transitions */
+.card,
+.bg-surface,
+.notification-status,
+#currentThemeStatus,
+#currentStorageStatus,
+#ganttChart,
+#workloadHeatmap,
+#historyLog,
+#taskMetrics {
+  transition:
+    background-color var(--mf-motion-duration-medium) var(--mf-motion-easing-standard),
+    color var(--mf-motion-duration-medium) var(--mf-motion-easing-standard),
+    border-color var(--mf-motion-duration-medium) var(--mf-motion-easing-standard),
+    box-shadow var(--mf-motion-duration-medium) var(--mf-motion-easing-standard),
+    opacity var(--mf-motion-duration-short) var(--mf-motion-easing-standard);
 }
 
-@keyframes themeChange {
+.theme-option,
+.fullscreen-toggle,
+.theme-card,
+.task-delete-button {
+  transition:
+    background-color var(--mf-motion-duration-short) var(--mf-motion-easing-standard),
+    color var(--mf-motion-duration-short) var(--mf-motion-easing-standard),
+    border-color var(--mf-motion-duration-short) var(--mf-motion-easing-standard),
+    box-shadow var(--mf-motion-duration-short) var(--mf-motion-easing-standard),
+    transform var(--mf-motion-duration-short) var(--mf-motion-easing-standard),
+    opacity var(--mf-motion-duration-short) var(--mf-motion-easing-standard);
+}
+
+/* Theme mode switch panel: shared-axis-like Y transition */
+.manual-theme-selection {
+  overflow: hidden;
+  max-height: 28rem;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    max-height var(--mf-motion-duration-long) var(--mf-motion-easing-standard-decelerate),
+    opacity var(--mf-motion-duration-short) var(--mf-motion-easing-standard),
+    transform var(--mf-motion-duration-medium) var(--mf-motion-easing-standard);
+}
+
+.manual-theme-selection.is-hidden {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-0.5rem);
+  pointer-events: none;
+}
+
+/* Fade through for app-level theme switching */
+body.theme-transition .container,
+body.theme-transition .fullscreen-mode,
+body.theme-transition .fullscreen-toggle {
+  animation: themeFadeThrough var(--mf-motion-duration-medium) var(--mf-motion-easing-standard) both;
+}
+
+@keyframes themeFadeThrough {
   0% {
     opacity: 1;
   }
-  50% {
-    opacity: 0.95;
-    transform: scale(0.998);
+
+  35% {
+    opacity: 0.92;
   }
+
   100% {
     opacity: 1;
+  }
+}
+
+body.fullscreen-active {
+  overflow: hidden;
+}
+
+/* Container-transform approximation: task item to current activity */
+.task-activity-transform-ghost {
+  position: fixed;
+  z-index: 1400;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 0.75rem;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 12%);
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.current-activity.activity-receive {
+  animation: activityReceive var(--mf-motion-duration-spatial) var(--mf-motion-easing-emphasized) both;
+}
+
+@keyframes activityReceive {
+  0% {
+    transform: scale(0.985);
+  }
+
+  100% {
     transform: scale(1);
   }
 }
 
-/* 主题指示器的脉冲效果 */
+/* Keep bespoke indicator effect with tokenized motion */
 .theme-indicator {
   position: relative;
   overflow: hidden;
 }
 
 .theme-indicator::before {
-  content: '';
+  content: "";
   position: absolute;
-  top: 0;
-  left: -100%;
+  inset: 0 auto 0 -100%;
   width: 100%;
   height: 100%;
   background: linear-gradient(
@@ -101,68 +160,38 @@
     var(--theme-accent, var(--md-sys-color-primary)),
     transparent
   );
-  opacity: 0.3;
-  transition: left 0.5s ease-in-out;
+  opacity: 0.28;
+  transition: left var(--mf-motion-duration-long) var(--mf-motion-easing-standard);
 }
 
 .theme-indicator.active::before {
   left: 100%;
 }
 
-/* 主题卡片的悬停效果 */
-.theme-card {
-  transition: all 0.2s ease-in-out;
-  position: relative;
-  overflow: hidden;
-}
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .bg-surface,
+  .notification-status,
+  #currentThemeStatus,
+  #currentStorageStatus,
+  #ganttChart,
+  #workloadHeatmap,
+  #historyLog,
+  #taskMetrics,
+  .theme-option,
+  .fullscreen-toggle,
+  .theme-card,
+  .task-delete-button,
+  .manual-theme-selection,
+  .theme-indicator::before,
+  .fullscreen-mode {
+    transition: none !important;
+  }
 
-.theme-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px var(--theme-shadow, rgba(0, 0, 0, 0.1));
-}
-
-.theme-card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--theme-accent, var(--md-sys-color-primary));
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-  pointer-events: none;
-}
-
-.theme-card:hover::after {
-  opacity: 0.05;
-}
-
-.theme-card.selected::after {
-  opacity: 0.1;
-}
-
-/* ECharts 图表的主题过渡 */
-.echarts-container {
-  transition: all 0.3s ease-in-out;
-}
-
-/* 按钮和交互元素的主题过渡 */
-button, .btn {
-  transition: all 0.2s ease-in-out;
-}
-
-/* 输入框的主题过渡 */
-input, textarea, select {
-  transition: all 0.2s ease-in-out;
-}
-
-/* 卡片容器的主题过渡 */
-.card, .bg-surface {
-  transition: all 0.3s ease-in-out;
-}
-
-/* 导航和工具栏的主题过渡 */
-nav, .toolbar, .header {
-  transition: all 0.3s ease-in-out;
+  body.theme-transition .container,
+  body.theme-transition .fullscreen-mode,
+  body.theme-transition .fullscreen-toggle,
+  .current-activity.activity-receive {
+    animation: none !important;
+  }
 }

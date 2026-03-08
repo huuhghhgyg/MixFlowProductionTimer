@@ -4,6 +4,10 @@ import appState, { initializeAppState } from './core.js';
 import { REST_ID } from './constants.js';
 import themeManager from './theme-manager.js';
 
+function findClosestInComposedPath(event, selector) {
+    return event.composedPath().find((node) => node instanceof Element && node.matches(selector)) || null;
+}
+
 export function updateTimerDisplay(startTime) {
     if (!startTime) {
         document.getElementById('currentTimer').textContent = '00:00:00';
@@ -89,6 +93,7 @@ class UI {
         this.startRestButton = document.querySelector('#startRestButton');
         this.stopActivityButton = document.querySelector('#stopActivityButton');
         this.taskList = document.querySelector('#taskList');
+        this.currentActivityCard = document.querySelector('.current-activity');
         this.currentTaskNameSpan = document.querySelector('#currentTaskName');
         this.currentTimerSpan = document.querySelector('#currentTimer');
         this.historyLogDiv = document.querySelector('#historyLog');
@@ -101,7 +106,8 @@ class UI {
         this.taskMetricsDiv = document.querySelector('#taskMetrics');
         this.clearHistoryButton = document.querySelector('#clearHistoryButton');
         this.clearDataButton = document.querySelector('#clearDataButton');
-        this.toggleHistoryLogButton = document.querySelector('#toggleHistoryLogButton');
+        this.heatmapPanel = document.querySelector('#heatmapPanel');
+        this.historyPanel = document.querySelector('#historyPanel');
 
         // Timer settings elements
         this.reminderMinutesInput = document.querySelector('#reminderMinutes');
@@ -114,6 +120,8 @@ class UI {
         this.fullscreenToggle = document.querySelector('.fullscreen-toggle');
         this.fullscreenToggleIcon = this.fullscreenToggle ? this.fullscreenToggle.querySelector('span') : null;
         this.fullscreenTimer = document.querySelector('.fullscreen-mode .timer');
+        this.fullscreenTransitioning = false;
+        this.fullscreenTransitionTimer = null;
         this.taskChips = document.querySelector('.task-chips'); this.notificationStatus = document.querySelector('#notificationStatus');
         // Data storage elements
         this.selectDataFolderButton = document.querySelector('#selectDataFolderButton');
@@ -162,7 +170,7 @@ class UI {
                 this.addTask();
             }
         });        // Activity controls
-        this.startRestButton.addEventListener('click', () => this.startRest());
+        this.startRestButton.addEventListener('click', () => this.startRest({ sourceEl: this.startRestButton }));
         this.stopActivityButton.addEventListener('click', () => this.stopCurrentActivity());
         this.clearHistoryButton.addEventListener('click', () => this.clearHistory());
         this.clearDataButton.addEventListener('click', () => this.clearAllData());
@@ -200,20 +208,23 @@ class UI {
         }, { passive: false });
 
         // Task list delegation
-        this.taskList.addEventListener('click', async (e) => { // Add async
-            const taskItem = e.target.closest('.task-item');
-            const deleteButton = e.target.closest('.delete-button');
-
+        this.taskList.addEventListener('click', async (e) => {
+            const deleteButton = findClosestInComposedPath(e, '.task-delete-button');
             if (deleteButton) {
+                e.preventDefault();
+                e.stopPropagation();
                 const taskId = deleteButton.getAttribute('data-task-id');
                 if (taskId) {
                     this.deleteTask(taskId);
                 }
-            } else if (taskItem) {
+                return;
+            }
+
+            const taskItem = findClosestInComposedPath(e, 'm3e-list-option[data-task-id]');
+            if (taskItem) {
                 const taskId = taskItem.getAttribute('data-task-id');
                 if (taskId) {
-                    // Ensure appState.activeEntry is set before UI updates that depend on it.
-                    await this.startTask(taskId); // Add await
+                    await this.startTask(taskId, { sourceEl: taskItem });
                 }
             }
         });
@@ -229,24 +240,12 @@ class UI {
             this.updateUI();
         });
 
-        // 监听热力图折叠/展开
-        const toggleHeatmapBtn = document.querySelector('#toggleHeatmapButton');
-        const heatmapSection = document.querySelector('#heatmapSection');
-
-        toggleHeatmapBtn?.addEventListener('click', () => {
-            let isCollapsed = heatmapSection.classList.contains('collapsed');
-            if (isCollapsed) {
-                // 展开热力图
-                heatmapSection.classList.remove('collapsed');
-                // 等待过渡动画完成后重绘热力图
-                setTimeout(() => {
-                    Charts.workloadHeatmap?.resize();
-                    Charts.updateHeatmap();
-                }, 300); // 等待过渡动画完成
-            } else {
-                // 折叠热力图
-                heatmapSection.classList.add('collapsed');
-            }
+        // 展开热力图面板后重绘图表
+        this.heatmapPanel?.addEventListener('opened', () => {
+            setTimeout(() => {
+                Charts.workloadHeatmap?.resize();
+                Charts.updateHeatmap();
+            }, 120);
         });
 
         // 监听日期更改事件
@@ -293,29 +292,11 @@ class UI {
             this.updateSettingsState();
         });
 
-        // 监听通知事件
+        // 监听通知事件（统一改为 M3E snackbar）
         document.addEventListener('mfpt:notification', (event) => {
             const { title, message } = event.detail;
-            // 创建一个内联通知
-            const notification = document.createElement('div');
-            notification.className = 'inline-notification';
-            notification.innerHTML = `
-                <span class="material-symbols-rounded">notifications</span>
-                <div class="notification-content">
-                    <strong>${title}</strong>
-                    <p>${message}</p>
-                </div>
-            `;
-
-            document.body.appendChild(notification);
-
-            // 3秒后自动移除通知
-            setTimeout(() => {
-                notification.classList.add('fade-out');
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);        });
+            this.showSnackbar(`${title}: ${message}`);
+        });
 
         // 监听任务停止事件 - 添加这个监听器来响应任务自动停止事件
         document.addEventListener('mfpt:taskStopped', (event) => {
@@ -324,22 +305,17 @@ class UI {
             this.renderTasks();
             this.updateUI();
             this.updatePageTitle();
-        });        // 监听活动日志折叠/展开
-        // const toggleLogBtn = document.querySelector('#toggleHistoryLogButton'); // Already in this.toggleHistoryLogButton
-        const logSectionElement = document.querySelector('#historySection');
+        });
 
-        if (this.toggleHistoryLogButton && logSectionElement) {
-            this.toggleHistoryLogButton.addEventListener('click', () => {
-                const nowCollapsed = logSectionElement.classList.toggle('collapsed');
-                if (nowCollapsed) {
-                    this.historyLogDiv.innerHTML = '';
-                } else {
-                    this.renderHistory({ reset: true });
-                }
-                this.updateLoadMoreButtonState();
-                // CSS will handle the icon rotation based on the .collapsed class
-            });
-        }
+        // 监听活动日志展开/折叠
+        this.historyPanel?.addEventListener('opened', () => {
+            this.renderHistory({ reset: true });
+            this.updateLoadMoreButtonState();
+        });
+        this.historyPanel?.addEventListener('closed', () => {
+            this.historyLogDiv.innerHTML = '';
+            this.updateLoadMoreButtonState();
+        });
 
         // 监听数据位置变更事件
         document.addEventListener('mfpt:dataLocationChanged', () => {
@@ -398,8 +374,7 @@ class UI {
 
     updateLoadMoreButtonState() {
         if (!this.historyLoadMoreButton) return;
-        const historySection = document.getElementById('historySection');
-        const collapsed = historySection?.classList.contains('collapsed');
+        const collapsed = !this.isHistoryPanelOpen();
 
         if (collapsed || !this.historyHasMore) {
             this.historyLoadMoreButton.classList.add('hidden');
@@ -419,6 +394,10 @@ class UI {
         if (nearBottom) {
             this.loadMoreHistory();
         }
+    }
+
+    isHistoryPanelOpen() {
+        return Boolean(this.historyPanel?.open);
     }
 
     sortHistoryEntries(history) {
@@ -513,6 +492,61 @@ class UI {
         this.updateFullscreenDisplay();
     }
 
+    getMotionMs(variableName, fallbackMs) {
+        const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+        const match = value.match(/([\d.]+)ms/i);
+        if (match) {
+            const parsed = Number.parseFloat(match[1]);
+            if (Number.isFinite(parsed)) return parsed;
+        }
+        return fallbackMs;
+    }
+
+    getMotionEasing(variableName, fallback) {
+        const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+        return value || fallback;
+    }
+
+    shouldReduceMotion() {
+        return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    playTaskToActivityTransition(sourceEl) {
+        if (!sourceEl || !this.currentActivityCard || this.shouldReduceMotion()) return;
+
+        const sourceRect = sourceEl.getBoundingClientRect();
+        const targetAnchor = this.currentActivityCard.querySelector('.section-header-title') || this.currentActivityCard;
+        const targetRect = targetAnchor.getBoundingClientRect();
+        if (sourceRect.width <= 0 || sourceRect.height <= 0 || targetRect.width <= 0 || targetRect.height <= 0) return;
+
+        const ghost = document.createElement('div');
+        ghost.className = 'task-activity-transform-ghost';
+        ghost.textContent = sourceEl.textContent?.trim().slice(0, 24) || '';
+
+        const sourceStyle = getComputedStyle(sourceEl);
+        ghost.style.backgroundColor = sourceStyle.backgroundColor || 'var(--md-sys-color-secondary-container)';
+        ghost.style.color = sourceStyle.color || 'var(--md-sys-color-on-secondary-container)';
+        ghost.style.borderRadius = sourceStyle.borderRadius || '12px';
+        ghost.style.left = `${sourceRect.left}px`;
+        ghost.style.top = `${sourceRect.top}px`;
+        ghost.style.width = `${sourceRect.width}px`;
+        ghost.style.height = `${sourceRect.height}px`;
+        document.body.appendChild(ghost);
+
+        const dx = (targetRect.left + targetRect.width * 0.5) - (sourceRect.left + sourceRect.width * 0.5);
+        const dy = (targetRect.top + targetRect.height * 0.5) - (sourceRect.top + sourceRect.height * 0.5);
+        const scaleX = Math.max(0.92, Math.min(1.18, targetRect.width / sourceRect.width));
+        const scaleY = Math.max(0.9, Math.min(1.12, targetRect.height / sourceRect.height));
+        const duration = this.getMotionMs('--md-sys-motion-duration-medium-3', 350);
+        const easing = this.getMotionEasing('--md-sys-motion-easing-emphasized', 'cubic-bezier(0.2, 0, 0, 1)');
+
+        const animation = ghost.animate([
+            { transform: 'translate3d(0, 0, 0) scale(1, 1)', opacity: 0.26 },
+            { transform: `translate3d(${dx}px, ${dy}px, 0) scale(${scaleX}, ${scaleY})`, opacity: 0 }
+        ], { duration, easing, fill: 'forwards' });
+        animation.addEventListener('finish', () => ghost.remove(), { once: true });
+    }
+
     // Task management methods
     addTask() {
         const taskName = this.newTaskInput.value.trim();
@@ -534,12 +568,13 @@ class UI {
         this.renderTasks();
         this.calculateAndRenderMetrics();
         this.renderHistory({ reset: true }); // 添加这行
-    }      startTask(taskId) {
+    }      startTask(taskId, { sourceEl = null } = {}) {
         const tasks = appState.getTasks();
         const task = tasks.find(t => t.id === taskId);
         if (!task) return;
 
         appState.startTask(taskId, task.name, () => {
+            this.playTaskToActivityTransition(sourceEl);
             this.updateCurrentActivityDisplay();
             this.renderTasks();
             this.calculateAndRenderMetrics();
@@ -547,8 +582,9 @@ class UI {
             this.renderTaskChips();  // 这个方法已经存在
         });
     }
-        startRest() {
+        startRest({ sourceEl = null } = {}) {
         appState.startTask(REST_ID, '休息', () => {
+            this.playTaskToActivityTransition(sourceEl);
             this.updateCurrentActivityDisplay();
             this.renderTasks();
             this.calculateAndRenderMetrics();
@@ -581,37 +617,88 @@ class UI {
 
     // Rendering methods
     renderTasks() {
-        this.taskList.innerHTML = '';
         const tasks = appState.getTasks();
         const activeEntry = appState.getActiveEntry();
 
-        tasks.forEach(task => {
-            const taskItem = document.createElement('div');
-            taskItem.className = 'task-item';
-            if (activeEntry?.taskId === task.id) {
-                taskItem.classList.add('active');
-            }
-            taskItem.setAttribute('data-task-id', task.id);
+        let taskSelectionList = this.taskList.querySelector('m3e-list.m3e-task-list');
+        if (!taskSelectionList) {
+            this.taskList.innerHTML = '';
+            taskSelectionList = document.createElement('m3e-list');
+            taskSelectionList.className = 'm3e-task-list';
+            taskSelectionList.setAttribute('aria-label', '任务列表');
+            taskSelectionList.setAttribute('variant', 'segmented');
+            this.taskList.appendChild(taskSelectionList);
+        }
 
-            const taskNameSpan = document.createElement('span');
-            taskNameSpan.className = 'task-item-text';
-            taskNameSpan.textContent = task.name;
-
-            const deleteButton = document.createElement('button');
-            deleteButton.setAttribute('aria-label', `Delete task ${task.name}`);
-            deleteButton.innerHTML = '<span class="material-symbols-rounded">delete</span>';
-            deleteButton.classList.add('delete-button');
-            deleteButton.setAttribute('data-task-id', task.id);
-
-            taskItem.appendChild(taskNameSpan);
-            taskItem.appendChild(deleteButton);
-            this.taskList.appendChild(taskItem);
+        const existingItems = new Map();
+        taskSelectionList.querySelectorAll('m3e-list-option[data-task-id]').forEach((item) => {
+            existingItems.set(item.getAttribute('data-task-id'), item);
         });
+
+        tasks.forEach((task) => {
+            let taskItem = existingItems.get(task.id);
+            if (!taskItem) {
+                taskItem = this.createTaskListOption(task);
+            } else {
+                this.updateTaskListOption(taskItem, task);
+                existingItems.delete(task.id);
+            }
+
+            if (activeEntry?.taskId === task.id) {
+                taskItem.setAttribute('selected', '');
+            } else {
+                taskItem.removeAttribute('selected');
+            }
+
+            taskSelectionList.appendChild(taskItem);
+        });
+
+        existingItems.forEach((item) => item.remove());
+    }
+
+    createTaskListOption(task) {
+        const taskItem = document.createElement('m3e-list-option');
+        taskItem.className = 'm3e-task-list-option -hide-selection';
+        taskItem.setAttribute('data-task-id', task.id);
+        taskItem.appendChild(document.createTextNode(task.name));
+
+        const deleteButton = document.createElement('m3e-icon-button');
+        deleteButton.setAttribute('slot', 'trailing');
+        deleteButton.setAttribute('variant', 'standard');
+        deleteButton.setAttribute('size', 'extra-small');
+        deleteButton.setAttribute('aria-label', `删除任务 ${task.name}`);
+        deleteButton.classList.add('task-delete-button');
+        deleteButton.setAttribute('data-task-id', task.id);
+
+        const deleteIcon = document.createElement('m3e-icon');
+        deleteIcon.setAttribute('variant', 'rounded');
+        deleteIcon.setAttribute('name', 'delete');
+        deleteButton.appendChild(deleteIcon);
+        taskItem.appendChild(deleteButton);
+        return taskItem;
+    }
+
+    updateTaskListOption(taskItem, task) {
+        taskItem.classList.add('m3e-task-list-option', '-hide-selection');
+        taskItem.setAttribute('data-task-id', task.id);
+        const textNode = Array.from(taskItem.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
+        if (textNode) {
+            if (textNode.textContent !== task.name) {
+                textNode.textContent = task.name;
+            }
+        } else {
+            taskItem.prepend(document.createTextNode(task.name));
+        }
+
+        const deleteButton = taskItem.querySelector('.task-delete-button');
+        if (deleteButton) {
+            deleteButton.setAttribute('data-task-id', task.id);
+            deleteButton.setAttribute('aria-label', `删除任务 ${task.name}`);
+        }
     }
 
     async loadMoreHistory() {
-        const historySection = document.getElementById('historySection');
-        if (historySection?.classList.contains('collapsed')) return;
+        if (!this.isHistoryPanelOpen()) return;
         if (this.historyLoading || !this.historyHasMore) return;
 
         this.historyLoading = true;
@@ -646,8 +733,7 @@ class UI {
     }
 
     renderHistory({ reset = false } = {}) {
-        const historySection = document.getElementById('historySection');
-        if (historySection?.classList.contains('collapsed')) {
+        if (!this.isHistoryPanelOpen()) {
             this.historyLogDiv.innerHTML = '';
             this.updateLoadMoreButtonState();
             return;
@@ -811,56 +897,204 @@ class UI {
         }
     }
 
+    captureFullscreenChipRects() {
+        if (!this.taskChips) return null;
+
+        const rects = new Map();
+        this.taskChips.querySelectorAll('m3e-filter-chip[data-task-id]').forEach((chip) => {
+            const taskId = chip.getAttribute('data-task-id');
+            if (!taskId) return;
+            rects.set(taskId, {
+                rect: chip.getBoundingClientRect(),
+                selected: chip.hasAttribute('selected')
+            });
+        });
+        return rects;
+    }
+
+    animateFullscreenChipLayout(previousRects) {
+        if (!previousRects || previousRects.size === 0 || this.shouldReduceMotion()) return;
+
+        const duration = this.getMotionMs('--md-sys-motion-duration-short-4', 200);
+        const easing = this.getMotionEasing('--md-sys-motion-easing-standard', 'cubic-bezier(0.2, 0, 0, 1)');
+
+        this.taskChips.querySelectorAll('m3e-filter-chip[data-task-id]').forEach((chip) => {
+            const taskId = chip.getAttribute('data-task-id');
+            if (!taskId) return;
+
+            const previousSnapshot = previousRects.get(taskId);
+            const nextRect = chip.getBoundingClientRect();
+            if (!nextRect.width || !nextRect.height) return;
+
+            if (!previousSnapshot) {
+                chip.animate([
+                    { opacity: 0, transform: 'scale(0.96)' },
+                    { opacity: 1, transform: 'scale(1)' }
+                ], {
+                    duration,
+                    easing,
+                    fill: 'both'
+                });
+                return;
+            }
+
+            const isSelectedNow = chip.hasAttribute('selected');
+            if (previousSnapshot.selected === isSelectedNow) return;
+
+            const fromWidth = previousSnapshot.rect.width;
+            const toWidth = nextRect.width;
+            if (!Number.isFinite(fromWidth) || !Number.isFinite(toWidth) || Math.abs(fromWidth - toWidth) < 0.5) return;
+
+            const labelEl = chip.shadowRoot?.querySelector('.label');
+            const previousLabelOverflow = labelEl?.style.textOverflow || '';
+            if (labelEl) {
+                labelEl.style.textOverflow = 'clip';
+            }
+
+            chip.style.transition = 'none';
+            chip.style.width = `${fromWidth}px`;
+            chip.style.willChange = 'width';
+            void chip.offsetWidth;
+
+            const cleanup = () => {
+                chip.style.removeProperty('width');
+                chip.style.removeProperty('transition');
+                chip.style.removeProperty('will-change');
+                if (labelEl) {
+                    if (previousLabelOverflow) {
+                        labelEl.style.textOverflow = previousLabelOverflow;
+                    } else {
+                        labelEl.style.removeProperty('text-overflow');
+                    }
+                }
+            };
+
+            requestAnimationFrame(() => {
+                chip.style.transition = `width ${duration}ms ${easing}`;
+                chip.style.width = `${toWidth}px`;
+                // Keep bounce subtle to avoid crossing neighboring chips.
+                chip.animate([
+                    { transform: 'scaleY(0.985)' },
+                    { transform: 'scaleY(1.01)' },
+                    { transform: 'scaleY(1)' }
+                ], {
+                    duration: duration + 40,
+                    easing: 'cubic-bezier(0.2, 0, 0, 1)'
+                });
+                chip.addEventListener('transitionend', cleanup, { once: true });
+                setTimeout(cleanup, duration + 48);
+            });
+        });
+    }
+
     renderTaskChips() {
+        const previousChipRects = this.captureFullscreenChipRects();
         this.taskChips.innerHTML = '';
+        const activeEntry = appState.getActiveEntry();
+        let restChip = null;
+        const switchTask = (taskId, sourceEl = null) => {
+            const current = appState.getActiveEntry();
+            if (current?.taskId === taskId) return;
+            if (taskId === REST_ID) {
+                this.startRest({ sourceEl });
+            } else {
+                this.startTask(taskId, { sourceEl });
+            }
+        };
+
+        const chipSet = document.createElement('m3e-filter-chip-set');
+        chipSet.className = 'fullscreen-chip-set';
+        chipSet.setAttribute('aria-label', '全屏任务快速切换');
+        this.taskChips.appendChild(chipSet);
 
         // Add rest chip
-        const restChip = document.createElement('div');
-        const activeEntry = appState.getActiveEntry();
-        restChip.className = 'task-chip' + (activeEntry?.taskId === REST_ID ? ' active' : '');
-        restChip.innerHTML = `
-            <div class="chip-content flex items-center gap-2">
-                <span class="material-symbols-rounded">coffee</span>
-                <span class="chip-text">休息</span>
-                ${activeEntry?.taskId === REST_ID ? '<span class="material-symbols-rounded check-icon">done</span>' : ''}
-            </div>
-        `;
-        restChip.addEventListener('click', () => this.startRest());
-        this.taskChips.appendChild(restChip);
+        restChip = document.createElement('m3e-filter-chip');
+        restChip.className = 'rest-chip -hide-selection';
+        restChip.setAttribute('data-task-id', REST_ID);
+        if (activeEntry?.taskId === REST_ID) {
+            restChip.setAttribute('selected', '');
+        }
+        const restIcon = document.createElement('m3e-icon');
+        restIcon.setAttribute('slot', 'icon');
+        restIcon.setAttribute('variant', 'rounded');
+        restIcon.setAttribute('name', 'coffee');
+        restChip.appendChild(restIcon);
+        restChip.appendChild(document.createTextNode('休息'));
+        restChip.addEventListener('change', () => {
+            if (!restChip.selected) return;
+            switchTask(REST_ID, restChip);
+        });
+        chipSet.appendChild(restChip);
 
         // Add task chips
         const tasks = appState.getTasks();
         tasks.forEach(task => {
-            const chip = document.createElement('div');
-            chip.className = 'task-chip' + (activeEntry?.taskId === task.id ? ' active' : '');
-            chip.innerHTML = `
-                <div class="chip-content flex items-center gap-2">
-                    <span class="chip-text">${task.name}</span>
-                    ${activeEntry?.taskId === task.id ? '<span class="material-symbols-rounded check-icon">done</span>' : ''}
-                </div>
-            `;
-            chip.addEventListener('click', () => this.startTask(task.id));
-            this.taskChips.appendChild(chip);
+            const chip = document.createElement('m3e-filter-chip');
+            chip.setAttribute('data-task-id', task.id);
+            if (activeEntry?.taskId === task.id) {
+                chip.setAttribute('selected', '');
+            }
+            chip.appendChild(document.createTextNode(task.name));
+            chip.addEventListener('change', () => {
+                if (!chip.selected) return;
+                switchTask(task.id, chip);
+            });
+            chipSet.appendChild(chip);
+        });
+
+        // m3e-filter-chip-set may normalize child classes after slot updates; re-apply once mounted.
+        queueMicrotask(() => {
+            restChip?.classList.add('-hide-selection');
+        });
+        requestAnimationFrame(() => {
+            restChip?.classList.add('-hide-selection');
+            this.animateFullscreenChipLayout(previousChipRects);
         });
     }
 
     toggleFullscreen() {
-        const isFullscreen = this.fullscreenMode.classList.contains('active');
-        this.fullscreenMode.classList.toggle('active');
-        this.fullscreenToggle.querySelector('.material-symbols-rounded').textContent =
-            isFullscreen ? 'fullscreen' : 'fullscreen_exit';
+        if (this.fullscreenTransitioning) return;
 
-        // 切换页面滚动状态，避免全屏模式出现滚动条
-        if (!isFullscreen) {
-            document.body.classList.add('fullscreen-active');
+        const entering = !this.fullscreenMode.classList.contains('active');
+        const body = document.body;
+        const duration = this.shouldReduceMotion() ? 0 : this.getMotionMs('--md-sys-motion-duration-medium-2', 300);
+
+        this.fullscreenTransitioning = true;
+        if (this.fullscreenTransitionTimer) {
+            clearTimeout(this.fullscreenTransitionTimer);
+            this.fullscreenTransitionTimer = null;
         }
 
-        if (!isFullscreen) {
+        body.classList.remove('fullscreen-entering', 'fullscreen-leaving');
+        if (entering) {
+            body.classList.add('fullscreen-active', 'fullscreen-entering');
+            this.fullscreenMode.classList.remove('leaving');
+            this.fullscreenMode.classList.add('active');
+            this.fullscreenToggle.querySelector('.material-symbols-rounded').textContent = 'fullscreen_exit';
             this.renderTaskChips();
             this.updateFullscreenDisplay();
         } else {
-            document.body.classList.remove('fullscreen-active');
+            body.classList.add('fullscreen-leaving');
+            this.fullscreenMode.classList.add('leaving');
+            this.fullscreenToggle.querySelector('.material-symbols-rounded').textContent = 'fullscreen';
         }
+
+        const settle = () => {
+            body.classList.remove('fullscreen-entering', 'fullscreen-leaving');
+            if (!entering) {
+                this.fullscreenMode.classList.remove('leaving');
+                this.fullscreenMode.classList.remove('active');
+                body.classList.remove('fullscreen-active');
+            }
+            this.fullscreenTransitioning = false;
+            this.fullscreenTransitionTimer = null;
+        };
+
+        if (duration <= 0) {
+            settle();
+            return;
+        }
+        this.fullscreenTransitionTimer = setTimeout(settle, duration + 32);
     }
 
     updatePageTitle(taskName) {
@@ -890,43 +1124,27 @@ class UI {
         });
     }
 
+    showSnackbar(message, options = {}) {
+        const { action = '', dismissible = false, actionCallback = null, duration = 3000 } = options;
+        if (globalThis.M3eSnackbar?.open) {
+            if (action) {
+                globalThis.M3eSnackbar.open(message, action, dismissible, { actionCallback, duration });
+            } else {
+                globalThis.M3eSnackbar.open(message, dismissible, { duration });
+            }
+            return;
+        }
+        // 兜底：保持在组件未注册时也能给出可见反馈
+        alert(message);
+    }
+
     showNotification(title, message) {
         console.log(`发送通知: ${title} - ${message}`);
 
-        // 触发自定义事件，用于显示内联通知
+        // 统一走通知事件，由监听器通过 M3E snackbar 呈现
         document.dispatchEvent(new CustomEvent('mfpt:notification', {
             detail: { title, message, timestamp: Date.now() }
         }));
-
-        // 创建一个内联通知元素并应用 Tailwind 类
-        const notification = document.createElement('div');
-        // 应用 Tailwind 类
-        notification.className = 'inline-notification fixed bottom-6 right-6 p-4 bg-surface dark:bg-surface-dark text-on-surface dark:text-on-surface-dark rounded-md-medium shadow-md flex items-start gap-3 z-[1000] min-w-[280px] max-w-md';
-        notification.innerHTML = `
-            <span class="material-symbols-rounded text-primary dark:text-primary-dark text-2xl">notifications</span>
-            <div class="notification-content flex-1">
-                <strong class="block mb-1 text-on-surface dark:text-on-surface-dark">${title}</strong>
-                <p class="m-0 text-sm text-on-surface-variant dark:text-on-surface-variant-dark">${message}</p>
-            </div>
-        `;
-
-        document.body.appendChild(notification);
-
-        // 3秒后自动移除通知
-        setTimeout(() => {
-            notification.classList.add('fade-out');
-            setTimeout(() => {
-                // Check if the element still exists before attempting to remove
-                if (document.body.contains(notification)) {
-                    document.body.removeChild(notification);
-                }
-            }, 300); // Match CSS animation duration
-        }, 3000);
-
-        // 尝试发送系统通知
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('生产计时器', { body: message });
-        }
     }
 
     onStart() {
@@ -1056,7 +1274,8 @@ class UI {
 
     updateManualThemeSelection() {
         const isAuto = this.autoThemeSwitch.checked;
-        this.manualThemeSelection.style.display = isAuto ? 'none' : 'block';
+        this.manualThemeSelection.classList.toggle('is-hidden', isAuto);
+        this.manualThemeSelection.setAttribute('aria-hidden', isAuto ? 'true' : 'false');
     }
 
     updateSelectedThemeOption(themeId) {
