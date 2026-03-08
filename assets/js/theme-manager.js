@@ -166,6 +166,16 @@ class ThemeManager {    constructor() {
         body.className = body.className.replace(/theme-\w+/g, '');
         body.classList.add(`theme-${theme.id}`);
 
+        // 同步 M3E 主题容器，启用 expressive motion/focus 并跟随当前主色
+        const m3eTheme = document.getElementById('appTheme');
+        if (m3eTheme) {
+            m3eTheme.setAttribute('color', colors.primary);
+            m3eTheme.setAttribute('scheme', colorScheme);
+            m3eTheme.setAttribute('variant', 'expressive');
+            m3eTheme.setAttribute('motion', 'expressive');
+            m3eTheme.setAttribute('strong-focus', '');
+        }
+
         // 移除过渡动画类（在动画完成后）
         setTimeout(() => {
             body.classList.remove('theme-transition');

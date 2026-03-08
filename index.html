@@ -44,6 +44,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
 </head>
 <body class="bg-surface dark:bg-surface-dark text-on-surface dark:text-on-surface-dark font-sans p-6">
+    <m3e-theme id="appTheme" variant="expressive" scheme="auto" motion="expressive" strong-focus>
     <div class="container max-w-6xl mx-auto grid gap-6">
         <header class="app-header text-center mb-8 mt-14 flex flex-col gap-2">
             <h1 class="display-large text-3xl font-normal text-on-surface dark:text-on-surface-dark">Mixed-Flow Production Timer</h1>
@@ -51,14 +52,14 @@
         </header>
 
         <div class="add-task card flex flex-col md:flex-row gap-4 items-stretch md:items-center">
-            <div class="text-field relative flex-1 min-w-0 w-full">
-                <input type="text" id="newTaskInput" placeholder=" " class="text-field-input peer">
-                <label class="text-field-label">输入新任务名称</label>
-            </div>
-            <button class="btn-filled w-full md:w-auto" id="addTaskButton">
-                <span class="material-symbols-rounded">add</span>
+            <m3e-form-field variant="outlined" class="w-full flex-1 min-w-0">
+                <label slot="label" for="newTaskInput">输入新任务名称</label>
+                <input type="text" id="newTaskInput">
+            </m3e-form-field>
+            <m3e-button variant="filled" class="w-full md:w-auto" id="addTaskButton">
+                <m3e-icon slot="icon" variant="rounded" name="add"></m3e-icon>
                 添加任务
-            </button>
+            </m3e-button>
         </div>
 
         <div class="current-activity card text-center">
@@ -68,14 +69,14 @@
                     <p id="currentTaskName" class="text-on-surface dark:text-on-surface-dark">-- 无活动 --</p>
                     <div class="timer text-5xl font-medium text-primary tracking-[0.05em] my-4" id="currentTimer">00:00:00</div>
                     <div class="activity-buttons flex gap-2 justify-center mt-4">
-                        <button class="btn-tertiary" id="stopActivityButton">
-                            <span class="material-symbols-rounded">stop</span>
+                        <m3e-button variant="filled" id="stopActivityButton">
+                            <m3e-icon slot="icon" variant="rounded" name="stop"></m3e-icon>
                             停止计时
-                        </button>
-                        <button class="btn-tonal" id="startRestButton">
-                            <span class="material-symbols-rounded">coffee</span>
+                        </m3e-button>
+                        <m3e-button variant="tonal" id="startRestButton">
+                            <m3e-icon slot="icon" variant="rounded" name="coffee"></m3e-icon>
                             开始休息
-                        </button>
+                        </m3e-button>
                     </div>
                 </div>
             </div>
@@ -134,10 +135,7 @@
                             <span class="material-symbols-rounded text-xl">notifications</span>
                             提醒时间
                         </span>
-                        <label class="switch relative inline-flex w-[52px] h-8">
-                            <input type="checkbox" id="reminderEnabled" class="opacity-0 w-0 h-0 peer" checked>
-                            <span class="slider absolute cursor-pointer inset-0 bg-secondary-container dark:bg-secondary-container-dark transition-all duration-200 ease-in-out rounded-full border-2 border-outline dark:border-outline-dark peer-checked:bg-primary-container dark:peer-checked:bg-primary-container-dark peer-checked:border-primary dark:peer-checked:border-primary-dark before:absolute before:content-[''] before:h-4 before:w-4 before:left-1.5 before:bottom-1.5 before:bg-outline dark:before:bg-outline-dark before:transition-all before:duration-200 before:ease-in-out before:rounded-full peer-checked:before:translate-x-5 peer-checked:before:bg-primary dark:peer-checked:before:bg-primary-dark"></span>
-                        </label>
+                        <m3e-switch id="reminderEnabled" checked></m3e-switch>
                     </div>
                     <div class="time-input grid grid-cols-[auto_1fr] items-center gap-2 max-w-[200px]">
                         <input type="number" id="reminderMinutes" min="1" value="30" class="w-full max-w-[72px] px-3 py-2 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-on-surface dark:text-on-surface-dark text-base focus:outline-none focus:border-primary dark:focus:border-primary-dark">
@@ -150,10 +148,7 @@
                             <span class="material-symbols-rounded text-xl">timer_off</span>
                             超时时间
                         </span>
-                        <label class="switch relative inline-flex w-[52px] h-8">
-                            <input type="checkbox" id="timeoutEnabled" class="opacity-0 w-0 h-0 peer" checked>
-                            <span class="slider absolute cursor-pointer inset-0 bg-secondary-container dark:bg-secondary-container-dark transition-all duration-200 ease-in-out rounded-full border-2 border-outline dark:border-outline-dark peer-checked:bg-primary-container dark:peer-checked:bg-primary-container-dark peer-checked:border-primary dark:peer-checked:border-primary-dark before:absolute before:content-[''] before:h-4 before:w-4 before:left-1.5 before:bottom-1.5 before:bg-outline dark:before:bg-outline-dark before:transition-all before:duration-200 before:ease-in-out before:rounded-full peer-checked:before:translate-x-5 peer-checked:before:bg-primary dark:peer-checked:before:bg-primary-dark"></span>
-                        </label>
+                        <m3e-switch id="timeoutEnabled" checked></m3e-switch>
                     </div>
                     <div class="time-input grid grid-cols-[auto_1fr] items-center gap-2 max-w-[200px]">
                         <input type="number" id="timeoutMinutes" min="1" value="60" class="w-full max-w-[72px] px-3 py-2 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-on-surface dark:text-on-surface-dark text-base focus:outline-none focus:border-primary dark:focus:border-primary-dark">
@@ -179,14 +174,14 @@
                 </div>
 
                 <div class="buttons-group flex gap-2 justify-center mb-4">
-                    <button id="selectDataFolderButton" class="btn-tertiary min-w-[140px]">
-                        <span class="material-symbols-rounded">folder_open</span>
-                        <span>选择文件夹</span>
-                    </button>
-                    <button id="clearSelectedFolderButton" class="btn-tonal min-w-[140px]">
-                        <span class="material-symbols-rounded">replay</span>
-                        <span>恢复默认</span>
-                    </button>
+                    <m3e-button variant="filled" id="selectDataFolderButton" class="min-w-[140px]">
+                        <m3e-icon slot="icon" variant="rounded" name="folder_open"></m3e-icon>
+                        选择文件夹
+                    </m3e-button>
+                    <m3e-button variant="tonal" id="clearSelectedFolderButton" class="min-w-[140px]">
+                        <m3e-icon slot="icon" variant="rounded" name="replay"></m3e-icon>
+                        恢复默认
+                    </m3e-button>
                 </div>
                 <p id="selectedFolderPath" class="hidden" title=""></p> 
             </div>        </div>
@@ -208,10 +203,7 @@
                             <span class="material-symbols-rounded text-xl">schedule</span>
                             自动时段切换
                         </span>
-                        <label class="switch relative inline-flex w-[52px] h-8">
-                            <input type="checkbox" id="autoThemeSwitch" class="opacity-0 w-0 h-0 peer" checked>
-                            <span class="slider absolute cursor-pointer inset-0 bg-secondary-container dark:bg-secondary-container-dark transition-all duration-200 ease-in-out rounded-full border-2 border-outline dark:border-outline-dark peer-checked:bg-primary-container dark:peer-checked:bg-primary-container-dark peer-checked:border-primary dark:peer-checked:border-primary-dark before:absolute before:content-[''] before:h-4 before:w-4 before:left-1.5 before:bottom-1.5 before:bg-outline dark:before:bg-outline-dark before:transition-all before:duration-200 before:ease-in-out before:rounded-full peer-checked:before:translate-x-5 peer-checked:before:bg-primary dark:peer-checked:before:bg-primary-dark"></span>
-                        </label>
+                        <m3e-switch id="autoThemeSwitch" checked></m3e-switch>
                     </div>
                     <p class="text-xs text-on-secondary-container dark:text-on-secondary-container-dark opacity-80">
                         启用后将根据当前时间自动切换主题：晨曦绿 (6-11时)、正午蓝 (11-14时)、午后黄 (14-18时)、夕阳橙 (18-22时)、夜幕紫 (22-6时)
@@ -259,14 +251,14 @@
             </header>
             <div id="log-scroll-container" class="overflow-hidden max-h-[800px]">
                 <div class="history-actions flex gap-2 justify-center mb-4"> 
-                    <button class="btn-tonal min-w-[140px]" id="clearHistoryButton">
-                        <span class="material-symbols-rounded">history</span>
+                    <m3e-button variant="tonal" class="min-w-[140px]" id="clearHistoryButton">
+                        <m3e-icon slot="icon" variant="rounded" name="history"></m3e-icon>
                         清除历史记录
-                    </button>
-                    <button class="btn-error min-w-[140px]" id="clearDataButton">
-                        <span class="material-symbols-rounded">delete_forever</span>
+                    </m3e-button>
+                    <m3e-button variant="filled" class="min-w-[140px] m3e-danger-button" id="clearDataButton">
+                        <m3e-icon slot="icon" variant="rounded" name="delete_forever"></m3e-icon>
                         清除所有数据
-                    </button>
+                    </m3e-button>
                 </div>
                 <div id="historyLog" class="max-h-[300px] overflow-y-auto pr-2 mt-4 flex flex-col gap-2">
                     <!-- 日志条目将由JS动态插入 -->
@@ -284,6 +276,34 @@
     <button class="fullscreen-toggle fixed right-6 top-6 w-10 h-10 rounded-full text-on-secondary-container dark:text-on-secondary-container-dark flex items-center justify-center cursor-pointer transition-colors duration-200 ease-in-out z-[1001] bg-transparent hover:bg-secondary-container dark:hover:bg-secondary-container-dark">
         <span class="material-symbols-rounded">fullscreen</span>
     </button>
+    </m3e-theme>
+
+    <script type="importmap">
+        {
+          "imports": {
+            "lit": "/node_modules/lit/index.js",
+            "lit/": "/node_modules/lit/",
+            "lit-html": "/node_modules/lit-html/lit-html.js",
+            "lit-html/": "/node_modules/lit-html/",
+            "lit-element/lit-element.js": "/node_modules/lit-element/lit-element.js",
+            "lit-element/": "/node_modules/lit-element/",
+            "@lit/reactive-element": "/node_modules/@lit/reactive-element/reactive-element.js",
+            "@lit/reactive-element/": "/node_modules/@lit/reactive-element/",
+            "@m3e/web/core": "/node_modules/@m3e/web/dist/core.js",
+            "@m3e/web/core/a11y": "/node_modules/@m3e/web/dist/core-a11y.js",
+            "@m3e/web/core/anchoring": "/node_modules/@m3e/web/dist/core-anchoring.js",
+            "@m3e/web/core/bidi": "/node_modules/@m3e/web/dist/core-bidi.js",
+            "@m3e/web/core/layout": "/node_modules/@m3e/web/dist/core-layout.js",
+            "@m3e/web/core/platform": "/node_modules/@m3e/web/dist/core-platform.js",
+            "@m3e/web/button": "/node_modules/@m3e/web/dist/button.js",
+            "@m3e/web/form-field": "/node_modules/@m3e/web/dist/form-field.js",
+            "@m3e/web/icon": "/node_modules/@m3e/web/dist/icon.js",
+            "@m3e/web/switch": "/node_modules/@m3e/web/dist/switch.js",
+            "@m3e/web/theme": "/node_modules/@m3e/web/dist/theme.js"
+          }
+        }
+    </script>
+    <script type="module" src="./assets/js/m3e-components.js"></script>
 
     <!-- Scripts -->
     <script type="module">

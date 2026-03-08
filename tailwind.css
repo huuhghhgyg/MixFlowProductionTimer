@@ -69,6 +69,28 @@
     @apply bg-surface dark:bg-surface-dark rounded-md-large p-6 border border-outline dark:border-outline-dark relative overflow-hidden;
   }
 
+  m3e-form-field {
+    --m3e-form-field-width: 100%;
+    display: block;
+  }
+
+  m3e-form-field > input {
+    @apply w-full min-w-0 bg-transparent text-on-surface dark:text-on-surface-dark font-sans;
+    border: 0;
+    outline: none;
+    box-sizing: border-box;
+  }
+
+  .setting-item-header m3e-switch {
+    @apply shrink-0;
+  }
+
+  .m3e-danger-button {
+    --m3e-filled-button-container-color: var(--md-sys-color-error);
+    --m3e-filled-button-label-text-color: var(--md-sys-color-on-error);
+    --m3e-filled-button-icon-color: var(--md-sys-color-on-error);
+  }
+
   .btn {
     @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
     /* Add base hover/active state layer effect using ::before */
@@ -402,14 +424,5 @@
 
   .theme-option.selected span {
     @apply text-on-primary-container dark:text-on-primary-container-dark font-medium;
-  }
-
-  /* Theme mode switch additional styles */
-  .switch input:checked + .slider {
-    @apply bg-primary dark:bg-primary-dark border-primary dark:border-primary-dark;
-  }
-
-  .switch input:checked + .slider:before {
-    @apply bg-on-primary dark:bg-on-primary-dark;
   }
 }
