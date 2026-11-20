@@ -245,14 +245,19 @@
     @apply text-lg font-medium text-on-surface dark:text-on-surface-dark;
   }
 
-  .m3e-task-list,
-  .m3e-task-selection-list {
-    @apply w-full;
+  .task-list {
+    @apply overflow-x-hidden overflow-y-auto p-1.5;
+    scrollbar-width: thin;
+    scroll-padding-block: 0.375rem;
+  }
+
+  .m3e-task-list {
+    @apply w-full flex-none overflow-visible;
     --m3e-segmented-list-segment-gap: 0.5rem;
-    --m3e-segmented-list-container-shape: 1rem;
-    --m3e-segmented-list-item-container-shape: 0.5rem;
-    --m3e-segmented-list-item-hover-container-shape: 0.625rem;
-    --m3e-segmented-list-item-focus-container-shape: 0.75rem;
+    --m3e-segmented-list-container-shape: 0.875rem;
+    --m3e-segmented-list-item-container-shape: 0.375rem;
+    --m3e-segmented-list-item-hover-container-shape: 0.5rem;
+    --m3e-segmented-list-item-focus-container-shape: 0.625rem;
     --m3e-segmented-list-item-selected-container-shape: 999px;
     --m3e-list-item-container-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 36%, var(--md-sys-color-surface));
     --m3e-list-item-label-text-color: var(--md-sys-color-on-surface);
@@ -266,7 +271,7 @@
   .m3e-task-list-option {
     --m3e-list-item-one-line-height: 3rem;
     --m3e-list-item-padding-inline: 1rem;
-    --m3e-list-item-padding-block: 0.375rem;
+    --m3e-list-item-padding-block: 0.25rem;
     --m3e-list-item-font-weight: 500;
   }
 
@@ -394,7 +399,19 @@
     @apply ml-auto;
   }
 
+  .task-chips {
+    /* Leave room for the chip's 48px hit area and focus ring. */
+    @apply flex overflow-x-auto overflow-y-hidden p-2;
+    scrollbar-width: none;
+    scroll-padding-inline: 0.5rem;
+  }
+
+  .task-chips::-webkit-scrollbar {
+    display: none;
+  }
+
   .task-chips .fullscreen-chip-set {
+    flex: none;
     flex-wrap: nowrap;
     --m3e-chip-set-spacing: 0.5rem;
   }
@@ -402,6 +419,7 @@
   .task-chips m3e-filter-chip {
     flex: none;
     --m3e-chip-container-height: 2.125rem;
+    --m3e-chip-container-shape: 0.5rem;
     --m3e-chip-padding-start: 0.75rem;
     --m3e-chip-padding-end: 0.875rem;
     --m3e-chip-with-icon-padding-start: 0.75rem;

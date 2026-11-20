@@ -1,3 +1,4 @@
+import { setCustomState } from '@m3e/web/core';
 import Timer from './timer.js';
 import Charts from './charts.js';
 import appState, { initializeAppState } from './core.js';
@@ -201,7 +202,8 @@ class UI {
 
         // 让鼠标滚轮横向滚动 chips，避免显示滚动条
         this.taskChips?.addEventListener('wheel', (e) => {
-            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+            if (!e.ctrlKey && this.taskChips.scrollWidth > this.taskChips.clientWidth &&
+                Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
                 e.preventDefault();
                 this.taskChips.scrollLeft += e.deltaY;
             }
@@ -215,7 +217,7 @@ class UI {
                 e.stopPropagation();
                 const taskId = deleteButton.getAttribute('data-task-id');
                 if (taskId) {
-                    this.deleteTask(taskId);
+                    await this.deleteTask(taskId);
                 }
                 return;
             }
@@ -513,6 +515,8 @@ class UI {
 
     playTaskToActivityTransition(sourceEl) {
         if (!sourceEl || !this.currentActivityCard || this.shouldReduceMotion()) return;
+        if (sourceEl.closest?.('#taskList')) return;
+        if (sourceEl.closest?.('.activity-buttons')) return;
 
         const sourceRect = sourceEl.getBoundingClientRect();
         const targetAnchor = this.currentActivityCard.querySelector('.section-header-title') || this.currentActivityCard;
@@ -560,11 +564,11 @@ class UI {
         this.renderHistory({ reset: true }); // 添加这行
     }
 
-    deleteTask(taskId) {
+    async deleteTask(taskId) {
         if (!confirm(`确定要删除此任务吗？相关历史记录会保留，但不再关联此任务。`)) {
             return;
         }
-        appState.deleteTask(taskId);
+        await appState.deleteTask(taskId);
         this.renderTasks();
         this.calculateAndRenderMetrics();
         this.renderHistory({ reset: true }); // 添加这行
@@ -579,7 +583,6 @@ class UI {
             this.renderTasks();
             this.calculateAndRenderMetrics();
             Charts.updateGanttChart();
-            this.renderTaskChips();  // 这个方法已经存在
         });
     }
         startRest({ sourceEl = null } = {}) {
@@ -589,7 +592,6 @@ class UI {
             this.renderTasks();
             this.calculateAndRenderMetrics();
             Charts.updateGanttChart();
-            this.renderTaskChips();  // 这个方法已经存在
         });
     }    stopCurrentActivity() {
         const activeEntry = appState.getActiveEntry();
@@ -615,8 +617,55 @@ class UI {
         }
     }
 
+    captureTaskListState() {
+        if (!this.taskList) return null;
+
+        const state = new Map();
+        this.taskList.querySelectorAll('m3e-list-option[data-task-id]').forEach((item) => {
+            const taskId = item.getAttribute('data-task-id');
+            if (!taskId) return;
+            state.set(taskId, item.hasAttribute('selected'));
+        });
+        return state;
+    }
+
+    animateTaskListSelection(previousState) {
+        if (!previousState || previousState.size === 0 || this.shouldReduceMotion()) return;
+
+        const duration = this.getMotionMs('--md-sys-motion-duration-short-4', 200) + 40;
+        const easing = this.getMotionEasing('--md-sys-motion-easing-emphasized', 'cubic-bezier(0.2, 0, 0, 1)');
+
+        this.taskList.querySelectorAll('m3e-list-option[data-task-id]').forEach((item) => {
+            const taskId = item.getAttribute('data-task-id');
+            if (!taskId) return;
+
+            const previous = previousState.get(taskId);
+            const selectedNow = item.hasAttribute('selected');
+            if (previous === undefined || previous === selectedNow) return;
+
+            item.animate([
+                {
+                    transform: selectedNow ? 'scale(0.988, 0.985)' : 'scale(1)',
+                    opacity: 0.98
+                },
+                {
+                    transform: selectedNow ? 'scale(1)' : 'scale(0.996, 0.992)',
+                    opacity: 1
+                },
+                {
+                    transform: 'scale(1, 1)',
+                    opacity: 1
+                }
+            ], {
+                duration,
+                easing
+            });
+        });
+    }
+
     // Rendering methods
     renderTasks() {
+        const previousTaskListState = this.captureTaskListState();
         const tasks = appState.getTasks();
         const activeEntry = appState.getActiveEntry();
 
@@ -635,6 +684,7 @@ class UI {
             existingItems.set(item.getAttribute('data-task-id'), item);
         });
 
+        let nextItem = taskSelectionList.firstElementChild;
         tasks.forEach((task) => {
             let taskItem = existingItems.get(task.id);
             if (!taskItem) {
@@ -650,15 +700,24 @@ class UI {
                 taskItem.removeAttribute('selected');
             }
 
-            taskSelectionList.appendChild(taskItem);
+            if (taskItem === nextItem) {
+                nextItem = taskItem.nextElementSibling;
+            } else {
+                taskSelectionList.insertBefore(taskItem, nextItem);
+            }
         });
 
         existingItems.forEach((item) => item.remove());
+
+        requestAnimationFrame(() => {
+            this.animateTaskListSelection(previousTaskListState);
+        });
     }
 
     createTaskListOption(task) {
         const taskItem = document.createElement('m3e-list-option');
-        taskItem.className = 'm3e-task-list-option -hide-selection';
+        taskItem.className = 'm3e-task-list-option';
+        setCustomState(taskItem, '--hide-selection', true);
         taskItem.setAttribute('data-task-id', task.id);
         taskItem.appendChild(document.createTextNode(task.name));
 
@@ -679,7 +738,6 @@ class UI {
     }
 
     updateTaskListOption(taskItem, task) {
-        taskItem.classList.add('m3e-task-list-option', '-hide-selection');
         taskItem.setAttribute('data-task-id', task.id);
         const textNode = Array.from(taskItem.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
         if (textNode) {
@@ -972,11 +1030,9 @@ class UI {
             requestAnimationFrame(() => {
                 chip.style.transition = `width ${duration}ms ${easing}`;
                 chip.style.width = `${toWidth}px`;
-                // Keep bounce subtle to avoid crossing neighboring chips.
                 chip.animate([
-                    { transform: 'scaleY(0.985)' },
-                    { transform: 'scaleY(1.01)' },
-                    { transform: 'scaleY(1)' }
+                    { transform: 'scale(0.992, 0.985)' },
+                    { transform: 'scale(1, 1)' }
                 ], {
                     duration: duration + 40,
                     easing: 'cubic-bezier(0.2, 0, 0, 1)'
@@ -989,12 +1045,15 @@ class UI {
 
     renderTaskChips() {
         const previousChipRects = this.captureFullscreenChipRects();
-        this.taskChips.innerHTML = '';
         const activeEntry = appState.getActiveEntry();
-        let restChip = null;
-        const switchTask = (taskId, sourceEl = null) => {
-            const current = appState.getActiveEntry();
-            if (current?.taskId === taskId) return;
+        const switchTask = (event) => {
+            const sourceEl = event.currentTarget;
+            const taskId = sourceEl.dataset.taskId;
+            if (appState.getActiveEntry()?.taskId === taskId) {
+                sourceEl.selected = true;
+                return;
+            }
+            if (!sourceEl.selected) return;
             if (taskId === REST_ID) {
                 this.startRest({ sourceEl });
             } else {
@@ -1002,52 +1061,50 @@ class UI {
             }
         };
 
-        const chipSet = document.createElement('m3e-filter-chip-set');
-        chipSet.className = 'fullscreen-chip-set';
-        chipSet.setAttribute('aria-label', '全屏任务快速切换');
-        this.taskChips.appendChild(chipSet);
-
-        // Add rest chip
-        restChip = document.createElement('m3e-filter-chip');
-        restChip.className = 'rest-chip -hide-selection';
-        restChip.setAttribute('data-task-id', REST_ID);
-        if (activeEntry?.taskId === REST_ID) {
-            restChip.setAttribute('selected', '');
+        let chipSet = this.taskChips.querySelector('.fullscreen-chip-set');
+        if (!chipSet) {
+            chipSet = document.createElement('m3e-filter-chip-set');
+            chipSet.className = 'fullscreen-chip-set';
+            chipSet.setAttribute('aria-label', '全屏任务快速切换');
+            this.taskChips.appendChild(chipSet);
         }
-        const restIcon = document.createElement('m3e-icon');
-        restIcon.setAttribute('slot', 'icon');
-        restIcon.setAttribute('variant', 'rounded');
-        restIcon.setAttribute('name', 'coffee');
-        restChip.appendChild(restIcon);
-        restChip.appendChild(document.createTextNode('休息'));
-        restChip.addEventListener('change', () => {
-            if (!restChip.selected) return;
-            switchTask(REST_ID, restChip);
-        });
-        chipSet.appendChild(restChip);
 
-        // Add task chips
-        const tasks = appState.getTasks();
-        tasks.forEach(task => {
-            const chip = document.createElement('m3e-filter-chip');
-            chip.setAttribute('data-task-id', task.id);
-            if (activeEntry?.taskId === task.id) {
-                chip.setAttribute('selected', '');
+        const tasks = [{ id: REST_ID, name: '休息' }, ...appState.getTasks()];
+        const existingChips = new Map(Array.from(chipSet.children, chip => [chip.dataset.taskId, chip]));
+        let nextChip = chipSet.firstElementChild;
+        for (const { id, name } of tasks) {
+            let chip = existingChips.get(id);
+            if (chip) {
+                existingChips.delete(id);
+            } else {
+                chip = document.createElement('m3e-filter-chip');
+                chip.dataset.taskId = id;
+                if (id === REST_ID) {
+                    chip.className = 'rest-chip';
+                    const icon = document.createElement('m3e-icon');
+                    icon.setAttribute('slot', 'icon');
+                    icon.setAttribute('variant', 'rounded');
+                    icon.setAttribute('name', 'coffee');
+                    chip.appendChild(icon);
+                }
+                chip.appendChild(document.createTextNode(name));
+                chip.addEventListener('change', switchTask);
             }
-            chip.appendChild(document.createTextNode(task.name));
-            chip.addEventListener('change', () => {
-                if (!chip.selected) return;
-                switchTask(task.id, chip);
-            });
-            chipSet.appendChild(chip);
-        });
+            if (chip.lastChild.textContent !== name) chip.lastChild.textContent = name;
+            chip.selected = activeEntry?.taskId === id;
 
-        // m3e-filter-chip-set may normalize child classes after slot updates; re-apply once mounted.
-        queueMicrotask(() => {
-            restChip?.classList.add('-hide-selection');
-        });
+            if (chip === nextChip) {
+                nextChip = chip.nextElementSibling;
+            } else {
+                chipSet.insertBefore(chip, nextChip);
+            }
+        }
+        existingChips.forEach(chip => chip.remove());
+
+        // The chip set resets selection indicators when its slots change.
         requestAnimationFrame(() => {
-            restChip?.classList.add('-hide-selection');
+            const restChip = chipSet.querySelector('.rest-chip');
+            if (restChip) setCustomState(restChip, '--hide-selection', true);
             this.animateFullscreenChipLayout(previousChipRects);
         });
     }

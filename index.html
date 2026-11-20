@@ -87,7 +87,7 @@
                 <header class="section-header flex justify-between items-center mb-4 shrink-0">
                     <h2 class="section-header-title">任务列表</h2>
                 </header>
-                <div class="task-list flex flex-col gap-2 max-h-[480px] min-h-[200px] overflow-y-auto pr-2" id="taskList"></div>
+                <div class="task-list flex flex-col max-h-[480px] min-h-[200px]" id="taskList"></div>
             </div>
 
             <div class="metrics-section card">
@@ -272,7 +272,7 @@
 
     <div class="fullscreen-mode fixed inset-0 bg-surface dark:bg-surface-dark z-[1000] p-6 font-display flex-col">
         <div class="timer fixed left-[48px] bottom-[120px] text-9xl font-light text-primary dark:text-primary-dark tabular-nums tracking-tighter m-0 leading-none font-sans"></div>
-        <div class="task-chips fixed bottom-8 left-12 right-0 flex gap-2 justify-start overflow-x-auto"></div>
+        <div class="task-chips fixed bottom-6 inset-x-4 md:inset-x-10"></div>
     </div>
 
     <button class="fullscreen-toggle fixed right-6 top-6 w-10 h-10 rounded-full text-on-secondary-container dark:text-on-secondary-container-dark flex items-center justify-center cursor-pointer z-[1001] bg-transparent hover:bg-secondary-container dark:hover:bg-secondary-container-dark">
@@ -283,6 +283,7 @@
     <script type="importmap">
         {
           "imports": {
+            "tslib": "/node_modules/tslib/tslib.es6.mjs",
             "lit": "/node_modules/lit/index.js",
             "lit/": "/node_modules/lit/",
             "lit-html": "/node_modules/lit-html/lit-html.js",
