@@ -94,12 +94,10 @@ class UI {
         this.startRestButton = document.querySelector('#startRestButton');
         this.stopActivityButton = document.querySelector('#stopActivityButton');
         this.taskList = document.querySelector('#taskList');
-        this.currentActivityCard = document.querySelector('.current-activity');
         this.currentTaskNameSpan = document.querySelector('#currentTaskName');
         this.currentTimerSpan = document.querySelector('#currentTimer');
         this.historyLogDiv = document.querySelector('#historyLog');
         this.historyScrollContainer = document.querySelector('#log-scroll-container');
-        this.historyLoadMoreButton = null;
         this.historyPage = 0;
         this.historyPageSize = 200;
         this.historyHasMore = true;
@@ -119,16 +117,17 @@ class UI {
         // Fullscreen elements
         this.fullscreenMode = document.querySelector('.fullscreen-mode');
         this.fullscreenToggle = document.querySelector('.fullscreen-toggle');
-        this.fullscreenToggleIcon = this.fullscreenToggle ? this.fullscreenToggle.querySelector('span') : null;
         this.fullscreenTimer = document.querySelector('.fullscreen-mode .timer');
         this.fullscreenTransitioning = false;
         this.fullscreenTransitionTimer = null;
-        this.taskChips = document.querySelector('.task-chips'); this.notificationStatus = document.querySelector('#notificationStatus');
+        this.taskChips = document.querySelector('.task-chips');
+        this.fullscreenChipUpdatePending = false;
+        this.fullscreenChipAnimations = new WeakMap();
+        this.notificationStatus = document.querySelector('#notificationStatus');
         // Data storage elements
         this.selectDataFolderButton = document.querySelector('#selectDataFolderButton');
         this.clearSelectedFolderButton = document.querySelector('#clearSelectedFolderButton');
         this.currentStorageStatus = document.querySelector('#currentStorageStatus');
-        this.currentStorageLocationText = document.querySelector('#currentStorageLocationText');
 
         // Theme elements
         this.autoThemeSwitch = document.querySelector('#autoThemeSwitch');
@@ -140,27 +139,8 @@ class UI {
         this.manualThemeSelection = document.querySelector('#manualThemeSelection');
         this.themeOptions = document.querySelectorAll('.theme-option');        this.setupEventListeners();
         this.initializeState();
-        this.ensureHistoryLoadMoreButton();
         // 通知 appState，UI 的通知监听器已就绪，可以派发积压的通知
         appState.markNotificationListenersReady();
-    }
-
-    initializeState() {
-        // 初始化定时器设置
-        const settings = appState.getTimerSettings();
-        this.reminderMinutesInput.value = settings.reminderMinutes;
-        this.timeoutMinutesInput.value = settings.timeoutMinutes;
-        this.reminderEnabledInput.checked = settings.reminderEnabled;
-        this.timeoutEnabledInput.checked = settings.timeoutEnabled;
-        this.updateSettingsState();
-
-        this.renderTasks();
-        this.renderHistory({ reset: true });
-        this.calculateAndRenderMetrics();
-        this.updateCurrentActivityDisplay();
-        this.updateNotificationStatus();
-        this.updateStorageStatus();
-        this.initializeThemeState();
     }
 
     setupEventListeners() {
@@ -171,7 +151,7 @@ class UI {
                 this.addTask();
             }
         });        // Activity controls
-        this.startRestButton.addEventListener('click', () => this.startRest({ sourceEl: this.startRestButton }));
+        this.startRestButton.addEventListener('click', () => this.startRest());
         this.stopActivityButton.addEventListener('click', () => this.stopCurrentActivity());
         this.clearHistoryButton.addEventListener('click', () => this.clearHistory());
         this.clearDataButton.addEventListener('click', () => this.clearAllData());
@@ -194,7 +174,11 @@ class UI {
         // Fullscreen mode
         this.fullscreenToggle.addEventListener('click', () => this.toggleFullscreen());
         document.addEventListener('keydown', (e) => {
-            if (e.altKey && (e.key === 'f' || e.key === 'F')) {
+            if (e.defaultPrevented || e.isComposing) return;
+            if (e.key === 'Escape' && this.fullscreenMode.classList.contains('active')) {
+                e.preventDefault();
+                this.toggleFullscreen({ exitOnly: true });
+            } else if (e.altKey && (e.key === 'f' || e.key === 'F')) {
                 e.preventDefault();
                 this.toggleFullscreen();
             }
@@ -226,7 +210,7 @@ class UI {
             if (taskItem) {
                 const taskId = taskItem.getAttribute('data-task-id');
                 if (taskId) {
-                    await this.startTask(taskId, { sourceEl: taskItem });
+                    await this.startTask(taskId);
                 }
             }
         });
@@ -312,11 +296,9 @@ class UI {
         // 监听活动日志展开/折叠
         this.historyPanel?.addEventListener('opened', () => {
             this.renderHistory({ reset: true });
-            this.updateLoadMoreButtonState();
         });
         this.historyPanel?.addEventListener('closed', () => {
             this.historyLogDiv.innerHTML = '';
-            this.updateLoadMoreButtonState();
         });
 
         // 监听数据位置变更事件
@@ -325,7 +307,9 @@ class UI {
             this.updateStorageStatus();
             this.updateUI();
         });
-    } initializeState() {
+    }
+
+    initializeState() {
         // 初始化定时器设置
         const settings = appState.getTimerSettings();
         this.reminderMinutesInput.value = settings.reminderMinutes;
@@ -359,11 +343,6 @@ class UI {
         }
     }
 
-    ensureHistoryLoadMoreButton() {
-        // 不再使用按钮加载更多，改为滚动触底自动加载
-        return;
-    }
-
     resetHistoryPagination() {
         this.historyPage = 0;
         this.historyHasMore = true;
@@ -371,21 +350,6 @@ class UI {
         if (this.historyLogDiv) {
             this.historyLogDiv.innerHTML = '';
         }
-        this.updateLoadMoreButtonState();
-    }
-
-    updateLoadMoreButtonState() {
-        if (!this.historyLoadMoreButton) return;
-        const collapsed = !this.isHistoryPanelOpen();
-
-        if (collapsed || !this.historyHasMore) {
-            this.historyLoadMoreButton.classList.add('hidden');
-        } else {
-            this.historyLoadMoreButton.classList.remove('hidden');
-        }
-
-        this.historyLoadMoreButton.disabled = this.historyLoading || !this.historyHasMore;
-        this.historyLoadMoreButton.textContent = this.historyLoading ? '加载中...' : '加载更多';
     }
 
     handleHistoryScroll() {
@@ -513,44 +477,6 @@ class UI {
         return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     }
 
-    playTaskToActivityTransition(sourceEl) {
-        if (!sourceEl || !this.currentActivityCard || this.shouldReduceMotion()) return;
-        if (sourceEl.closest?.('#taskList')) return;
-        if (sourceEl.closest?.('.activity-buttons')) return;
-
-        const sourceRect = sourceEl.getBoundingClientRect();
-        const targetAnchor = this.currentActivityCard.querySelector('.section-header-title') || this.currentActivityCard;
-        const targetRect = targetAnchor.getBoundingClientRect();
-        if (sourceRect.width <= 0 || sourceRect.height <= 0 || targetRect.width <= 0 || targetRect.height <= 0) return;
-
-        const ghost = document.createElement('div');
-        ghost.className = 'task-activity-transform-ghost';
-        ghost.textContent = sourceEl.textContent?.trim().slice(0, 24) || '';
-
-        const sourceStyle = getComputedStyle(sourceEl);
-        ghost.style.backgroundColor = sourceStyle.backgroundColor || 'var(--md-sys-color-secondary-container)';
-        ghost.style.color = sourceStyle.color || 'var(--md-sys-color-on-secondary-container)';
-        ghost.style.borderRadius = sourceStyle.borderRadius || '12px';
-        ghost.style.left = `${sourceRect.left}px`;
-        ghost.style.top = `${sourceRect.top}px`;
-        ghost.style.width = `${sourceRect.width}px`;
-        ghost.style.height = `${sourceRect.height}px`;
-        document.body.appendChild(ghost);
-
-        const dx = (targetRect.left + targetRect.width * 0.5) - (sourceRect.left + sourceRect.width * 0.5);
-        const dy = (targetRect.top + targetRect.height * 0.5) - (sourceRect.top + sourceRect.height * 0.5);
-        const scaleX = Math.max(0.92, Math.min(1.18, targetRect.width / sourceRect.width));
-        const scaleY = Math.max(0.9, Math.min(1.12, targetRect.height / sourceRect.height));
-        const duration = this.getMotionMs('--md-sys-motion-duration-medium-3', 350);
-        const easing = this.getMotionEasing('--md-sys-motion-easing-emphasized', 'cubic-bezier(0.2, 0, 0, 1)');
-
-        const animation = ghost.animate([
-            { transform: 'translate3d(0, 0, 0) scale(1, 1)', opacity: 0.26 },
-            { transform: `translate3d(${dx}px, ${dy}px, 0) scale(${scaleX}, ${scaleY})`, opacity: 0 }
-        ], { duration, easing, fill: 'forwards' });
-        animation.addEventListener('finish', () => ghost.remove(), { once: true });
-    }
-
     // Task management methods
     addTask() {
         const taskName = this.newTaskInput.value.trim();
@@ -572,28 +498,31 @@ class UI {
         this.renderTasks();
         this.calculateAndRenderMetrics();
         this.renderHistory({ reset: true }); // 添加这行
-    }      startTask(taskId, { sourceEl = null } = {}) {
+    }
+
+    startTask(taskId) {
         const tasks = appState.getTasks();
         const task = tasks.find(t => t.id === taskId);
         if (!task) return;
 
         appState.startTask(taskId, task.name, () => {
-            this.playTaskToActivityTransition(sourceEl);
             this.updateCurrentActivityDisplay();
             this.renderTasks();
             this.calculateAndRenderMetrics();
             Charts.updateGanttChart();
         });
     }
-        startRest({ sourceEl = null } = {}) {
+
+    startRest() {
         appState.startTask(REST_ID, '休息', () => {
-            this.playTaskToActivityTransition(sourceEl);
             this.updateCurrentActivityDisplay();
             this.renderTasks();
             this.calculateAndRenderMetrics();
             Charts.updateGanttChart();
         });
-    }    stopCurrentActivity() {
+    }
+
+    stopCurrentActivity() {
         const activeEntry = appState.getActiveEntry();
         if (!activeEntry) return;
 
@@ -760,7 +689,6 @@ class UI {
         if (this.historyLoading || !this.historyHasMore) return;
 
         this.historyLoading = true;
-        this.updateLoadMoreButtonState();
 
         const offset = this.historyPage * this.historyPageSize;
         const history = appState.getHistory({
@@ -773,7 +701,6 @@ class UI {
         if (sortedHistory.length === 0) {
             this.historyHasMore = false;
             this.historyLoading = false;
-            this.updateLoadMoreButtonState();
             return;
         }
 
@@ -782,7 +709,6 @@ class UI {
         // 如果本次不足一整页，说明已经到底
         this.historyHasMore = sortedHistory.length === this.historyPageSize;
         this.historyLoading = false;
-        this.updateLoadMoreButtonState();
 
         if (this.historyPage === 1) {
             // 初次加载保持在列表底部，避免跳动
@@ -793,7 +719,6 @@ class UI {
     renderHistory({ reset = false } = {}) {
         if (!this.isHistoryPanelOpen()) {
             this.historyLogDiv.innerHTML = '';
-            this.updateLoadMoreButtonState();
             return;
         }
 
@@ -804,9 +729,6 @@ class UI {
         if (!this.historyLogDiv.children.length) {
             // 初次或重置时加载第一页
             this.loadMoreHistory();
-        } else {
-            // 已有内容时，只更新按钮状态
-            this.updateLoadMoreButtonState();
         }
     }
 
@@ -955,109 +877,71 @@ class UI {
         }
     }
 
-    captureFullscreenChipRects() {
-        if (!this.taskChips) return null;
-
-        const rects = new Map();
-        this.taskChips.querySelectorAll('m3e-filter-chip[data-task-id]').forEach((chip) => {
-            const taskId = chip.getAttribute('data-task-id');
-            if (!taskId) return;
-            rects.set(taskId, {
-                rect: chip.getBoundingClientRect(),
+    captureFullscreenChipWidths() {
+        const widths = new Map();
+        for (const chip of this.taskChips.querySelectorAll('m3e-filter-chip')) {
+            widths.set(chip, {
+                width: parseFloat(getComputedStyle(chip).width),
                 selected: chip.hasAttribute('selected')
             });
-        });
-        return rects;
+        }
+        return widths;
     }
 
-    animateFullscreenChipLayout(previousRects) {
-        if (!previousRects || previousRects.size === 0 || this.shouldReduceMotion()) return;
+    animateFullscreenChipWidths(previousWidths) {
+        if (this.shouldReduceMotion()) return;
 
-        const duration = this.getMotionMs('--md-sys-motion-duration-short-4', 200);
-        const easing = this.getMotionEasing('--md-sys-motion-easing-standard', 'cubic-bezier(0.2, 0, 0, 1)');
+        const changed = [...previousWidths].filter(([chip, previous]) =>
+            chip.isConnected && chip.hasAttribute('selected') !== previous.selected);
+        if (!changed.length) return;
 
-        this.taskChips.querySelectorAll('m3e-filter-chip[data-task-id]').forEach((chip) => {
-            const taskId = chip.getAttribute('data-task-id');
-            if (!taskId) return;
+        const duration = this.getMotionMs('--mf-motion-duration-short', 200);
+        const easing = this.getMotionEasing('--mf-motion-easing-standard', 'cubic-bezier(0.2, 0, 0, 1)');
 
-            const previousSnapshot = previousRects.get(taskId);
-            const nextRect = chip.getBoundingClientRect();
-            if (!nextRect.width || !nextRect.height) return;
+        for (const [chip] of changed) this.fullscreenChipAnimations.get(chip)?.cancel();
+        const targets = changed.map(([chip]) => parseFloat(getComputedStyle(chip).width));
 
-            if (!previousSnapshot) {
-                chip.animate([
-                    { opacity: 0, transform: 'scale(0.96)' },
-                    { opacity: 1, transform: 'scale(1)' }
-                ], {
-                    duration,
-                    easing,
-                    fill: 'both'
-                });
-                return;
-            }
+        changed.forEach(([chip, previous], index) => {
+            const target = targets[index];
+            if (!previous.width || !target || Math.abs(previous.width - target) < 0.5) return;
 
-            const isSelectedNow = chip.hasAttribute('selected');
-            if (previousSnapshot.selected === isSelectedNow) return;
-
-            const fromWidth = previousSnapshot.rect.width;
-            const toWidth = nextRect.width;
-            if (!Number.isFinite(fromWidth) || !Number.isFinite(toWidth) || Math.abs(fromWidth - toWidth) < 0.5) return;
-
-            const labelEl = chip.shadowRoot?.querySelector('.label');
-            const previousLabelOverflow = labelEl?.style.textOverflow || '';
-            if (labelEl) {
-                labelEl.style.textOverflow = 'clip';
-            }
-
-            chip.style.transition = 'none';
-            chip.style.width = `${fromWidth}px`;
-            chip.style.willChange = 'width';
-            void chip.offsetWidth;
-
-            const cleanup = () => {
-                chip.style.removeProperty('width');
-                chip.style.removeProperty('transition');
-                chip.style.removeProperty('will-change');
-                if (labelEl) {
-                    if (previousLabelOverflow) {
-                        labelEl.style.textOverflow = previousLabelOverflow;
-                    } else {
-                        labelEl.style.removeProperty('text-overflow');
-                    }
-                }
-            };
-
-            requestAnimationFrame(() => {
-                chip.style.transition = `width ${duration}ms ${easing}`;
-                chip.style.width = `${toWidth}px`;
-                chip.animate([
-                    { transform: 'scale(0.992, 0.985)' },
-                    { transform: 'scale(1, 1)' }
-                ], {
-                    duration: duration + 40,
-                    easing: 'cubic-bezier(0.2, 0, 0, 1)'
-                });
-                chip.addEventListener('transitionend', cleanup, { once: true });
-                setTimeout(cleanup, duration + 48);
-            });
+            const animation = chip.animate([
+                { width: `${previous.width}px` },
+                { width: `${target}px` }
+            ], { duration, easing });
+            this.fullscreenChipAnimations.set(chip, animation);
         });
     }
 
     renderTaskChips() {
-        const previousChipRects = this.captureFullscreenChipRects();
+        // A task switch can render both the stopped and started states before the same paint.
+        if (!this.fullscreenChipUpdatePending) {
+            const previousWidths = this.captureFullscreenChipWidths();
+            this.fullscreenChipUpdatePending = true;
+            queueMicrotask(async () => {
+                const chips = Array.from(this.taskChips.querySelectorAll('m3e-filter-chip'));
+                await Promise.all(chips.map(chip => chip.updateComplete));
+                this.fullscreenChipUpdatePending = false;
+                // The chip set resets selection indicators when its slots change.
+                const restChip = this.taskChips.querySelector('.rest-chip');
+                if (restChip) setCustomState(restChip, '--hide-selection', true);
+                this.animateFullscreenChipWidths(previousWidths);
+            });
+        }
+
         const activeEntry = appState.getActiveEntry();
         const switchTask = (event) => {
-            const sourceEl = event.currentTarget;
-            const taskId = sourceEl.dataset.taskId;
+            const chip = event.currentTarget;
+            const taskId = chip.dataset.taskId;
             if (appState.getActiveEntry()?.taskId === taskId) {
-                sourceEl.selected = true;
+                chip.selected = true;
                 return;
             }
-            if (!sourceEl.selected) return;
+            if (!chip.selected) return;
             if (taskId === REST_ID) {
-                this.startRest({ sourceEl });
+                this.startRest();
             } else {
-                this.startTask(taskId, { sourceEl });
+                this.startTask(taskId);
             }
         };
 
@@ -1087,7 +971,9 @@ class UI {
                     icon.setAttribute('name', 'coffee');
                     chip.appendChild(icon);
                 }
-                chip.appendChild(document.createTextNode(name));
+                const label = document.createElement('span');
+                label.className = 'block overflow-hidden text-clip';
+                chip.appendChild(label);
                 chip.addEventListener('change', switchTask);
             }
             if (chip.lastChild.textContent !== name) chip.lastChild.textContent = name;
@@ -1100,19 +986,16 @@ class UI {
             }
         }
         existingChips.forEach(chip => chip.remove());
-
-        // The chip set resets selection indicators when its slots change.
-        requestAnimationFrame(() => {
-            const restChip = chipSet.querySelector('.rest-chip');
-            if (restChip) setCustomState(restChip, '--hide-selection', true);
-            this.animateFullscreenChipLayout(previousChipRects);
-        });
     }
 
-    toggleFullscreen() {
-        if (this.fullscreenTransitioning) return;
-
+    toggleFullscreen({ exitOnly = false } = {}) {
         const entering = !this.fullscreenMode.classList.contains('active');
+        if (exitOnly) {
+            if (entering || this.fullscreenMode.classList.contains('leaving')) return;
+        } else if (this.fullscreenTransitioning) {
+            return;
+        }
+
         const body = document.body;
         const duration = this.shouldReduceMotion() ? 0 : this.getMotionMs('--md-sys-motion-duration-medium-2', 300);
 
@@ -1134,6 +1017,9 @@ class UI {
             body.classList.add('fullscreen-leaving');
             this.fullscreenMode.classList.add('leaving');
             this.fullscreenToggle.querySelector('.material-symbols-rounded').textContent = 'fullscreen';
+            if (this.fullscreenMode.contains(document.activeElement)) {
+                this.fullscreenToggle.focus({ preventScroll: true });
+            }
         }
 
         const settle = () => {
@@ -1158,29 +1044,6 @@ class UI {
         document.title = taskName ? `MFPT - ${taskName}` : 'Mixed-Flow Production Timer';
     }
 
-    updateTimer(duration) {
-        this.timerDisplay.textContent = Timer.formatDuration(duration);
-    }
-
-    updateButtonStates(isRunning) {
-        this.startButton.disabled = isRunning;
-        this.stopButton.disabled = !isRunning;
-        this.resetButton.disabled = isRunning;
-    }
-
-    updateProductList(products) {
-        this.productList.innerHTML = '';
-        products.forEach(product => {
-            const li = document.createElement('li');
-            li.className = 'product-item';
-            li.innerHTML = `
-                <span class="product-time">${Timer.formatTime(product.timestamp)}</span>
-                <span class="product-duration">${Timer.formatDuration(product.duration)}</span>
-            `;
-            this.productList.appendChild(li);
-        });
-    }
-
     showSnackbar(message, options = {}) {
         const { action = '', dismissible = false, actionCallback = null, duration = 3000 } = options;
         if (globalThis.M3eSnackbar?.open) {
@@ -1202,16 +1065,6 @@ class UI {
         document.dispatchEvent(new CustomEvent('mfpt:notification', {
             detail: { title, message, timestamp: Date.now() }
         }));
-    }
-
-    onStart() {
-        document.dispatchEvent(new CustomEvent('timer:start'));
-    }
-
-    onStop() {
-        document.dispatchEvent(new CustomEvent('timer:stop'));
-    } onReset() {
-        document.dispatchEvent(new CustomEvent('timer:reset'));
     }
 
     // Data storage methods

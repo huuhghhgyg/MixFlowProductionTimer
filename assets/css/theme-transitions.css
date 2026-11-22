@@ -2,38 +2,11 @@
 :root {
   --mf-motion-duration-short: var(--md-sys-motion-duration-short-4, 200ms);
   --mf-motion-duration-medium: var(--md-sys-motion-duration-medium-2, 300ms);
-  --mf-motion-duration-spatial: var(--md-sys-motion-duration-medium-3, 350ms);
   --mf-motion-duration-long: var(--md-sys-motion-duration-long-1, 450ms);
 
   --mf-motion-easing-standard: var(--md-sys-motion-easing-standard, cubic-bezier(0.2, 0, 0, 1));
   --mf-motion-easing-standard-decelerate: var(--md-sys-motion-easing-standard-decelerate, cubic-bezier(0, 0, 0, 1));
   --mf-motion-easing-emphasized: var(--md-sys-motion-easing-emphasized, cubic-bezier(0.2, 0, 0, 1));
-  --mf-motion-spring-spatial: var(--md-sys-motion-spring-fast-spatial, 350ms cubic-bezier(0.42, 1.67, 0.21, 0.9));
-}
-
-.theme-morning {
-  --theme-accent: #4caf50;
-  --theme-shadow: rgb(76 175 80 / 10%);
-}
-
-.theme-noon {
-  --theme-accent: #2196f3;
-  --theme-shadow: rgb(33 150 243 / 10%);
-}
-
-.theme-afternoon {
-  --theme-accent: #ffc107;
-  --theme-shadow: rgb(255 193 7 / 10%);
-}
-
-.theme-evening {
-  --theme-accent: #ff9800;
-  --theme-shadow: rgb(255 152 0 / 10%);
-}
-
-.theme-night {
-  --theme-accent: #9c27b0;
-  --theme-shadow: rgb(156 39 176 / 10%);
 }
 
 /* Restrict theme color transitions to key surfaces, avoid global wildcard transitions */
@@ -56,7 +29,6 @@
 
 .theme-option,
 .fullscreen-toggle,
-.theme-card,
 .task-delete-button {
   transition:
     background-color var(--mf-motion-duration-short) var(--mf-motion-easing-standard),
@@ -111,63 +83,6 @@ body.fullscreen-active {
   overflow: hidden;
 }
 
-/* Container-transform approximation: task item to current activity */
-.task-activity-transform-ghost {
-  position: fixed;
-  z-index: 1400;
-  pointer-events: none;
-  display: inline-flex;
-  align-items: center;
-  padding-inline: 0.75rem;
-  border: 1px solid var(--md-sys-color-outline-variant);
-  box-shadow: 0 2px 10px rgb(0 0 0 / 12%);
-  font-size: 0.75rem;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.current-activity.activity-receive {
-  animation: activityReceive var(--mf-motion-duration-spatial) var(--mf-motion-easing-emphasized) both;
-}
-
-@keyframes activityReceive {
-  0% {
-    transform: scale(0.985);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* Keep bespoke indicator effect with tokenized motion */
-.theme-indicator {
-  position: relative;
-  overflow: hidden;
-}
-
-.theme-indicator::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--theme-accent, var(--md-sys-color-primary)),
-    transparent
-  );
-  opacity: 0.28;
-  transition: left var(--mf-motion-duration-long) var(--mf-motion-easing-standard);
-}
-
-.theme-indicator.active::before {
-  left: 100%;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .card,
   .bg-surface,
@@ -180,18 +95,15 @@ body.fullscreen-active {
   #taskMetrics,
   .theme-option,
   .fullscreen-toggle,
-  .theme-card,
   .task-delete-button,
   .manual-theme-selection,
-  .theme-indicator::before,
   .fullscreen-mode {
     transition: none !important;
   }
 
   body.theme-transition .container,
   body.theme-transition .fullscreen-mode,
-  body.theme-transition .fullscreen-toggle,
-  .current-activity.activity-receive {
+  body.theme-transition .fullscreen-toggle {
     animation: none !important;
   }
 }

@@ -49,35 +49,6 @@ class Timer {
 
         return parts.join(' ');
     }
-
-    static formatTime(timestamp) {
-        return new Date(timestamp).toLocaleTimeString('zh-CN', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
-
-    static formatDate(timestamp) {
-        return new Date(timestamp).toLocaleDateString('zh-CN', {
-            month: 'long',
-            day: 'numeric'
-        });
-    }
-
-    static getTimePeriods(startTime, endTime) {
-        const periods = [];
-        let currentDate = new Date(startTime);
-        currentDate.setHours(0, 0, 0, 0);
-        const lastDate = new Date(endTime);
-        lastDate.setHours(0, 0, 0, 0);
-
-        while (currentDate <= lastDate) {
-            periods.push(new Date(currentDate));
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-
-        return periods;
-    }
 }
 
 export default Timer;
