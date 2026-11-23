@@ -1,4 +1,4 @@
-import '@m3e/web/theme';
+import '../../dist/m3e.js';
 import { COLOR_THEMES, THEME_MODES, MFPT_EVENTS } from './constants.js';
 import Storage from './storage.js';
 

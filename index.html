@@ -41,7 +41,7 @@
     <div class="container max-w-6xl mx-auto grid gap-6">
         <header class="app-header text-center mb-8 mt-14 flex flex-col gap-2">
             <h1 class="display-large text-3xl font-normal text-on-surface dark:text-on-surface-dark">Mixed-Flow Production Timer</h1>
-            <p class="headline-small text-xl font-normal text-on-secondary-container dark:text-on-secondary-container-dark opacity-90">可视化呈现时间轨迹</p>
+            <p class="headline-small text-xl font-normal text-on-secondary-container dark:text-on-secondary-container-dark opacity-90">记录所有任务</p>
         </header>
 
         <div class="add-task card flex flex-col md:flex-row gap-4 items-stretch md:items-end">
@@ -255,47 +255,9 @@
     </m3e-dialog>
     </m3e-theme>
 
-    <script type="importmap">
-        {
-          "imports": {
-            "tslib": "/node_modules/tslib/tslib.es6.mjs",
-            "lit": "/node_modules/lit/index.js",
-            "lit/": "/node_modules/lit/",
-            "lit-html": "/node_modules/lit-html/lit-html.js",
-            "lit-html/": "/node_modules/lit-html/",
-            "lit-element/lit-element.js": "/node_modules/lit-element/lit-element.js",
-            "lit-element/": "/node_modules/lit-element/",
-            "@lit/reactive-element": "/node_modules/@lit/reactive-element/reactive-element.js",
-            "@lit/reactive-element/": "/node_modules/@lit/reactive-element/",
-            "@m3e/web/core": "/node_modules/@m3e/web/dist/core.js",
-            "@m3e/web/core/a11y": "/node_modules/@m3e/web/dist/core-a11y.js",
-            "@m3e/web/core/anchoring": "/node_modules/@m3e/web/dist/core-anchoring.js",
-            "@m3e/web/core/bidi": "/node_modules/@m3e/web/dist/core-bidi.js",
-            "@m3e/web/core/layout": "/node_modules/@m3e/web/dist/core-layout.js",
-            "@m3e/web/core/platform": "/node_modules/@m3e/web/dist/core-platform.js",
-            "@m3e/web/button": "/node_modules/@m3e/web/dist/button.js",
-            "@m3e/web/dialog": "/node_modules/@m3e/web/dist/dialog.js",
-            "@m3e/web/icon-button": "/node_modules/@m3e/web/dist/icon-button.js",
-            "@m3e/web/form-field": "/node_modules/@m3e/web/dist/form-field.js",
-            "@m3e/web/icon": "/node_modules/@m3e/web/dist/icon.js",
-            "@m3e/web/switch": "/node_modules/@m3e/web/dist/switch.js",
-            "@m3e/web/radio-group": "/node_modules/@m3e/web/dist/radio-group.js",
-            "@m3e/web/theme": "/node_modules/@m3e/web/dist/theme.js",
-            "@m3e/web/list": "/node_modules/@m3e/web/dist/list.js",
-            "@m3e/web/chips": "/node_modules/@m3e/web/dist/chips.js",
-            "@m3e/web/snackbar": "/node_modules/@m3e/web/dist/snackbar.js",
-            "@m3e/web/expansion-panel": "/node_modules/@m3e/web/dist/expansion-panel.js"
-          }
-        }
-    </script>
-    <script type="module" src="./assets/js/m3e-components.js"></script>
-
-    <!-- Scripts -->
     <script type="module">
         import UI from './assets/js/ui.js';
-        import appState from './assets/js/core.js';
-        import Charts from './assets/js/charts.js';
-        import Timer from './assets/js/timer.js';        // 初始化应用
+
         document.addEventListener('DOMContentLoaded', async () => {
             await UI.init();
         });

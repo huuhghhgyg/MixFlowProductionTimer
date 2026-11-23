@@ -40,7 +40,7 @@ class UI {
         const ui = new UI();
         Charts.init();  // 注册Service Worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
+            navigator.serviceWorker.register(new URL('../../service-worker.js', import.meta.url))
                 .then(registration => {
                     console.log('Service Worker registered:', registration);
                     

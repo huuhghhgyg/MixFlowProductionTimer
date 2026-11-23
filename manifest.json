@@ -2,7 +2,7 @@
     "name": "Mixed-Flow Production Timer",
     "short_name": "MFPT",
     "description": "源自TPS的平準化理念，让工作节奏更均衡的任务计时工具",
-    "start_url": "/",
+    "start_url": "./",
     "display": "standalone",
     "background_color": "#FFF8F6",
     "theme_color": "#B95E20",

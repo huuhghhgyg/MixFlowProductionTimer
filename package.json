@@ -2,9 +2,11 @@
   "scripts": {
     "build:css": "tailwindcss -i ./tailwind.css -o ./dist/style.css --minify",
     "dev:css": "tailwindcss -i ./tailwind.css -o ./dist/style.css --watch",
-    "build": "npm run build:css"
+    "build:m3e": "esbuild ./assets/js/m3e-components.js --bundle --format=esm --minify --legal-comments=eof --outfile=./dist/m3e.js",
+    "build": "npm run build:css && npm run build:m3e"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "tailwindcss": "^3.4.17"
   },
   "dependencies": {

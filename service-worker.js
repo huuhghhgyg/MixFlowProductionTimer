@@ -2,29 +2,29 @@ const CACHE_NAME = 'mfpt-cache-v2';
 
 // 本地资源预缓存列表
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/manifest.json',
-    '/dist/style.css',
-    '/assets/css/theme-transitions.css',
-    '/assets/js/ui.js',
-    '/assets/js/core.js',
-    '/assets/js/storage.js',
-    '/assets/js/timer.js',
-    '/assets/js/charts.js',
-    '/assets/js/constants.js',
-    '/assets/js/theme-manager.js',
-    '/assets/js/m3e-components.js',
-    '/assets/js/echarts.min.js',
-    '/assets/icons/android-chrome-192x192.png',
-    '/assets/icons/android-chrome-512x512.png',
-    '/assets/icons/android-chrome-maskable-192x192.png',
-    '/assets/icons/android-chrome-maskable-512x512.png',
-    '/assets/icons/apple-touch-icon.png',
-    '/assets/icons/favicon-16x16.png',
-    '/assets/icons/favicon-32x32.png',
-    '/assets/icons/favicon.ico'
-];
+    './',
+    'index.html',
+    'manifest.json',
+    'dist/style.css',
+    'dist/m3e.js',
+    'assets/css/theme-transitions.css',
+    'assets/js/ui.js',
+    'assets/js/core.js',
+    'assets/js/storage.js',
+    'assets/js/timer.js',
+    'assets/js/charts.js',
+    'assets/js/constants.js',
+    'assets/js/theme-manager.js',
+    'assets/js/echarts.min.js',
+    'assets/icons/android-chrome-192x192.png',
+    'assets/icons/android-chrome-512x512.png',
+    'assets/icons/android-chrome-maskable-192x192.png',
+    'assets/icons/android-chrome-maskable-512x512.png',
+    'assets/icons/apple-touch-icon.png',
+    'assets/icons/favicon-16x16.png',
+    'assets/icons/favicon-32x32.png',
+    'assets/icons/favicon.ico'
+].map(path => new URL(path, self.registration.scope).href);
 
 const LOCAL_DEV = ['localhost', '127.0.0.1', '[::1]'].includes(self.location.hostname);
 let updateCheckInProgress = false;
@@ -122,7 +122,7 @@ self.addEventListener('fetch', (event) => {
     if (request.method !== 'GET' || !['http:', 'https:'].includes(url.protocol)) return;
 
     const localAppAsset = LOCAL_DEV && url.origin === self.location.origin &&
-        (request.mode === 'navigate' || ASSETS_TO_CACHE.includes(url.pathname));
+        (request.mode === 'navigate' || ASSETS_TO_CACHE.includes(url.origin + url.pathname));
     const response = localAppAsset ? fetchLocalAppAsset(request) : fetchCachedFirst(request);
     event.respondWith(response.catch(error => {
         console.error('网络请求失败:', request.url, error);
