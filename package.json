@@ -6,5 +6,9 @@
   },
   "devDependencies": {
     "tailwindcss": "^3.4.17"
+  },
+  "dependencies": {
+    "@m3e/web": "2.13.5",
+    "tslib": "2.8.1"
   }
 }

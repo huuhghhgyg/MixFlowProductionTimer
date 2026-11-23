@@ -2,66 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --md-sys-color-primary: theme('colors.primary.DEFAULT');
-    --md-sys-color-on-primary: theme('colors.on-primary.DEFAULT');
-    --md-sys-color-primary-container: theme('colors.primary-container.DEFAULT');
-    --md-sys-color-on-primary-container: theme('colors.on-primary-container.DEFAULT');
-
-    --md-sys-color-secondary: theme('colors.secondary.DEFAULT');
-    --md-sys-color-on-secondary: theme('colors.on-secondary.DEFAULT');
-    --md-sys-color-secondary-container: theme('colors.secondary-container.DEFAULT');
-    --md-sys-color-on-secondary-container: theme('colors.on-secondary-container.DEFAULT');
-
-    --md-sys-color-tertiary: theme('colors.tertiary.DEFAULT');
-    --md-sys-color-on-tertiary: theme('colors.on-tertiary.DEFAULT');
-    --md-sys-color-tertiary-container: theme('colors.tertiary-container.DEFAULT');
-    --md-sys-color-on-tertiary-container: theme('colors.on-tertiary-container.DEFAULT');
-
-    --md-sys-color-error: theme('colors.error.DEFAULT');
-    --md-sys-color-on-error: theme('colors.on-error.DEFAULT');
-    --md-sys-color-error-container: theme('colors.error-container.DEFAULT');
-    --md-sys-color-on-error-container: theme('colors.on-error-container.DEFAULT');
-
-    --md-sys-color-surface: theme('colors.surface.DEFAULT');
-    --md-sys-color-on-surface: theme('colors.on-surface.DEFAULT');
-    --md-sys-color-surface-variant: theme('colors.surface-variant.DEFAULT');
-    --md-sys-color-on-surface-variant: theme('colors.on-surface-variant.DEFAULT');
-
-    --md-sys-color-outline: theme('colors.outline.DEFAULT');
-    --md-sys-color-outline-variant: theme('colors.outline-variant.DEFAULT');
-  }
-
-  html.dark {
-    --md-sys-color-primary: theme('colors.primary.dark');
-    --md-sys-color-on-primary: theme('colors.on-primary.dark');
-    --md-sys-color-primary-container: theme('colors.primary-container.dark');
-    --md-sys-color-on-primary-container: theme('colors.on-primary-container.dark');
-
-    --md-sys-color-secondary: theme('colors.secondary.dark'); /* TODO: Define dark mode colors */
-    --md-sys-color-on-secondary: theme('colors.on-secondary.dark'); /* TODO: Define dark mode colors */
-    --md-sys-color-secondary-container: theme('colors.secondary-container.dark'); /* TODO: Define dark mode colors */
-    --md-sys-color-on-secondary-container: theme('colors.on-secondary-container.dark'); /* TODO: Define dark mode colors */
-
-    --md-sys-color-tertiary: theme('colors.tertiary.dark'); /* TODO: Define dark mode colors */
-    --md-sys-color-on-tertiary: theme('colors.on-tertiary.dark'); /* TODO: Define dark mode colors */
-    --md-sys-color-tertiary-container: theme('colors.tertiary-container.dark'); /* TODO: Define dark mode colors */
-    --md-sys-color-on-tertiary-container: theme('colors.on-tertiary-container.dark'); /* TODO: Define dark mode colors */
-
-    --md-sys-color-error: theme('colors.error.dark');
-    --md-sys-color-on-error: theme('colors.on-error.dark');
-    --md-sys-color-error-container: theme('colors.error-container.dark');
-    --md-sys-color-on-error-container: theme('colors.on-error-container.dark');
-
-    --md-sys-color-surface: theme('colors.surface.dark');
-    --md-sys-color-on-surface: theme('colors.on-surface.dark');
-    --md-sys-color-surface-variant: theme('colors.surface-variant.dark');
-    --md-sys-color-on-surface-variant: theme('colors.on-surface-variant.dark');
-
-    --md-sys-color-outline: theme('colors.outline.dark');
-    --md-sys-color-outline-variant: theme('colors.outline-variant.dark'); /* TODO: Define dark mode colors */
-  }
+@property --mf-chip-radius {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 8px;
 }
 
 @layer components {
@@ -69,118 +13,171 @@
     @apply bg-surface dark:bg-surface-dark rounded-md-large p-6 border border-outline dark:border-outline-dark relative overflow-hidden;
   }
 
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
-    /* Add base hover/active state layer effect using ::before */
-    &::before {
-      content: '';
-      @apply absolute inset-0 bg-current opacity-0 transition-opacity duration-200 ease-in-out;
+  m3e-form-field {
+    --m3e-form-field-width: 100%;
+    display: block;
+  }
+
+  /* Align add-task field and action button on desktop */
+  .add-task .add-task-field {
+    --m3e-form-field-width: 100%;
+  }
+
+  .add-task {
+    --md-sys-density-scale: -2;
+  }
+
+  .add-task .add-task-button {
+    align-self: stretch;
+  }
+
+  @media (min-width: 768px) {
+    .add-task .add-task-button {
+      align-self: flex-end;
     }
-    &:hover::before {
-      /* Using a fixed opacity value, ideally this would come from a CSS variable mapped in tailwind.config */
-      @apply opacity-10;
-    }
-    &:active::before {
-       @apply opacity-20; /* Slightly higher opacity for pressed state */
-    }
   }
 
-  .btn-filled {
-    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
-    @apply bg-primary dark:bg-primary-dark text-on-primary dark:text-on-primary-dark;
-    /* Adding a subtle hover/active effect as an approximation of the state layer */
-    @apply hover:opacity-90 active:opacity-80;
+  m3e-form-field > input {
+    @apply w-full min-w-0 bg-transparent text-on-surface dark:text-on-surface-dark font-sans;
+    border: 0;
+    outline: none;
+    box-sizing: border-box;
   }
 
-  .btn-tonal {
-    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
-    @apply bg-secondary-container dark:bg-secondary-container-dark text-on-secondary-container dark:text-on-secondary-container-dark;
-    /* Adding a subtle hover/active effect */
-    @apply hover:opacity-90 active:opacity-80;
-  }
-  
-  .btn-tertiary {
-    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
-    @apply bg-tertiary-container dark:bg-tertiary-container-dark text-on-tertiary-container dark:text-on-tertiary-container-dark;
-    @apply hover:opacity-90 active:opacity-80;
-  }
-
-  .btn-error {
-    @apply inline-flex items-center justify-center gap-2 px-6 h-10 border-none rounded-md-medium text-sm font-medium cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden whitespace-nowrap shrink-0;
-    @apply bg-error dark:bg-error-dark text-on-error dark:text-on-error-dark;
-    @apply hover:opacity-90 active:opacity-80;
+  /* M3 Expressive buttons: keep state layers and shape, minimize elevation usage */
+  m3e-button {
+    --m3e-filled-button-container-elevation: none;
+    --m3e-filled-button-hover-container-elevation: none;
+    --m3e-filled-button-focus-container-elevation: none;
+    --m3e-filled-button-pressed-container-elevation: none;
+    --m3e-tonal-button-container-elevation: none;
+    --m3e-tonal-button-hover-container-elevation: none;
+    --m3e-tonal-button-focus-container-elevation: none;
+    --m3e-tonal-button-pressed-container-elevation: none;
+    --m3e-elevated-button-container-elevation: none;
+    --m3e-elevated-button-hover-container-elevation: none;
+    --m3e-elevated-button-focus-container-elevation: none;
+    --m3e-elevated-button-pressed-container-elevation: none;
   }
 
-  .btn-toggle-expand {
-    /* Applying necessary utility classes from .btn and specific styles */
-    @apply inline-flex cursor-pointer relative overflow-hidden whitespace-nowrap shrink-0 transition-all duration-200 ease-in-out;
-    @apply bg-secondary-container dark:bg-secondary-container-dark text-on-secondary-container dark:text-on-secondary-container-dark p-2 h-9 min-w-[36px] rounded-md-small flex items-center justify-center;
-    /* Adding a subtle hover/active effect */
-    @apply hover:opacity-90 active:opacity-80;
+  /* Collapsible cards use official expansion panel pattern */
+  .expansion-section {
+    --m3e-expansion-panel-container-color: var(--md-sys-color-surface);
+    --m3e-expansion-panel-elevation: none;
+    --m3e-expansion-panel-open-elevation: none;
+    --m3e-expansion-panel-shape: 16px;
+    --m3e-expansion-panel-open-shape: 16px;
+    --_expansion-panel-open-spacing: 0;
+    --m3e-expansion-header-collapsed-height: 3.5rem;
+    --m3e-expansion-header-expanded-height: 3.5rem;
+    --m3e-expansion-panel-content-padding: 0 1.5rem 1.25rem 1.5rem;
+    --m3e-expansion-panel-actions-divider-thickness: 0;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 16px;
+    overflow: hidden;
   }
 
-  .text-field {
-    @apply relative flex-1 min-w-0 w-full;
+  .setting-item-header m3e-switch {
+    @apply shrink-0;
   }
 
-  .text-field-input {
-    @apply w-full px-4 py-3 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-base text-on-surface dark:text-on-surface-dark transition-colors duration-200 ease-in-out box-border placeholder-transparent;
-    @apply focus:outline-none focus:border-primary dark:focus:border-primary-dark;
-    box-sizing: border-box; /* Ensure padding doesn't cause overflow */
-  }
-
-  .text-field-label {
-    @apply absolute left-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant dark:text-on-surface-variant-dark transition-all duration-200 ease-in-out bg-surface dark:bg-surface-dark px-1 pointer-events-none;
-    /* Label floats up when input is focused or has content, remaining left-aligned */
-    @apply peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:scale-90 peer-focus:text-primary dark:peer-focus:text-primary-dark;
-    @apply peer-[&:not(:placeholder-shown)]:top-0 peer-[&:not(:placeholder-shown)]:-translate-y-1/2 peer-[&:not(:placeholder-shown)]:scale-90 peer-[&:not(:placeholder-shown)]:text-primary dark:peer-[&:not(:placeholder-shown)]:text-primary-dark;
-  }
-
-  .text-field-input:focus {
-    @apply outline-none border-primary dark:border-primary-dark;
+  .m3e-danger-button {
+    --m3e-filled-button-container-color: var(--md-sys-color-error);
+    --m3e-filled-button-label-text-color: var(--md-sys-color-on-error);
+    --m3e-filled-button-icon-color: var(--md-sys-color-on-error);
   }
 
   .section-header-title {
     @apply text-lg font-medium text-on-surface dark:text-on-surface-dark;
   }
 
-  .task-item {
-    @apply flex items-center justify-between p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small cursor-pointer text-on-secondary-container dark:text-on-secondary-container-dark transition-all duration-150 ease-in-out border border-transparent box-border;
-    /* Simulating state layer with opacity */
-    @apply hover:bg-opacity-80 dark:hover:bg-opacity-80;
+  .task-list,
+  #taskMetrics {
+    scrollbar-width: thin;
   }
-  .task-item span {
-    @apply overflow-hidden text-ellipsis whitespace-nowrap flex-1 text-on-surface dark:text-on-surface-dark;
-  }
-  .task-item.active {
-    @apply bg-primary-container dark:bg-primary-container-dark text-on-primary-container dark:text-on-primary-container-dark;
-  }
-  .task-item .delete-button {
-    /* Mobile first: visible, larger tap target */
-    @apply inline-flex items-center justify-center p-2
-            opacity-0 transition-opacity duration-200 ease-in-out
-            bg-transparent text-on-secondary-container dark:text-on-secondary-container-dark
-            border-none cursor-pointer relative overflow-hidden;
-    /* Desktop overrides: hidden by default, aim for ~40px clickable area, icon ~20px */
-    @apply md:opacity-0 md:h-10 md:px-6 rounded-md-small; /* Larger: 40px container, 8px padding -> 24px icon space */
 
-    /* Add state layer effect using ::before, inherited from the concept of .btn but defined here */
-    &::before {
-      content: '';
-      @apply absolute inset-0 bg-current opacity-0 transition-opacity duration-200 ease-in-out rounded-md-small; /* Apply rounded corners to the pseudo-element as well */
+  .task-list {
+    @apply overflow-x-hidden overflow-y-auto p-1.5;
+    scroll-padding-block: 0.375rem;
+  }
+
+  .m3e-task-list {
+    @apply w-full flex-none overflow-visible;
+    --m3e-segmented-list-segment-gap: 0.5rem;
+    --m3e-segmented-list-container-shape: 0.875rem;
+    --m3e-segmented-list-item-container-shape: 0.375rem;
+    --m3e-segmented-list-item-container-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 36%, var(--md-sys-color-surface));
+  }
+
+  .m3e-task-list-item {
+    @apply cursor-pointer;
+    --m3e-list-item-one-line-height: 3rem;
+    --m3e-list-item-two-line-height: 3rem;
+    --m3e-list-item-leading-space: 0.5rem;
+    --m3e-list-item-trailing-space: 0.5rem;
+    --m3e-list-item-between-space: 0.25rem;
+    --m3e-list-item-one-line-top-space: 0.25rem;
+    --m3e-list-item-one-line-bottom-space: 0.25rem;
+  }
+
+  .m3e-task-list-item[data-active] {
+    --m3e-list-item-container-color: var(--md-sys-color-secondary-container);
+    --m3e-segmented-list-container-shape: 999px;
+    --m3e-list-item-container-shape: var(--m3e-segmented-list-container-shape);
+    --m3e-text-button-label-text-color: var(--md-sys-color-on-secondary-container);
+  }
+
+  .task-start-button {
+    @apply max-w-full min-w-0 self-start;
+    --m3e-button-leading-space: 0.5rem;
+    --m3e-button-trailing-space: 0.5rem;
+  }
+
+  .task-start-button span {
+    @apply block w-full truncate text-left;
+  }
+
+  @media (hover: hover) {
+    .task-important-button {
+      transition: opacity var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
     }
-    &:hover::before {
-      @apply opacity-10;
-    }
-    &:active::before {
-      @apply opacity-20;
+
+    .m3e-task-list-item:not(:hover, :has(:focus-visible)) .task-important-button:not([selected]) {
+      opacity: 0;
+      pointer-events: none;
     }
   }
-  .task-item .delete-button .material-symbols-rounded {
-    @apply text-xl; /* Explicitly 24px, can be 20px if preferred via text-lg */
+
+  .m3e-task-list-item .task-delete-button {
+    opacity: 0;
+    color: var(--md-sys-color-on-surface-variant);
+    --m3e-icon-button-hover-state-layer-color: var(--md-sys-color-on-surface);
+    --m3e-icon-button-hover-state-layer-opacity: 12%;
+    --m3e-icon-button-focus-state-layer-color: var(--md-sys-color-on-surface);
+    --m3e-icon-button-focus-state-layer-opacity: 12%;
+    --m3e-icon-button-pressed-state-layer-color: var(--md-sys-color-error);
+    --m3e-icon-button-pressed-state-layer-opacity: 14%;
+    transition:
+      opacity var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
   }
-  .task-item:hover .delete-button {
-    @apply opacity-100;
+
+  .m3e-task-list-item:hover .task-delete-button,
+  .m3e-task-list-item:focus-within .task-delete-button {
+    opacity: 1;
+  }
+
+  .m3e-task-list-item .task-delete-button:hover,
+  .m3e-task-list-item .task-delete-button:focus-visible {
+    color: var(--md-sys-color-error);
+    transform: scale(1.03);
+  }
+
+  @media (max-width: 767px) {
+    .m3e-task-list-item .task-delete-button {
+      opacity: 1;
+    }
   }
 
   .metric-item-container {
@@ -189,7 +186,7 @@
   /* For the progress bar, JS will need to set the width via style="width: var(--progress)" on this element */
   .metric-item-progress-bar {
     @apply absolute top-0 left-0 h-full opacity-10 z-0;
-    transition: width 0.3s ease-in-out;
+    transition: width var(--mf-motion-duration-medium, 300ms) var(--mf-motion-easing-standard, ease);
     background-color: var(--bar-color, theme('colors.primary.DEFAULT'));
     width: var(--progress, 0%);
   }
@@ -204,32 +201,110 @@
     @apply text-lg;
   }
 
-  .task-chip {
-    @apply inline-flex flex-none items-center gap-2 h-8 px-4 bg-transparent text-on-surface dark:text-on-surface-dark border border-outline dark:border-outline-dark rounded-md-small cursor-pointer transition-all duration-200 ease-in-out whitespace-nowrap text-sm relative overflow-visible select-none outline-none box-border;
-    @apply hover:border-on-surface dark:hover:border-on-surface-dark hover:opacity-90;
+  .task-chips {
+    /* Leave room for the chip's 48px hit area and focus ring. */
+    @apply flex overflow-x-auto overflow-y-hidden p-2;
+    scrollbar-width: none;
+    scroll-padding-inline: 0.5rem;
   }
-  .task-chip.active {
-    @apply bg-secondary-container dark:bg-secondary-container-dark text-on-secondary-container dark:text-on-secondary-container-dark border-transparent;
+
+  .task-chips::-webkit-scrollbar {
+    display: none;
   }
-  .task-chip .chip-content {
-    @apply flex items-center justify-start gap-2 w-full h-full;
+
+  .task-chips .fullscreen-chip-set {
+    flex: none;
+    flex-wrap: nowrap;
+    --m3e-chip-set-spacing: 0.5rem;
   }
-  .task-chip .chip-text {
-    @apply leading-none; /* Try to align text better with icons */
+
+  .task-chips m3e-filter-chip {
+    flex: none;
+    --m3e-chip-container-height: 2.125rem;
+    --mf-chip-radius: 0.5rem;
+    --m3e-chip-container-shape: var(--mf-chip-radius);
+    /* The host width animation owns spacing changes. */
+    --md-sys-motion-spring-fast-effects: 0ms;
+    --m3e-chip-padding-start: 0.75rem;
+    --m3e-chip-padding-end: 0.875rem;
+    --m3e-chip-with-icon-padding-start: 0.75rem;
+    --m3e-chip-with-icon-padding-end: 0.875rem;
+    --m3e-chip-spacing: 0.375rem;
+    --m3e-elevated-chip-elevation: none;
+    --m3e-elevated-chip-hover-elevation: none;
+    --m3e-chip-unselected-label-text-color: var(--md-sys-color-on-surface-variant);
+    --m3e-chip-selected-container-color: var(--md-sys-color-secondary-container);
+    --m3e-chip-selected-label-text-color: var(--md-sys-color-on-secondary-container);
+    --m3e-chip-selected-leading-icon-color: var(--md-sys-color-on-secondary-container);
+    --m3e-chip-selected-hover-elevation: none;
   }
-  .task-chip .material-symbols-rounded {
-    /* Make icon size match chip text size for better alignment */
-    @apply text-sm leading-none;
+
+  .task-chips m3e-filter-chip:not([selected]) {
+    --m3e-chip-padding-start: 0.875rem;
+    --m3e-chip-with-icon-padding-start: 0.375rem;
   }
-  .task-chip .check-icon {
-    @apply ml-auto;
+
+  .task-chips m3e-filter-chip[selected] {
+    --mf-chip-radius: calc(var(--m3e-chip-container-height) / 2);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .task-chips m3e-filter-chip {
+      transition: --mf-chip-radius var(--mf-motion-duration-short) var(--mf-motion-easing-standard);
+    }
+  }
+
+  .date-field,
+  .minutes-field {
+    --m3e-form-field-width: 100%;
+    --m3e-outlined-form-field-container-shape: 12px;
+  }
+
+  .date-field {
+    --md-sys-density-scale: -2;
+  }
+
+  .minutes-field {
+    --md-sys-density-scale: -3;
+    --m3e-form-field-width: 7rem;
+  }
+
+  .minutes-field input {
+    @apply tabular-nums;
   }
 
   .fullscreen-mode {
-    @apply hidden; /* Default to hidden */
+    @apply flex;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.985);
+    transform-origin: center;
+    pointer-events: none;
+    will-change: transform, opacity;
+    transition:
+      opacity var(--mf-motion-duration-medium, 300ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-medium, 300ms) var(--mf-motion-easing-standard, ease),
+      visibility 0s linear var(--mf-motion-duration-medium, 300ms);
   }
   .fullscreen-mode.active {
-    @apply flex; /* Or 'block', depending on desired layout. 'flex' was on the HTML element */
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    transition:
+      opacity var(--mf-motion-duration-medium, 300ms) var(--mf-motion-easing-standard-decelerate, ease),
+      transform var(--mf-motion-duration-medium, 300ms) var(--mf-motion-easing-emphasized, ease),
+      visibility 0s linear 0s;
+  }
+
+  .fullscreen-mode.active.leaving {
+    opacity: 0;
+    transform: translateY(0.375rem) scale(0.988);
+    pointer-events: none;
+    transition:
+      opacity var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
+      transform var(--mf-motion-duration-medium, 300ms) var(--mf-motion-easing-standard, ease),
+      visibility 0s linear 0s;
   }
 
   .notification-status {
@@ -245,171 +320,61 @@
     @apply bg-error-container dark:bg-error-container-dark text-on-error-container dark:text-on-error-container-dark;
   }
 
+  .update-notification .close-button {
+    --m3e-standard-icon-button-icon-color: var(--md-sys-color-on-primary);
+    --m3e-standard-icon-button-hover-icon-color: var(--md-sys-color-on-primary);
+    --m3e-standard-icon-button-focus-icon-color: var(--md-sys-color-on-primary);
+    --m3e-standard-icon-button-pressed-icon-color: var(--md-sys-color-on-primary);
+  }
+
   /* Example for no-data-message if needed for specific styling */
   /* .no-data-message {
     @apply text-center text-on-secondary-container dark:text-on-secondary-container-dark py-4 text-sm;
   } */
-
-  /* Collapsible section styles */
-  /* Heatmap Section */
-  #heatmapSection.collapsed .heatmap-scroll-container {
-    @apply h-0 opacity-0;
-  }
-  #heatmapSection .btn-toggle-expand .material-symbols-rounded {
-    @apply transition-transform duration-300 ease-in-out; /* Ensure transition is applied */
-  }
-  #heatmapSection.collapsed .btn-toggle-expand .material-symbols-rounded {
-    @apply rotate-180;
-  }
-
-  /* History Log Section */
-  #historySection #log-scroll-container {
-    @apply overflow-hidden max-h-[800px];
-    transition: max-height 0.5s ease-in-out, opacity 0.2s ease-out;
-  }
-  #historySection.collapsed #log-scroll-container {
-    @apply max-h-0 opacity-0; /* Opacity can still transition if transition-all was on parent, or add transition-opacity here if needed */
-    /* For smoother collapse, ensure padding/margin also transition or are removed */
-    @apply p-0 m-0; /* Apply p-0 and m-0 for Tailwind equivalent of padding:0 and margin:0 */
-  }
-  #historySection.collapsed #log-scroll-container #historyLog {
-    @apply mt-0;
-  }
-   #historySection .btn-toggle-expand .material-symbols-rounded {
-    @apply transition-transform duration-300 ease-in-out; /* Ensure transition is applied */
-  }
-  #historySection.collapsed .btn-toggle-expand .material-symbols-rounded {
-    @apply rotate-180;
-  }
 
   .section-header {
     @apply flex justify-between items-center mb-4;
   }
 
   .setting-item {
-    @apply flex flex-col gap-3 p-4 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small;
+    @apply flex flex-col gap-2 p-3 bg-secondary-container dark:bg-secondary-container-dark rounded-md-small;
   }
 
   .setting-item-header {
     @apply flex justify-between items-center gap-3;
   }
-
-  .time-input {
-    @apply grid grid-cols-[auto_1fr] items-center gap-2 max-w-[200px];
-  }
-
-  .time-input input {
-    @apply w-full max-w-[72px] px-3 py-2 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-base text-on-surface dark:text-on-surface-dark focus:outline-none focus:border-primary dark:focus:border-primary-dark;
-  }
-
-  .time-input .unit {
-    @apply text-on-secondary-container dark:text-on-secondary-container-dark whitespace-nowrap min-w-[32px] text-left pl-1;
-  }
-
-  /* Migrate inline-notification styles */
-  .inline-notification {
-    @apply fixed bottom-6 right-6 p-4 bg-surface dark:bg-surface-dark text-on-surface dark:text-on-surface-dark rounded-md-medium shadow-md flex items-start gap-3 z-[1000] min-w-[280px] max-w-md;
-    animation: slide-in 0.3s ease-out;
-  }
-
-  .inline-notification.fade-out {
-    animation: fade-out 0.3s ease-out forwards;
-  }
-
-  .inline-notification .material-symbols-rounded {
-    @apply text-primary dark:text-primary-dark text-2xl;
-  }
-
-  .inline-notification .notification-content {
-    @apply flex-1;
-  }
-
-  .inline-notification .notification-content strong {
-    @apply block mb-1 text-on-surface dark:text-on-surface-dark;
-  }
-
-  .inline-notification .notification-content p {
-    @apply m-0 text-sm text-on-secondary-container dark:text-on-secondary-container-dark;
-  }
-}
-
-@layer utilities {
-  /* Custom utility for scrollbar */
-  .scrollbar-custom::-webkit-scrollbar {
-    width: 8px;
-  }
-  .scrollbar-custom::-webkit-scrollbar-track {
-    background: theme('colors.secondary-container.DEFAULT');
-    border-radius: 4px;
-  }
-  .scrollbar-custom::-webkit-scrollbar-thumb {
-    background: theme('colors.outline.DEFAULT');
-    border-radius: 4px;
-  }
-  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-    background: theme('colors.primary.DEFAULT');
-  }
-
-  .dark .scrollbar-custom::-webkit-scrollbar-track {
-    background: theme('colors.secondary-container.dark');
-  }
-
-  .dark .scrollbar-custom::-webkit-scrollbar-thumb {
-    background: theme('colors.outline.dark');
-  }
-
-   .dark .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-    background: theme('colors.primary.dark');
-  }
-}
-
-/* Add keyframes for animations */
-@keyframes slide-in {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes fade-out {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
 }
 
 /* Theme selection styles */
 @layer components {
+  .current-theme-status {
+    background-color: var(--md-sys-color-surface-container-low);
+  }
+
   .theme-option {
-    @apply transition-all duration-200 cursor-pointer border-2 border-transparent;
+    @apply relative flex flex-col items-center gap-2 cursor-pointer rounded-md-small border-2 border-transparent
+      bg-secondary-container p-3 text-center text-xs text-on-secondary-container;
   }
 
-  .theme-option:hover {
-    @apply scale-105 shadow-sm;
+  .theme-option-control {
+    @apply absolute inset-0 h-full w-full opacity-0;
   }
 
-  .theme-option.selected {
-    @apply border-primary dark:border-primary-dark bg-primary-container dark:bg-primary-container-dark;
+  .theme-option:hover,
+  .theme-option:has(m3e-radio[checked]) {
+    @apply bg-primary-container text-on-primary-container;
   }
 
-  .theme-option.selected span {
-    @apply text-on-primary-container dark:text-on-primary-container-dark font-medium;
+  .theme-option:has(m3e-radio[checked]) {
+    @apply border-primary font-medium;
   }
 
-  /* Theme mode switch additional styles */
-  .switch input:checked + .slider {
-    @apply bg-primary dark:bg-primary-dark border-primary dark:border-primary-dark;
+  .theme-option:has(m3e-radio:focus-visible) {
+    outline: 2px solid var(--md-sys-color-on-surface);
+    outline-offset: -5px;
   }
 
-  .switch input:checked + .slider:before {
-    @apply bg-on-primary dark:bg-on-primary-dark;
+  .theme-swatch {
+    @apply h-8 w-8 shrink-0 rounded-full border-2 border-outline;
   }
 }

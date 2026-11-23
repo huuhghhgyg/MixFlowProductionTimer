@@ -68,6 +68,11 @@ class AppState {
         await this.saveData();
     }
 
+    async setTaskImportant(taskId, important) {
+        const task = this.tasks.find(task => task.id === taskId);
+        if (task) await Storage.saveTaskImportance(this.tasks, task, important);
+    }
+
     async startTask(taskId, taskName, onStartedCallback) { // Add onStartedCallback
         // 如果有活动任务，先停止它
         if (this.activeEntry) {

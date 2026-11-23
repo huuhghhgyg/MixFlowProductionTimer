@@ -1,6 +1,15 @@
 // 数据持久化相关功能
 import { STORAGE_KEYS } from './constants.js';
 
+let pendingTaskWrite = Promise.resolve();
+
+function queueTaskWrite(save) {
+    // Serialize task writes so a timer save cannot undo a more recent star change.
+    const write = pendingTaskWrite.then(save);
+    pendingTaskWrite = write.catch(() => {});
+    return write;
+}
+
 // 文件系统访问 API 的辅助函数
 async function getFileHandle(directoryHandle, fileName, create = false) {
     try {
@@ -38,10 +47,25 @@ async function writeFile(fileHandle, data) {
     }
 }
 
+async function writeTasks(folder, tasks, fallbackToBrowser) {
+    if (folder) {
+        try {
+            const fileHandle = await getFileHandle(folder, 'tasks.json', true);
+            await writeFile(fileHandle, tasks);
+            return;
+        } catch (error) {
+            if (!fallbackToBrowser) throw error;
+            console.error("Failed to save tasks to file system, saving to localStorage instead", error);
+        }
+    }
+    localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
+}
+
 const Storage = {
     dataFolderHandle: null, // 用于存储文件夹句柄
 
     async setDataFolderHandle(handle) {
+        await pendingTaskWrite;
         this.dataFolderHandle = handle;
         if (handle) {
             // 将句柄保存到 IndexedDB 以便持久化
@@ -156,6 +180,7 @@ const Storage = {
     },
 
     async getTasks() {
+        await pendingTaskWrite;
         if (this.dataFolderHandle) {
             try {
                 const fileHandle = await getFileHandle(this.dataFolderHandle, 'tasks.json');
@@ -219,17 +244,18 @@ const Storage = {
         };
     },
 
-    async saveTasks(tasks) {
-        if (this.dataFolderHandle) {
-            try {
-                const fileHandle = await getFileHandle(this.dataFolderHandle, 'tasks.json', true);
-                await writeFile(fileHandle, tasks);
-                return;
-            } catch (error) {
-                console.error("Failed to save tasks to file system, saving to localStorage instead", error);
-            }
-        }
-        localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
+    saveTasks(tasks) {
+        const folder = this.dataFolderHandle;
+        return queueTaskWrite(() => writeTasks(folder, tasks, true));
+    },
+
+    saveTaskImportance(tasks, task, important) {
+        const folder = this.dataFolderHandle;
+        return queueTaskWrite(async () => {
+            const updated = tasks.map(item => item === task ? { ...item, important } : item);
+            await writeTasks(folder, updated, false);
+            task.important = important;
+        });
     },
 
     async saveHistory(history) {
@@ -277,6 +303,7 @@ const Storage = {
     },
 
     async clearAllData() {
+        await pendingTaskWrite;
         if (this.dataFolderHandle) {
             try {
                 // 删除文件系统中的文件

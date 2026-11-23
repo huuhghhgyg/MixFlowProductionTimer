@@ -1,8 +1,12 @@
 import Timer from './timer.js';
 import Charts from './charts.js';
 import appState, { initializeAppState } from './core.js';
-import { REST_ID } from './constants.js';
+import { COLOR_THEMES, MFPT_EVENTS, REST_ID } from './constants.js';
 import themeManager from './theme-manager.js';
+
+function findClosestInComposedPath(event, selector) {
+    return event.composedPath().find((node) => node instanceof Element && node.matches(selector)) || null;
+}
 
 export function updateTimerDisplay(startTime) {
     if (!startTime) {
@@ -31,8 +35,7 @@ export function updateTimerDisplay(startTime) {
 
 class UI {
     static async init() {
-        // 首先初始化AppState，确保数据加载完成
-        await initializeAppState();
+        await Promise.all([initializeAppState(), themeManager.ready]);
 
         const ui = new UI();
         Charts.init();  // 注册Service Worker
@@ -93,7 +96,6 @@ class UI {
         this.currentTimerSpan = document.querySelector('#currentTimer');
         this.historyLogDiv = document.querySelector('#historyLog');
         this.historyScrollContainer = document.querySelector('#log-scroll-container');
-        this.historyLoadMoreButton = null;
         this.historyPage = 0;
         this.historyPageSize = 200;
         this.historyHasMore = true;
@@ -101,7 +103,8 @@ class UI {
         this.taskMetricsDiv = document.querySelector('#taskMetrics');
         this.clearHistoryButton = document.querySelector('#clearHistoryButton');
         this.clearDataButton = document.querySelector('#clearDataButton');
-        this.toggleHistoryLogButton = document.querySelector('#toggleHistoryLogButton');
+        this.heatmapPanel = document.querySelector('#heatmapPanel');
+        this.historyPanel = document.querySelector('#historyPanel');
 
         // Timer settings elements
         this.reminderMinutesInput = document.querySelector('#reminderMinutes');
@@ -112,46 +115,42 @@ class UI {
         // Fullscreen elements
         this.fullscreenMode = document.querySelector('.fullscreen-mode');
         this.fullscreenToggle = document.querySelector('.fullscreen-toggle');
-        this.fullscreenToggleIcon = this.fullscreenToggle ? this.fullscreenToggle.querySelector('span') : null;
         this.fullscreenTimer = document.querySelector('.fullscreen-mode .timer');
-        this.taskChips = document.querySelector('.task-chips'); this.notificationStatus = document.querySelector('#notificationStatus');
+        this.fullscreenTransitioning = false;
+        this.fullscreenTransitionTimer = null;
+        this.taskChips = document.querySelector('.task-chips');
+        this.fullscreenChipUpdatePending = false;
+        this.fullscreenChipAnimations = new WeakMap();
+        this.notificationStatus = document.querySelector('#notificationStatus');
         // Data storage elements
         this.selectDataFolderButton = document.querySelector('#selectDataFolderButton');
         this.clearSelectedFolderButton = document.querySelector('#clearSelectedFolderButton');
         this.currentStorageStatus = document.querySelector('#currentStorageStatus');
-        this.currentStorageLocationText = document.querySelector('#currentStorageLocationText');
 
         // Theme elements
         this.autoThemeSwitch = document.querySelector('#autoThemeSwitch');
         this.currentThemeStatus = document.querySelector('#currentThemeStatus');
-        this.themeColorPreview = document.querySelector('#themeColorPreview');
         this.currentThemeNameText = document.querySelector('#currentThemeNameText');
         this.currentThemeDescText = document.querySelector('#currentThemeDescText');
         this.currentThemeModeText = document.querySelector('#currentThemeModeText');
         this.manualThemeSelection = document.querySelector('#manualThemeSelection');
-        this.themeOptions = document.querySelectorAll('.theme-option');        this.setupEventListeners();
+        const themeGroup = this.manualThemeSelection.querySelector('m3e-radio-group');
+        const themes = Object.values(COLOR_THEMES);
+        themeGroup.innerHTML = themes.map(({ id, name, seed }) => `
+            <label class="theme-option">
+                <m3e-radio class="theme-option-control" value="${id}" aria-labelledby="theme-label-${id}"></m3e-radio>
+                <span class="theme-swatch" style="background-color: ${seed}" aria-hidden="true"></span>
+                <span id="theme-label-${id}">${name}</span>
+            </label>
+        `).join('');
+        this.themeOptions = themeGroup.querySelectorAll('m3e-radio');
+        document.querySelector('#themeSchedule').textContent = themes.map(({ name, timeRange: [start, end] }) =>
+            `${name}（${start}–${end} 时）`
+        ).join('、');
+        this.setupEventListeners();
         this.initializeState();
-        this.ensureHistoryLoadMoreButton();
         // 通知 appState，UI 的通知监听器已就绪，可以派发积压的通知
         appState.markNotificationListenersReady();
-    }
-
-    initializeState() {
-        // 初始化定时器设置
-        const settings = appState.getTimerSettings();
-        this.reminderMinutesInput.value = settings.reminderMinutes;
-        this.timeoutMinutesInput.value = settings.timeoutMinutes;
-        this.reminderEnabledInput.checked = settings.reminderEnabled;
-        this.timeoutEnabledInput.checked = settings.timeoutEnabled;
-        this.updateSettingsState();
-
-        this.renderTasks();
-        this.renderHistory({ reset: true });
-        this.calculateAndRenderMetrics();
-        this.updateCurrentActivityDisplay();
-        this.updateNotificationStatus();
-        this.updateStorageStatus();
-        this.initializeThemeState();
     }
 
     setupEventListeners() {
@@ -172,20 +171,23 @@ class UI {
 
         // Theme controls
         this.autoThemeSwitch.addEventListener('change', (e) => this.toggleThemeMode(e.target.checked));
-        this.themeOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                const themeId = e.currentTarget.getAttribute('data-theme');
-                this.selectManualTheme(themeId);
+        this.themeOptions.forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.checked) this.selectManualTheme(radio.value);
             });
         });
 
         // Listen for theme changes
-        document.addEventListener('mfpt:themeChanged', (e) => this.updateThemeStatus(e.detail));
+        document.addEventListener(MFPT_EVENTS.THEME_CHANGED, (e) => this.updateThemeStatus(e.detail));
 
         // Fullscreen mode
         this.fullscreenToggle.addEventListener('click', () => this.toggleFullscreen());
         document.addEventListener('keydown', (e) => {
-            if (e.altKey && (e.key === 'f' || e.key === 'F')) {
+            if (e.defaultPrevented || e.isComposing) return;
+            if (e.key === 'Escape' && this.fullscreenMode.classList.contains('active')) {
+                e.preventDefault();
+                this.toggleFullscreen({ exitOnly: true });
+            } else if (e.altKey && (e.key === 'f' || e.key === 'F')) {
                 e.preventDefault();
                 this.toggleFullscreen();
             }
@@ -193,27 +195,33 @@ class UI {
 
         // 让鼠标滚轮横向滚动 chips，避免显示滚动条
         this.taskChips?.addEventListener('wheel', (e) => {
-            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+            if (!e.ctrlKey && this.taskChips.scrollWidth > this.taskChips.clientWidth &&
+                Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
                 e.preventDefault();
                 this.taskChips.scrollLeft += e.deltaY;
             }
         }, { passive: false });
 
         // Task list delegation
-        this.taskList.addEventListener('click', async (e) => { // Add async
-            const taskItem = e.target.closest('.task-item');
-            const deleteButton = e.target.closest('.delete-button');
-
+        this.taskList.addEventListener('click', async (e) => {
+            const deleteButton = findClosestInComposedPath(e, '.task-delete-button');
             if (deleteButton) {
+                e.preventDefault();
+                e.stopPropagation();
                 const taskId = deleteButton.getAttribute('data-task-id');
                 if (taskId) {
-                    this.deleteTask(taskId);
+                    await this.deleteTask(taskId);
                 }
-            } else if (taskItem) {
+                return;
+            }
+
+            if (findClosestInComposedPath(e, '.task-important-button')) return;
+
+            const taskItem = findClosestInComposedPath(e, 'm3e-list-item[data-task-id]');
+            if (taskItem) {
                 const taskId = taskItem.getAttribute('data-task-id');
                 if (taskId) {
-                    // Ensure appState.activeEntry is set before UI updates that depend on it.
-                    await this.startTask(taskId); // Add await
+                    await this.startTask(taskId);
                 }
             }
         });
@@ -229,24 +237,12 @@ class UI {
             this.updateUI();
         });
 
-        // 监听热力图折叠/展开
-        const toggleHeatmapBtn = document.querySelector('#toggleHeatmapButton');
-        const heatmapSection = document.querySelector('#heatmapSection');
-
-        toggleHeatmapBtn?.addEventListener('click', () => {
-            let isCollapsed = heatmapSection.classList.contains('collapsed');
-            if (isCollapsed) {
-                // 展开热力图
-                heatmapSection.classList.remove('collapsed');
-                // 等待过渡动画完成后重绘热力图
-                setTimeout(() => {
-                    Charts.workloadHeatmap?.resize();
-                    Charts.updateHeatmap();
-                }, 300); // 等待过渡动画完成
-            } else {
-                // 折叠热力图
-                heatmapSection.classList.add('collapsed');
-            }
+        // 展开热力图面板后重绘图表
+        this.heatmapPanel?.addEventListener('opened', () => {
+            setTimeout(() => {
+                Charts.workloadHeatmap?.resize();
+                Charts.updateHeatmap();
+            }, 120);
         });
 
         // 监听日期更改事件
@@ -293,29 +289,11 @@ class UI {
             this.updateSettingsState();
         });
 
-        // 监听通知事件
+        // 监听通知事件（统一改为 M3E snackbar）
         document.addEventListener('mfpt:notification', (event) => {
             const { title, message } = event.detail;
-            // 创建一个内联通知
-            const notification = document.createElement('div');
-            notification.className = 'inline-notification';
-            notification.innerHTML = `
-                <span class="material-symbols-rounded">notifications</span>
-                <div class="notification-content">
-                    <strong>${title}</strong>
-                    <p>${message}</p>
-                </div>
-            `;
-
-            document.body.appendChild(notification);
-
-            // 3秒后自动移除通知
-            setTimeout(() => {
-                notification.classList.add('fade-out');
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);        });
+            this.showSnackbar(`${title}: ${message}`);
+        });
 
         // 监听任务停止事件 - 添加这个监听器来响应任务自动停止事件
         document.addEventListener('mfpt:taskStopped', (event) => {
@@ -324,30 +302,26 @@ class UI {
             this.renderTasks();
             this.updateUI();
             this.updatePageTitle();
-        });        // 监听活动日志折叠/展开
-        // const toggleLogBtn = document.querySelector('#toggleHistoryLogButton'); // Already in this.toggleHistoryLogButton
-        const logSectionElement = document.querySelector('#historySection');
+        });
 
-        if (this.toggleHistoryLogButton && logSectionElement) {
-            this.toggleHistoryLogButton.addEventListener('click', () => {
-                const nowCollapsed = logSectionElement.classList.toggle('collapsed');
-                if (nowCollapsed) {
-                    this.historyLogDiv.innerHTML = '';
-                } else {
-                    this.renderHistory({ reset: true });
-                }
-                this.updateLoadMoreButtonState();
-                // CSS will handle the icon rotation based on the .collapsed class
-            });
-        }
+        // 监听活动日志展开/折叠
+        this.historyPanel?.addEventListener('opened', () => {
+            this.renderHistory({ reset: true });
+        });
+        this.historyPanel?.addEventListener('closed', () => {
+            this.historyLogDiv.innerHTML = '';
+        });
 
         // 监听数据位置变更事件
         document.addEventListener('mfpt:dataLocationChanged', () => {
             console.log('收到数据位置变更事件');
             this.updateStorageStatus();
+            this.renderTasks();
             this.updateUI();
         });
-    } initializeState() {
+    }
+
+    initializeState() {
         // 初始化定时器设置
         const settings = appState.getTimerSettings();
         this.reminderMinutesInput.value = settings.reminderMinutes;
@@ -381,11 +355,6 @@ class UI {
         }
     }
 
-    ensureHistoryLoadMoreButton() {
-        // 不再使用按钮加载更多，改为滚动触底自动加载
-        return;
-    }
-
     resetHistoryPagination() {
         this.historyPage = 0;
         this.historyHasMore = true;
@@ -393,22 +362,6 @@ class UI {
         if (this.historyLogDiv) {
             this.historyLogDiv.innerHTML = '';
         }
-        this.updateLoadMoreButtonState();
-    }
-
-    updateLoadMoreButtonState() {
-        if (!this.historyLoadMoreButton) return;
-        const historySection = document.getElementById('historySection');
-        const collapsed = historySection?.classList.contains('collapsed');
-
-        if (collapsed || !this.historyHasMore) {
-            this.historyLoadMoreButton.classList.add('hidden');
-        } else {
-            this.historyLoadMoreButton.classList.remove('hidden');
-        }
-
-        this.historyLoadMoreButton.disabled = this.historyLoading || !this.historyHasMore;
-        this.historyLoadMoreButton.textContent = this.historyLoading ? '加载中...' : '加载更多';
     }
 
     handleHistoryScroll() {
@@ -419,6 +372,10 @@ class UI {
         if (nearBottom) {
             this.loadMoreHistory();
         }
+    }
+
+    isHistoryPanelOpen() {
+        return Boolean(this.historyPanel?.open);
     }
 
     sortHistoryEntries(history) {
@@ -513,11 +470,31 @@ class UI {
         this.updateFullscreenDisplay();
     }
 
+    getMotionMs(variableName, fallbackMs) {
+        const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+        const match = value.match(/([\d.]+)ms/i);
+        if (match) {
+            const parsed = Number.parseFloat(match[1]);
+            if (Number.isFinite(parsed)) return parsed;
+        }
+        return fallbackMs;
+    }
+
+    getMotionEasing(variableName, fallback) {
+        const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+        return value || fallback;
+    }
+
+    shouldReduceMotion() {
+        return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
     // Task management methods
     addTask() {
         const taskName = this.newTaskInput.value.trim();
         if (taskName === '') {
-            alert('任务名称不能为空！');
+            this.showSnackbar('请输入任务名称。');
+            this.newTaskInput.focus();
             return;
         }
         appState.addTask(taskName);
@@ -526,15 +503,17 @@ class UI {
         this.renderHistory({ reset: true }); // 添加这行
     }
 
-    deleteTask(taskId) {
-        if (!confirm(`确定要删除此任务吗？相关历史记录会保留，但不再关联此任务。`)) {
+    async deleteTask(taskId) {
+        if (!await this.confirmAction('删除任务？', '相关历史记录会保留。', '删除')) {
             return;
         }
-        appState.deleteTask(taskId);
+        await appState.deleteTask(taskId);
         this.renderTasks();
         this.calculateAndRenderMetrics();
         this.renderHistory({ reset: true }); // 添加这行
-    }      startTask(taskId) {
+    }
+
+    startTask(taskId) {
         const tasks = appState.getTasks();
         const task = tasks.find(t => t.id === taskId);
         if (!task) return;
@@ -544,18 +523,19 @@ class UI {
             this.renderTasks();
             this.calculateAndRenderMetrics();
             Charts.updateGanttChart();
-            this.renderTaskChips();  // 这个方法已经存在
         });
     }
-        startRest() {
+
+    startRest() {
         appState.startTask(REST_ID, '休息', () => {
             this.updateCurrentActivityDisplay();
             this.renderTasks();
             this.calculateAndRenderMetrics();
             Charts.updateGanttChart();
-            this.renderTaskChips();  // 这个方法已经存在
         });
-    }    stopCurrentActivity() {
+    }
+
+    stopCurrentActivity() {
         const activeEntry = appState.getActiveEntry();
         if (!activeEntry) return;
 
@@ -564,58 +544,162 @@ class UI {
         this.updateUI();
     }
 
-    clearHistory() {
-        if (confirm('确定要清除历史记录吗？此操作不会删除任务列表，但会清空所有活动记录。')) {
-            appState.clearHistory(); // 使用新的clearHistory方法
-            this.updateUI();
-        }
+    async clearHistory() {
+        if (!await this.confirmAction('清除历史记录？', '这将清空所有活动记录，任务列表会保留。', '清除')) return;
+        await appState.clearHistory();
+        this.updateUI();
     }
 
-    clearAllData() {
-        if (confirm('确定要清除所有数据吗？此操作将清除所有任务、历史记录和统计信息，且不可恢复。')) {
-            appState.clearAllData();
-            this.updateUI();
-            this.startRest(); // 自动开始休息模式
-        }
+    async clearAllData() {
+        if (!await this.confirmAction('清除所有数据？', '这将永久清除任务和活动记录，统计信息也会随之清空。', '清除')) return;
+        await appState.clearAllData();
+        this.updateUI();
+        this.startRest(); // 自动开始休息模式
+    }
+
+    captureTaskListState() {
+        if (!this.taskList) return null;
+
+        const state = new Map();
+        this.taskList.querySelectorAll('m3e-list-item[data-task-id]').forEach((item) => {
+            const taskId = item.getAttribute('data-task-id');
+            if (!taskId) return;
+            state.set(taskId, item.hasAttribute('data-active'));
+        });
+        return state;
+    }
+
+    animateTaskListSelection(previousState) {
+        if (!previousState || previousState.size === 0 || this.shouldReduceMotion()) return;
+
+        const duration = this.getMotionMs('--md-sys-motion-duration-short-4', 200) + 40;
+        const easing = this.getMotionEasing('--md-sys-motion-easing-emphasized', 'cubic-bezier(0.2, 0, 0, 1)');
+
+        this.taskList.querySelectorAll('m3e-list-item[data-task-id]').forEach((item) => {
+            const taskId = item.getAttribute('data-task-id');
+            if (!taskId) return;
+
+            const previous = previousState.get(taskId);
+            const selectedNow = item.hasAttribute('data-active');
+            if (previous === undefined || previous === selectedNow) return;
+
+            item.animate([
+                {
+                    transform: selectedNow ? 'scale(0.988, 0.985)' : 'scale(1)',
+                    opacity: 0.98
+                },
+                {
+                    transform: selectedNow ? 'scale(1)' : 'scale(0.996, 0.992)',
+                    opacity: 1
+                },
+                {
+                    transform: 'scale(1, 1)',
+                    opacity: 1
+                }
+            ], {
+                duration,
+                easing
+            });
+        });
     }
 
     // Rendering methods
     renderTasks() {
-        this.taskList.innerHTML = '';
+        const previousTaskListState = this.captureTaskListState();
         const tasks = appState.getTasks();
         const activeEntry = appState.getActiveEntry();
 
-        tasks.forEach(task => {
-            const taskItem = document.createElement('div');
-            taskItem.className = 'task-item';
-            if (activeEntry?.taskId === task.id) {
-                taskItem.classList.add('active');
+        let list = this.taskList.querySelector('m3e-list.m3e-task-list');
+        if (!list) {
+            this.taskList.innerHTML = '';
+            list = document.createElement('m3e-list');
+            list.className = 'm3e-task-list';
+            list.setAttribute('aria-label', '任务列表');
+            list.setAttribute('variant', 'segmented');
+            this.taskList.appendChild(list);
+        }
+
+        const existingItems = new Map();
+        list.querySelectorAll('m3e-list-item[data-task-id]').forEach((item) => {
+            existingItems.set(item.getAttribute('data-task-id'), item);
+        });
+
+        let nextItem = list.firstElementChild;
+        tasks.forEach((task) => {
+            const taskItem = existingItems.get(task.id) || this.createTaskListItem(task.id);
+            existingItems.delete(task.id);
+            this.updateTaskListItem(taskItem, task, activeEntry?.taskId === task.id);
+
+            if (taskItem === nextItem) {
+                nextItem = taskItem.nextElementSibling;
+            } else {
+                list.insertBefore(taskItem, nextItem);
             }
-            taskItem.setAttribute('data-task-id', task.id);
+        });
 
-            const taskNameSpan = document.createElement('span');
-            taskNameSpan.className = 'task-item-text';
-            taskNameSpan.textContent = task.name;
+        existingItems.forEach((item) => item.remove());
 
-            const deleteButton = document.createElement('button');
-            deleteButton.setAttribute('aria-label', `Delete task ${task.name}`);
-            deleteButton.innerHTML = '<span class="material-symbols-rounded">delete</span>';
-            deleteButton.classList.add('delete-button');
-            deleteButton.setAttribute('data-task-id', task.id);
-
-            taskItem.appendChild(taskNameSpan);
-            taskItem.appendChild(deleteButton);
-            this.taskList.appendChild(taskItem);
+        requestAnimationFrame(() => {
+            this.animateTaskListSelection(previousTaskListState);
         });
     }
 
+    createTaskListItem(taskId) {
+        const taskItem = document.createElement('m3e-list-item');
+        taskItem.className = 'm3e-task-list-item';
+        taskItem.dataset.taskId = taskId;
+        taskItem.innerHTML = `
+            <m3e-button variant="text" class="task-start-button"><span></span></m3e-button>
+            <m3e-icon-button slot="trailing" variant="standard" size="small" toggle class="task-important-button">
+                <m3e-icon variant="rounded" name="star"></m3e-icon>
+            </m3e-icon-button>
+            <m3e-icon-button slot="trailing" variant="standard" size="small" class="task-delete-button">
+                <m3e-icon variant="rounded" name="delete"></m3e-icon>
+            </m3e-icon-button>
+        `;
+        taskItem.querySelector('.task-delete-button').dataset.taskId = taskId;
+        const importantButton = taskItem.querySelector('.task-important-button');
+        importantButton.addEventListener('beforeinput', (event) => {
+            if (importantButton.hasAttribute('aria-busy')) event.preventDefault();
+        });
+        importantButton.addEventListener('change', async () => {
+            importantButton.setAttribute('aria-busy', 'true');
+            try {
+                await appState.setTaskImportant(taskId, importantButton.selected);
+            } catch (error) {
+                console.error('保存任务星标失败', error);
+                this.showSnackbar('无法保存任务星标，请重试。');
+            } finally {
+                importantButton.removeAttribute('aria-busy');
+                this.renderTasks();
+            }
+        });
+        return taskItem;
+    }
+
+    updateTaskListItem(taskItem, task, active) {
+        taskItem.toggleAttribute('data-active', active);
+        const start = taskItem.querySelector('.task-start-button');
+        const label = start.querySelector('span');
+        if (label.textContent !== task.name) label.textContent = task.name;
+        if (active) {
+            start.setAttribute('aria-current', 'true');
+        } else {
+            start.removeAttribute('aria-current');
+        }
+
+        const important = taskItem.querySelector('.task-important-button');
+        if (!important.hasAttribute('aria-busy')) important.selected = task.important === true;
+        important.setAttribute('aria-label', `标记重要任务 ${task.name}`);
+        important.title = important.selected ? '取消星标' : '添加星标';
+        taskItem.querySelector('.task-delete-button').setAttribute('aria-label', `删除任务 ${task.name}`);
+    }
+
     async loadMoreHistory() {
-        const historySection = document.getElementById('historySection');
-        if (historySection?.classList.contains('collapsed')) return;
+        if (!this.isHistoryPanelOpen()) return;
         if (this.historyLoading || !this.historyHasMore) return;
 
         this.historyLoading = true;
-        this.updateLoadMoreButtonState();
 
         const offset = this.historyPage * this.historyPageSize;
         const history = appState.getHistory({
@@ -628,7 +712,6 @@ class UI {
         if (sortedHistory.length === 0) {
             this.historyHasMore = false;
             this.historyLoading = false;
-            this.updateLoadMoreButtonState();
             return;
         }
 
@@ -637,7 +720,6 @@ class UI {
         // 如果本次不足一整页，说明已经到底
         this.historyHasMore = sortedHistory.length === this.historyPageSize;
         this.historyLoading = false;
-        this.updateLoadMoreButtonState();
 
         if (this.historyPage === 1) {
             // 初次加载保持在列表底部，避免跳动
@@ -646,10 +728,8 @@ class UI {
     }
 
     renderHistory({ reset = false } = {}) {
-        const historySection = document.getElementById('historySection');
-        if (historySection?.classList.contains('collapsed')) {
+        if (!this.isHistoryPanelOpen()) {
             this.historyLogDiv.innerHTML = '';
-            this.updateLoadMoreButtonState();
             return;
         }
 
@@ -660,9 +740,6 @@ class UI {
         if (!this.historyLogDiv.children.length) {
             // 初次或重置时加载第一页
             this.loadMoreHistory();
-        } else {
-            // 已有内容时，只更新按钮状态
-            this.updateLoadMoreButtonState();
         }
     }
 
@@ -811,132 +888,208 @@ class UI {
         }
     }
 
-    renderTaskChips() {
-        this.taskChips.innerHTML = '';
+    captureFullscreenChipWidths() {
+        const widths = new Map();
+        for (const chip of this.taskChips.querySelectorAll('m3e-filter-chip')) {
+            widths.set(chip, {
+                width: parseFloat(getComputedStyle(chip).width),
+                selected: chip.hasAttribute('selected')
+            });
+        }
+        return widths;
+    }
 
-        // Add rest chip
-        const restChip = document.createElement('div');
-        const activeEntry = appState.getActiveEntry();
-        restChip.className = 'task-chip' + (activeEntry?.taskId === REST_ID ? ' active' : '');
-        restChip.innerHTML = `
-            <div class="chip-content flex items-center gap-2">
-                <span class="material-symbols-rounded">coffee</span>
-                <span class="chip-text">休息</span>
-                ${activeEntry?.taskId === REST_ID ? '<span class="material-symbols-rounded check-icon">done</span>' : ''}
-            </div>
-        `;
-        restChip.addEventListener('click', () => this.startRest());
-        this.taskChips.appendChild(restChip);
+    animateFullscreenChipWidths(previousWidths) {
+        if (this.shouldReduceMotion()) return;
 
-        // Add task chips
-        const tasks = appState.getTasks();
-        tasks.forEach(task => {
-            const chip = document.createElement('div');
-            chip.className = 'task-chip' + (activeEntry?.taskId === task.id ? ' active' : '');
-            chip.innerHTML = `
-                <div class="chip-content flex items-center gap-2">
-                    <span class="chip-text">${task.name}</span>
-                    ${activeEntry?.taskId === task.id ? '<span class="material-symbols-rounded check-icon">done</span>' : ''}
-                </div>
-            `;
-            chip.addEventListener('click', () => this.startTask(task.id));
-            this.taskChips.appendChild(chip);
+        const changed = [...previousWidths].filter(([chip, previous]) =>
+            chip.isConnected && chip.hasAttribute('selected') !== previous.selected);
+        if (!changed.length) return;
+
+        const duration = this.getMotionMs('--mf-motion-duration-short', 200);
+        const easing = this.getMotionEasing('--mf-motion-easing-standard', 'cubic-bezier(0.2, 0, 0, 1)');
+
+        for (const [chip] of changed) this.fullscreenChipAnimations.get(chip)?.cancel();
+        const targets = changed.map(([chip]) => parseFloat(getComputedStyle(chip).width));
+
+        changed.forEach(([chip, previous], index) => {
+            const target = targets[index];
+            if (!previous.width || !target || Math.abs(previous.width - target) < 0.5) return;
+
+            const animation = chip.animate([
+                { width: `${previous.width}px` },
+                { width: `${target}px` }
+            ], { duration, easing });
+            this.fullscreenChipAnimations.set(chip, animation);
         });
     }
 
-    toggleFullscreen() {
-        const isFullscreen = this.fullscreenMode.classList.contains('active');
-        this.fullscreenMode.classList.toggle('active');
-        this.fullscreenToggle.querySelector('.material-symbols-rounded').textContent =
-            isFullscreen ? 'fullscreen' : 'fullscreen_exit';
-
-        // 切换页面滚动状态，避免全屏模式出现滚动条
-        if (!isFullscreen) {
-            document.body.classList.add('fullscreen-active');
+    renderTaskChips() {
+        // A task switch can render both the stopped and started states before the same paint.
+        if (!this.fullscreenChipUpdatePending) {
+            const previousWidths = this.captureFullscreenChipWidths();
+            this.fullscreenChipUpdatePending = true;
+            queueMicrotask(async () => {
+                const chips = Array.from(this.taskChips.querySelectorAll('m3e-filter-chip'));
+                await Promise.all(chips.map(chip => chip.updateComplete));
+                this.fullscreenChipUpdatePending = false;
+                this.animateFullscreenChipWidths(previousWidths);
+            });
         }
 
-        if (!isFullscreen) {
+        const activeEntry = appState.getActiveEntry();
+        const switchTask = (event) => {
+            const chip = event.currentTarget;
+            const taskId = chip.dataset.taskId;
+            if (appState.getActiveEntry()?.taskId === taskId) {
+                chip.selected = true;
+                return;
+            }
+            if (!chip.selected) return;
+            if (taskId === REST_ID) {
+                this.startRest();
+            } else {
+                this.startTask(taskId);
+            }
+        };
+
+        let chipSet = this.taskChips.querySelector('.fullscreen-chip-set');
+        if (!chipSet) {
+            chipSet = document.createElement('m3e-filter-chip-set');
+            chipSet.className = 'fullscreen-chip-set';
+            chipSet.setAttribute('aria-label', '全屏任务快速切换');
+            this.taskChips.appendChild(chipSet);
+        }
+
+        const tasks = [{ id: REST_ID, name: '休息' }, ...appState.getTasks()];
+        const existingChips = new Map(Array.from(chipSet.children, chip => [chip.dataset.taskId, chip]));
+        let nextChip = chipSet.firstElementChild;
+        for (const { id, name } of tasks) {
+            let chip = existingChips.get(id);
+            if (chip) {
+                existingChips.delete(id);
+            } else {
+                chip = document.createElement('m3e-filter-chip');
+                chip.dataset.taskId = id;
+                if (id === REST_ID) {
+                    chip.className = 'rest-chip';
+                    const icon = document.createElement('m3e-icon');
+                    icon.setAttribute('slot', 'trailing-icon');
+                    icon.setAttribute('variant', 'rounded');
+                    icon.setAttribute('name', 'coffee');
+                    chip.appendChild(icon);
+                }
+                const label = document.createElement('span');
+                label.className = 'block overflow-hidden text-clip';
+                chip.appendChild(label);
+                chip.addEventListener('change', switchTask);
+            }
+            if (chip.lastChild.textContent !== name) chip.lastChild.textContent = name;
+            chip.selected = activeEntry?.taskId === id;
+
+            if (chip === nextChip) {
+                nextChip = chip.nextElementSibling;
+            } else {
+                chipSet.insertBefore(chip, nextChip);
+            }
+        }
+        existingChips.forEach(chip => chip.remove());
+    }
+
+    toggleFullscreen({ exitOnly = false } = {}) {
+        const entering = !this.fullscreenMode.classList.contains('active');
+        if (exitOnly) {
+            if (entering || this.fullscreenMode.classList.contains('leaving')) return;
+        } else if (this.fullscreenTransitioning) {
+            return;
+        }
+
+        const body = document.body;
+        const duration = this.shouldReduceMotion() ? 0 : this.getMotionMs('--md-sys-motion-duration-medium-2', 300);
+
+        this.fullscreenTransitioning = true;
+        if (this.fullscreenTransitionTimer) {
+            clearTimeout(this.fullscreenTransitionTimer);
+            this.fullscreenTransitionTimer = null;
+        }
+
+        body.classList.remove('fullscreen-entering', 'fullscreen-leaving');
+        if (entering) {
+            body.classList.add('fullscreen-active', 'fullscreen-entering');
+            this.fullscreenMode.classList.remove('leaving');
+            this.fullscreenMode.classList.add('active');
+            this.fullscreenToggle.querySelector('m3e-icon').name = 'fullscreen_exit';
+            this.fullscreenToggle.setAttribute('aria-label', '退出全屏专注模式');
             this.renderTaskChips();
             this.updateFullscreenDisplay();
         } else {
-            document.body.classList.remove('fullscreen-active');
+            body.classList.add('fullscreen-leaving');
+            this.fullscreenMode.classList.add('leaving');
+            this.fullscreenToggle.querySelector('m3e-icon').name = 'fullscreen';
+            this.fullscreenToggle.setAttribute('aria-label', '进入全屏专注模式');
+            if (this.fullscreenMode.contains(document.activeElement)) {
+                this.fullscreenToggle.focus({ preventScroll: true });
+            }
         }
+
+        const settle = () => {
+            body.classList.remove('fullscreen-entering', 'fullscreen-leaving');
+            if (!entering) {
+                this.fullscreenMode.classList.remove('leaving');
+                this.fullscreenMode.classList.remove('active');
+                body.classList.remove('fullscreen-active');
+            }
+            this.fullscreenTransitioning = false;
+            this.fullscreenTransitionTimer = null;
+        };
+
+        if (duration <= 0) {
+            settle();
+            return;
+        }
+        this.fullscreenTransitionTimer = setTimeout(settle, duration + 32);
     }
 
     updatePageTitle(taskName) {
         document.title = taskName ? `MFPT - ${taskName}` : 'Mixed-Flow Production Timer';
     }
 
-    updateTimer(duration) {
-        this.timerDisplay.textContent = Timer.formatDuration(duration);
+    showSnackbar(message, options = {}) {
+        const { action = '', dismissible = false, actionCallback = null, duration = 3000 } = options;
+        if (globalThis.M3eSnackbar?.open) {
+            if (action) {
+                globalThis.M3eSnackbar.open(message, action, dismissible, { actionCallback, duration });
+            } else {
+                globalThis.M3eSnackbar.open(message, dismissible, { duration });
+            }
+            return;
+        }
+        // 兜底：保持在组件未注册时也能给出可见反馈
+        alert(message);
     }
 
-    updateButtonStates(isRunning) {
-        this.startButton.disabled = isRunning;
-        this.stopButton.disabled = !isRunning;
-        this.resetButton.disabled = isRunning;
-    }
+    async confirmAction(title, message, action) {
+        const dialog = document.querySelector('#confirmationDialog');
+        if (dialog.open) return false;
 
-    updateProductList(products) {
-        this.productList.innerHTML = '';
-        products.forEach(product => {
-            const li = document.createElement('li');
-            li.className = 'product-item';
-            li.innerHTML = `
-                <span class="product-time">${Timer.formatTime(product.timestamp)}</span>
-                <span class="product-duration">${Timer.formatDuration(product.duration)}</span>
-            `;
-            this.productList.appendChild(li);
+        dialog.querySelector('[slot="header"]').textContent = title;
+        dialog.querySelector('.confirmation-message').textContent = message;
+        dialog.querySelector('[return-value="confirm"]').textContent = action;
+        dialog.returnValue = '';
+
+        return new Promise((resolve) => {
+            dialog.addEventListener('closed', () => resolve(dialog.returnValue === 'confirm'), { once: true });
+            dialog.open = true;
         });
     }
 
     showNotification(title, message) {
         console.log(`发送通知: ${title} - ${message}`);
 
-        // 触发自定义事件，用于显示内联通知
+        // 统一走通知事件，由监听器通过 M3E snackbar 呈现
         document.dispatchEvent(new CustomEvent('mfpt:notification', {
             detail: { title, message, timestamp: Date.now() }
         }));
-
-        // 创建一个内联通知元素并应用 Tailwind 类
-        const notification = document.createElement('div');
-        // 应用 Tailwind 类
-        notification.className = 'inline-notification fixed bottom-6 right-6 p-4 bg-surface dark:bg-surface-dark text-on-surface dark:text-on-surface-dark rounded-md-medium shadow-md flex items-start gap-3 z-[1000] min-w-[280px] max-w-md';
-        notification.innerHTML = `
-            <span class="material-symbols-rounded text-primary dark:text-primary-dark text-2xl">notifications</span>
-            <div class="notification-content flex-1">
-                <strong class="block mb-1 text-on-surface dark:text-on-surface-dark">${title}</strong>
-                <p class="m-0 text-sm text-on-surface-variant dark:text-on-surface-variant-dark">${message}</p>
-            </div>
-        `;
-
-        document.body.appendChild(notification);
-
-        // 3秒后自动移除通知
-        setTimeout(() => {
-            notification.classList.add('fade-out');
-            setTimeout(() => {
-                // Check if the element still exists before attempting to remove
-                if (document.body.contains(notification)) {
-                    document.body.removeChild(notification);
-                }
-            }, 300); // Match CSS animation duration
-        }, 3000);
-
-        // 尝试发送系统通知
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('生产计时器', { body: message });
-        }
-    }
-
-    onStart() {
-        document.dispatchEvent(new CustomEvent('timer:start'));
-    }
-
-    onStop() {
-        document.dispatchEvent(new CustomEvent('timer:stop'));
-    } onReset() {
-        document.dispatchEvent(new CustomEvent('timer:reset'));
     }
 
     // Data storage methods
@@ -944,7 +1097,7 @@ class UI {
         try {
             // 检查浏览器是否支持File System Access API
             if (!('showDirectoryPicker' in window)) {
-                alert('您的浏览器不支持文件系统访问功能。请使用最新版本的Chrome、Edge或其他支持的浏览器。');
+                this.showSnackbar('此浏览器无法选择本地文件夹。', { duration: 5000 });
                 return;
             }
 
@@ -970,14 +1123,14 @@ class UI {
                 return;
             }
             console.error('选择数据文件夹时出错:', error);
-            alert('选择文件夹时出现错误，请重试。');
+            this.showSnackbar('选择文件夹时出现错误，请重试。');
         }
     }
 
     async clearSelectedFolder() {
         try {
             // 询问用户确认
-            if (!confirm('确定要恢复默认存储吗？这将切换回浏览器内部存储，但不会删除现有的本地文件。')) {
+            if (!await this.confirmAction('恢复默认存储？', '应用将使用浏览器内部存储。现有的本地文件会保留。', '恢复默认')) {
                 return;
             }
 
@@ -991,9 +1144,11 @@ class UI {
             this.showNotification('存储设置', '已恢复到浏览器内部存储');
         } catch (error) {
             console.error('恢复默认存储时出错:', error);
-            alert('恢复默认存储时出现错误，请重试。');
+            this.showSnackbar('恢复默认存储时出现错误，请重试。');
         }
-    } updateStorageStatus() {
+    }
+
+    updateStorageStatus() {
         const folderHandle = appState.getDataFolderHandle();
 
         if (folderHandle) {
@@ -1014,9 +1169,7 @@ class UI {
     // Theme management methods
     initializeThemeState() {
         const themeInfo = themeManager.getThemeInfo();
-        this.autoThemeSwitch.checked = themeInfo.themeMode === 'auto';
         this.updateThemeStatus({ theme: themeInfo.currentTheme, mode: themeInfo.themeMode });
-        this.updateManualThemeSelection();
     }
 
     toggleThemeMode(isAuto) {
@@ -1028,15 +1181,11 @@ class UI {
     selectManualTheme(themeId) {
         if (!this.autoThemeSwitch.checked) {
             themeManager.setManualTheme(themeId);
-            this.updateSelectedThemeOption(themeId);
         }
-    } updateThemeStatus(detail) {
-        const { theme, mode } = detail;
+    }
 
-        // 更新主题预览颜色
-        const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const colorScheme = isDark ? 'dark' : 'light';
-        this.themeColorPreview.style.backgroundColor = theme.colors[colorScheme].primary;
+    updateThemeStatus(detail) {
+        const { theme, mode } = detail;
 
         // 更新主题名称和描述
         this.currentThemeNameText.textContent = theme.name;
@@ -1056,21 +1205,14 @@ class UI {
 
     updateManualThemeSelection() {
         const isAuto = this.autoThemeSwitch.checked;
-        this.manualThemeSelection.style.display = isAuto ? 'none' : 'block';
+        this.manualThemeSelection.classList.toggle('is-hidden', isAuto);
+        this.manualThemeSelection.setAttribute('aria-hidden', isAuto ? 'true' : 'false');
+        this.manualThemeSelection.inert = isAuto;
     }
 
     updateSelectedThemeOption(themeId) {
-        this.themeOptions.forEach(option => {
-            const optionThemeId = option.getAttribute('data-theme');
-            if (optionThemeId === themeId) {
-                option.classList.add('selected');
-                option.style.backgroundColor = 'var(--md-sys-color-primary-container)';
-                option.style.borderColor = 'var(--md-sys-color-primary)';
-            } else {
-                option.classList.remove('selected');
-                option.style.backgroundColor = '';
-                option.style.borderColor = '';
-            }
+        this.themeOptions.forEach(radio => {
+            radio.checked = radio.value === themeId;
         });
     }
 
@@ -1086,15 +1228,16 @@ class UI {
         const notification = document.createElement('div');
         notification.className = 'update-notification fixed top-4 left-1/2 transform -translate-x-1/2 z-[2000] bg-primary dark:bg-primary-dark text-on-primary dark:text-on-primary-dark px-6 py-4 rounded-lg shadow-lg flex items-center gap-3';
         notification.innerHTML = `
-            <span class="material-symbols-rounded">system_update</span>
-            <span class="text-sm font-medium">${message}</span>
-            <button class="refresh-button bg-on-primary dark:bg-on-primary-dark text-primary dark:text-primary-dark px-3 py-1 rounded text-sm font-medium hover:opacity-90 transition-opacity">
+            <m3e-icon variant="rounded" name="system_update"></m3e-icon>
+            <span class="update-message text-sm font-medium" role="status"></span>
+            <m3e-button variant="tonal" size="small" class="refresh-button">
                 刷新
-            </button>
-            <button class="close-button text-on-primary dark:text-on-primary-dark hover:opacity-70 transition-opacity">
-                <span class="material-symbols-rounded text-sm">close</span>
-            </button>
+            </m3e-button>
+            <m3e-icon-button variant="standard" size="small" class="close-button" aria-label="关闭更新提示">
+                <m3e-icon variant="rounded" name="close"></m3e-icon>
+            </m3e-icon-button>
         `;
+        notification.querySelector('.update-message').textContent = message;
 
         document.body.appendChild(notification);
 
