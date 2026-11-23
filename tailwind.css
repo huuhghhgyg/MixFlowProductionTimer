@@ -8,68 +8,6 @@
   initial-value: 8px;
 }
 
-@layer base {
-  :root {
-    --md-sys-color-primary: theme('colors.primary.DEFAULT');
-    --md-sys-color-on-primary: theme('colors.on-primary.DEFAULT');
-    --md-sys-color-primary-container: theme('colors.primary-container.DEFAULT');
-    --md-sys-color-on-primary-container: theme('colors.on-primary-container.DEFAULT');
-
-    --md-sys-color-secondary: theme('colors.secondary.DEFAULT');
-    --md-sys-color-on-secondary: theme('colors.on-secondary.DEFAULT');
-    --md-sys-color-secondary-container: theme('colors.secondary-container.DEFAULT');
-    --md-sys-color-on-secondary-container: theme('colors.on-secondary-container.DEFAULT');
-
-    --md-sys-color-tertiary: theme('colors.tertiary.DEFAULT');
-    --md-sys-color-on-tertiary: theme('colors.on-tertiary.DEFAULT');
-    --md-sys-color-tertiary-container: theme('colors.tertiary-container.DEFAULT');
-    --md-sys-color-on-tertiary-container: theme('colors.on-tertiary-container.DEFAULT');
-
-    --md-sys-color-error: theme('colors.error.DEFAULT');
-    --md-sys-color-on-error: theme('colors.on-error.DEFAULT');
-    --md-sys-color-error-container: theme('colors.error-container.DEFAULT');
-    --md-sys-color-on-error-container: theme('colors.on-error-container.DEFAULT');
-
-    --md-sys-color-surface: theme('colors.surface.DEFAULT');
-    --md-sys-color-on-surface: theme('colors.on-surface.DEFAULT');
-    --md-sys-color-surface-variant: theme('colors.surface-variant.DEFAULT');
-    --md-sys-color-on-surface-variant: theme('colors.on-surface-variant.DEFAULT');
-
-    --md-sys-color-outline: theme('colors.outline.DEFAULT');
-    --md-sys-color-outline-variant: theme('colors.outline-variant.DEFAULT');
-  }
-
-  html.dark {
-    --md-sys-color-primary: theme('colors.primary.dark');
-    --md-sys-color-on-primary: theme('colors.on-primary.dark');
-    --md-sys-color-primary-container: theme('colors.primary-container.dark');
-    --md-sys-color-on-primary-container: theme('colors.on-primary-container.dark');
-
-    --md-sys-color-secondary: theme('colors.secondary.dark'); /* TODO: Define dark mode colors */
-    --md-sys-color-on-secondary: theme('colors.on-secondary.dark'); /* TODO: Define dark mode colors */
-    --md-sys-color-secondary-container: theme('colors.secondary-container.dark'); /* TODO: Define dark mode colors */
-    --md-sys-color-on-secondary-container: theme('colors.on-secondary-container.dark'); /* TODO: Define dark mode colors */
-
-    --md-sys-color-tertiary: theme('colors.tertiary.dark'); /* TODO: Define dark mode colors */
-    --md-sys-color-on-tertiary: theme('colors.on-tertiary.dark'); /* TODO: Define dark mode colors */
-    --md-sys-color-tertiary-container: theme('colors.tertiary-container.dark'); /* TODO: Define dark mode colors */
-    --md-sys-color-on-tertiary-container: theme('colors.on-tertiary-container.dark'); /* TODO: Define dark mode colors */
-
-    --md-sys-color-error: theme('colors.error.dark');
-    --md-sys-color-on-error: theme('colors.on-error.dark');
-    --md-sys-color-error-container: theme('colors.error-container.dark');
-    --md-sys-color-on-error-container: theme('colors.on-error-container.dark');
-
-    --md-sys-color-surface: theme('colors.surface.dark');
-    --md-sys-color-on-surface: theme('colors.on-surface.dark');
-    --md-sys-color-surface-variant: theme('colors.surface-variant.dark');
-    --md-sys-color-on-surface-variant: theme('colors.on-surface-variant.dark');
-
-    --md-sys-color-outline: theme('colors.outline.dark');
-    --md-sys-color-outline-variant: theme('colors.outline-variant.dark'); /* TODO: Define dark mode colors */
-  }
-}
-
 @layer components {
   .card {
     @apply bg-surface dark:bg-surface-dark rounded-md-large p-6 border border-outline dark:border-outline-dark relative overflow-hidden;
@@ -168,26 +106,49 @@
     --m3e-segmented-list-segment-gap: 0.5rem;
     --m3e-segmented-list-container-shape: 0.875rem;
     --m3e-segmented-list-item-container-shape: 0.375rem;
-    --m3e-segmented-list-item-hover-container-shape: 0.5rem;
-    --m3e-segmented-list-item-focus-container-shape: 0.625rem;
-    --m3e-segmented-list-item-selected-container-shape: 999px;
-    --m3e-list-item-container-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 36%, var(--md-sys-color-surface));
-    --m3e-list-item-label-text-color: var(--md-sys-color-on-surface);
-    --m3e-list-item-selected-container-color: var(--md-sys-color-secondary-container);
-    --m3e-list-item-selected-label-text-color: var(--md-sys-color-on-secondary-container);
-    --m3e-list-item-selected-container-shape: 999px;
-    --m3e-list-item-hover-state-layer-opacity: 10%;
-    --m3e-list-item-pressed-state-layer-opacity: 14%;
+    --m3e-segmented-list-item-container-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 36%, var(--md-sys-color-surface));
   }
 
-  .m3e-task-list-option {
+  .m3e-task-list-item {
+    @apply cursor-pointer;
     --m3e-list-item-one-line-height: 3rem;
-    --m3e-list-item-padding-inline: 1rem;
-    --m3e-list-item-padding-block: 0.25rem;
-    --m3e-list-item-font-weight: 500;
+    --m3e-list-item-two-line-height: 3rem;
+    --m3e-list-item-leading-space: 0.5rem;
+    --m3e-list-item-trailing-space: 0.5rem;
+    --m3e-list-item-between-space: 0.25rem;
+    --m3e-list-item-one-line-top-space: 0.25rem;
+    --m3e-list-item-one-line-bottom-space: 0.25rem;
   }
 
-  .m3e-task-list-option .task-delete-button {
+  .m3e-task-list-item[data-active] {
+    --m3e-list-item-container-color: var(--md-sys-color-secondary-container);
+    --m3e-segmented-list-container-shape: 999px;
+    --m3e-list-item-container-shape: var(--m3e-segmented-list-container-shape);
+    --m3e-text-button-label-text-color: var(--md-sys-color-on-secondary-container);
+  }
+
+  .task-start-button {
+    @apply max-w-full min-w-0 self-start;
+    --m3e-button-leading-space: 0.5rem;
+    --m3e-button-trailing-space: 0.5rem;
+  }
+
+  .task-start-button span {
+    @apply block w-full truncate text-left;
+  }
+
+  @media (hover: hover) {
+    .task-important-button {
+      transition: opacity var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
+    }
+
+    .m3e-task-list-item:not(:hover, :has(:focus-visible)) .task-important-button:not([selected]) {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  .m3e-task-list-item .task-delete-button {
     opacity: 0;
     color: var(--md-sys-color-on-surface-variant);
     --m3e-icon-button-hover-state-layer-color: var(--md-sys-color-on-surface);
@@ -202,19 +163,19 @@
       transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
   }
 
-  .m3e-task-list-option:hover .task-delete-button,
-  .m3e-task-list-option:focus-within .task-delete-button {
+  .m3e-task-list-item:hover .task-delete-button,
+  .m3e-task-list-item:focus-within .task-delete-button {
     opacity: 1;
   }
 
-  .m3e-task-list-option .task-delete-button:hover,
-  .m3e-task-list-option .task-delete-button:focus-visible {
+  .m3e-task-list-item .task-delete-button:hover,
+  .m3e-task-list-item .task-delete-button:focus-visible {
     color: var(--md-sys-color-error);
     transform: scale(1.03);
   }
 
   @media (max-width: 767px) {
-    .m3e-task-list-option .task-delete-button {
+    .m3e-task-list-item .task-delete-button {
       opacity: 1;
     }
   }
@@ -278,10 +239,8 @@
     --m3e-chip-selected-hover-elevation: none;
   }
 
-  .task-chips m3e-filter-chip:not([selected]):not(.rest-chip) {
+  .task-chips m3e-filter-chip:not([selected]) {
     --m3e-chip-padding-start: 0.875rem;
-    --m3e-chip-padding-end: 0.875rem;
-    --m3e-chip-spacing: 0.375rem;
     --m3e-chip-with-icon-padding-start: 0.375rem;
   }
 
@@ -293,10 +252,6 @@
     .task-chips m3e-filter-chip {
       transition: --mf-chip-radius var(--mf-motion-duration-short) var(--mf-motion-easing-standard);
     }
-  }
-
-  .task-chips m3e-filter-chip.rest-chip {
-    --m3e-chip-with-icon-padding-start: 0.625rem;
   }
 
   .date-field,
@@ -311,7 +266,11 @@
 
   .minutes-field {
     --md-sys-density-scale: -3;
-    --m3e-form-field-width: 5.5rem;
+    --m3e-form-field-width: 7rem;
+  }
+
+  .minutes-field input {
+    @apply tabular-nums;
   }
 
   .fullscreen-mode {
@@ -361,6 +320,13 @@
     @apply bg-error-container dark:bg-error-container-dark text-on-error-container dark:text-on-error-container-dark;
   }
 
+  .update-notification .close-button {
+    --m3e-standard-icon-button-icon-color: var(--md-sys-color-on-primary);
+    --m3e-standard-icon-button-hover-icon-color: var(--md-sys-color-on-primary);
+    --m3e-standard-icon-button-focus-icon-color: var(--md-sys-color-on-primary);
+    --m3e-standard-icon-button-pressed-icon-color: var(--md-sys-color-on-primary);
+  }
+
   /* Example for no-data-message if needed for specific styling */
   /* .no-data-message {
     @apply text-center text-on-secondary-container dark:text-on-secondary-container-dark py-4 text-sm;
@@ -377,37 +343,38 @@
   .setting-item-header {
     @apply flex justify-between items-center gap-3;
   }
-
-  .time-input {
-    @apply grid grid-cols-[auto_1fr] items-center gap-2 max-w-[168px];
-  }
-
-  .time-input input {
-    @apply w-full min-w-[72px] max-w-[88px] px-2 py-1 border border-outline dark:border-outline-dark rounded-md-small bg-transparent text-base tabular-nums text-center text-on-surface dark:text-on-surface-dark focus:outline-none focus:border-primary dark:focus:border-primary-dark;
-  }
-
-  .time-input .unit {
-    @apply text-on-secondary-container dark:text-on-secondary-container-dark whitespace-nowrap min-w-[32px] text-left pl-1;
-  }
 }
 
 /* Theme selection styles */
 @layer components {
+  .current-theme-status {
+    background-color: var(--md-sys-color-surface-container-low);
+  }
+
   .theme-option {
-    @apply cursor-pointer border-2 border-transparent;
-    transition:
-      background-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
-      color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
-      border-color var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
-      box-shadow var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease),
-      transform var(--mf-motion-duration-short, 200ms) var(--mf-motion-easing-standard, ease);
+    @apply relative flex flex-col items-center gap-2 cursor-pointer rounded-md-small border-2 border-transparent
+      bg-secondary-container p-3 text-center text-xs text-on-secondary-container;
   }
 
-  .theme-option.selected {
-    @apply border-primary dark:border-primary-dark bg-primary-container dark:bg-primary-container-dark;
+  .theme-option-control {
+    @apply absolute inset-0 h-full w-full opacity-0;
   }
 
-  .theme-option.selected span {
-    @apply text-on-primary-container dark:text-on-primary-container-dark font-medium;
+  .theme-option:hover,
+  .theme-option:has(m3e-radio[checked]) {
+    @apply bg-primary-container text-on-primary-container;
+  }
+
+  .theme-option:has(m3e-radio[checked]) {
+    @apply border-primary font-medium;
+  }
+
+  .theme-option:has(m3e-radio:focus-visible) {
+    outline: 2px solid var(--md-sys-color-on-surface);
+    outline-offset: -5px;
+  }
+
+  .theme-swatch {
+    @apply h-8 w-8 shrink-0 rounded-full border-2 border-outline;
   }
 }

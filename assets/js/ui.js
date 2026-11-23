@@ -1,8 +1,7 @@
-import { setCustomState } from '@m3e/web/core';
 import Timer from './timer.js';
 import Charts from './charts.js';
 import appState, { initializeAppState } from './core.js';
-import { REST_ID } from './constants.js';
+import { COLOR_THEMES, MFPT_EVENTS, REST_ID } from './constants.js';
 import themeManager from './theme-manager.js';
 
 function findClosestInComposedPath(event, selector) {
@@ -36,8 +35,7 @@ export function updateTimerDisplay(startTime) {
 
 class UI {
     static async init() {
-        // 首先初始化AppState，确保数据加载完成
-        await initializeAppState();
+        await Promise.all([initializeAppState(), themeManager.ready]);
 
         const ui = new UI();
         Charts.init();  // 注册Service Worker
@@ -132,12 +130,24 @@ class UI {
         // Theme elements
         this.autoThemeSwitch = document.querySelector('#autoThemeSwitch');
         this.currentThemeStatus = document.querySelector('#currentThemeStatus');
-        this.themeColorPreview = document.querySelector('#themeColorPreview');
         this.currentThemeNameText = document.querySelector('#currentThemeNameText');
         this.currentThemeDescText = document.querySelector('#currentThemeDescText');
         this.currentThemeModeText = document.querySelector('#currentThemeModeText');
         this.manualThemeSelection = document.querySelector('#manualThemeSelection');
-        this.themeOptions = document.querySelectorAll('.theme-option');        this.setupEventListeners();
+        const themeGroup = this.manualThemeSelection.querySelector('m3e-radio-group');
+        const themes = Object.values(COLOR_THEMES);
+        themeGroup.innerHTML = themes.map(({ id, name, seed }) => `
+            <label class="theme-option">
+                <m3e-radio class="theme-option-control" value="${id}" aria-labelledby="theme-label-${id}"></m3e-radio>
+                <span class="theme-swatch" style="background-color: ${seed}" aria-hidden="true"></span>
+                <span id="theme-label-${id}">${name}</span>
+            </label>
+        `).join('');
+        this.themeOptions = themeGroup.querySelectorAll('m3e-radio');
+        document.querySelector('#themeSchedule').textContent = themes.map(({ name, timeRange: [start, end] }) =>
+            `${name}（${start}–${end} 时）`
+        ).join('、');
+        this.setupEventListeners();
         this.initializeState();
         // 通知 appState，UI 的通知监听器已就绪，可以派发积压的通知
         appState.markNotificationListenersReady();
@@ -161,15 +171,14 @@ class UI {
 
         // Theme controls
         this.autoThemeSwitch.addEventListener('change', (e) => this.toggleThemeMode(e.target.checked));
-        this.themeOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                const themeId = e.currentTarget.getAttribute('data-theme');
-                this.selectManualTheme(themeId);
+        this.themeOptions.forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.checked) this.selectManualTheme(radio.value);
             });
         });
 
         // Listen for theme changes
-        document.addEventListener('mfpt:themeChanged', (e) => this.updateThemeStatus(e.detail));
+        document.addEventListener(MFPT_EVENTS.THEME_CHANGED, (e) => this.updateThemeStatus(e.detail));
 
         // Fullscreen mode
         this.fullscreenToggle.addEventListener('click', () => this.toggleFullscreen());
@@ -206,7 +215,9 @@ class UI {
                 return;
             }
 
-            const taskItem = findClosestInComposedPath(e, 'm3e-list-option[data-task-id]');
+            if (findClosestInComposedPath(e, '.task-important-button')) return;
+
+            const taskItem = findClosestInComposedPath(e, 'm3e-list-item[data-task-id]');
             if (taskItem) {
                 const taskId = taskItem.getAttribute('data-task-id');
                 if (taskId) {
@@ -305,6 +316,7 @@ class UI {
         document.addEventListener('mfpt:dataLocationChanged', () => {
             console.log('收到数据位置变更事件');
             this.updateStorageStatus();
+            this.renderTasks();
             this.updateUI();
         });
     }
@@ -481,7 +493,8 @@ class UI {
     addTask() {
         const taskName = this.newTaskInput.value.trim();
         if (taskName === '') {
-            alert('任务名称不能为空！');
+            this.showSnackbar('请输入任务名称。');
+            this.newTaskInput.focus();
             return;
         }
         appState.addTask(taskName);
@@ -491,7 +504,7 @@ class UI {
     }
 
     async deleteTask(taskId) {
-        if (!confirm(`确定要删除此任务吗？相关历史记录会保留，但不再关联此任务。`)) {
+        if (!await this.confirmAction('删除任务？', '相关历史记录会保留。', '删除')) {
             return;
         }
         await appState.deleteTask(taskId);
@@ -531,29 +544,27 @@ class UI {
         this.updateUI();
     }
 
-    clearHistory() {
-        if (confirm('确定要清除历史记录吗？此操作不会删除任务列表，但会清空所有活动记录。')) {
-            appState.clearHistory(); // 使用新的clearHistory方法
-            this.updateUI();
-        }
+    async clearHistory() {
+        if (!await this.confirmAction('清除历史记录？', '这将清空所有活动记录，任务列表会保留。', '清除')) return;
+        await appState.clearHistory();
+        this.updateUI();
     }
 
-    clearAllData() {
-        if (confirm('确定要清除所有数据吗？此操作将清除所有任务、历史记录和统计信息，且不可恢复。')) {
-            appState.clearAllData();
-            this.updateUI();
-            this.startRest(); // 自动开始休息模式
-        }
+    async clearAllData() {
+        if (!await this.confirmAction('清除所有数据？', '这将永久清除任务和活动记录，统计信息也会随之清空。', '清除')) return;
+        await appState.clearAllData();
+        this.updateUI();
+        this.startRest(); // 自动开始休息模式
     }
 
     captureTaskListState() {
         if (!this.taskList) return null;
 
         const state = new Map();
-        this.taskList.querySelectorAll('m3e-list-option[data-task-id]').forEach((item) => {
+        this.taskList.querySelectorAll('m3e-list-item[data-task-id]').forEach((item) => {
             const taskId = item.getAttribute('data-task-id');
             if (!taskId) return;
-            state.set(taskId, item.hasAttribute('selected'));
+            state.set(taskId, item.hasAttribute('data-active'));
         });
         return state;
     }
@@ -564,12 +575,12 @@ class UI {
         const duration = this.getMotionMs('--md-sys-motion-duration-short-4', 200) + 40;
         const easing = this.getMotionEasing('--md-sys-motion-easing-emphasized', 'cubic-bezier(0.2, 0, 0, 1)');
 
-        this.taskList.querySelectorAll('m3e-list-option[data-task-id]').forEach((item) => {
+        this.taskList.querySelectorAll('m3e-list-item[data-task-id]').forEach((item) => {
             const taskId = item.getAttribute('data-task-id');
             if (!taskId) return;
 
             const previous = previousState.get(taskId);
-            const selectedNow = item.hasAttribute('selected');
+            const selectedNow = item.hasAttribute('data-active');
             if (previous === undefined || previous === selectedNow) return;
 
             item.animate([
@@ -598,41 +609,31 @@ class UI {
         const tasks = appState.getTasks();
         const activeEntry = appState.getActiveEntry();
 
-        let taskSelectionList = this.taskList.querySelector('m3e-list.m3e-task-list');
-        if (!taskSelectionList) {
+        let list = this.taskList.querySelector('m3e-list.m3e-task-list');
+        if (!list) {
             this.taskList.innerHTML = '';
-            taskSelectionList = document.createElement('m3e-list');
-            taskSelectionList.className = 'm3e-task-list';
-            taskSelectionList.setAttribute('aria-label', '任务列表');
-            taskSelectionList.setAttribute('variant', 'segmented');
-            this.taskList.appendChild(taskSelectionList);
+            list = document.createElement('m3e-list');
+            list.className = 'm3e-task-list';
+            list.setAttribute('aria-label', '任务列表');
+            list.setAttribute('variant', 'segmented');
+            this.taskList.appendChild(list);
         }
 
         const existingItems = new Map();
-        taskSelectionList.querySelectorAll('m3e-list-option[data-task-id]').forEach((item) => {
+        list.querySelectorAll('m3e-list-item[data-task-id]').forEach((item) => {
             existingItems.set(item.getAttribute('data-task-id'), item);
         });
 
-        let nextItem = taskSelectionList.firstElementChild;
+        let nextItem = list.firstElementChild;
         tasks.forEach((task) => {
-            let taskItem = existingItems.get(task.id);
-            if (!taskItem) {
-                taskItem = this.createTaskListOption(task);
-            } else {
-                this.updateTaskListOption(taskItem, task);
-                existingItems.delete(task.id);
-            }
-
-            if (activeEntry?.taskId === task.id) {
-                taskItem.setAttribute('selected', '');
-            } else {
-                taskItem.removeAttribute('selected');
-            }
+            const taskItem = existingItems.get(task.id) || this.createTaskListItem(task.id);
+            existingItems.delete(task.id);
+            this.updateTaskListItem(taskItem, task, activeEntry?.taskId === task.id);
 
             if (taskItem === nextItem) {
                 nextItem = taskItem.nextElementSibling;
             } else {
-                taskSelectionList.insertBefore(taskItem, nextItem);
+                list.insertBefore(taskItem, nextItem);
             }
         });
 
@@ -643,45 +644,55 @@ class UI {
         });
     }
 
-    createTaskListOption(task) {
-        const taskItem = document.createElement('m3e-list-option');
-        taskItem.className = 'm3e-task-list-option';
-        setCustomState(taskItem, '--hide-selection', true);
-        taskItem.setAttribute('data-task-id', task.id);
-        taskItem.appendChild(document.createTextNode(task.name));
-
-        const deleteButton = document.createElement('m3e-icon-button');
-        deleteButton.setAttribute('slot', 'trailing');
-        deleteButton.setAttribute('variant', 'standard');
-        deleteButton.setAttribute('size', 'extra-small');
-        deleteButton.setAttribute('aria-label', `删除任务 ${task.name}`);
-        deleteButton.classList.add('task-delete-button');
-        deleteButton.setAttribute('data-task-id', task.id);
-
-        const deleteIcon = document.createElement('m3e-icon');
-        deleteIcon.setAttribute('variant', 'rounded');
-        deleteIcon.setAttribute('name', 'delete');
-        deleteButton.appendChild(deleteIcon);
-        taskItem.appendChild(deleteButton);
+    createTaskListItem(taskId) {
+        const taskItem = document.createElement('m3e-list-item');
+        taskItem.className = 'm3e-task-list-item';
+        taskItem.dataset.taskId = taskId;
+        taskItem.innerHTML = `
+            <m3e-button variant="text" class="task-start-button"><span></span></m3e-button>
+            <m3e-icon-button slot="trailing" variant="standard" size="small" toggle class="task-important-button">
+                <m3e-icon variant="rounded" name="star"></m3e-icon>
+            </m3e-icon-button>
+            <m3e-icon-button slot="trailing" variant="standard" size="small" class="task-delete-button">
+                <m3e-icon variant="rounded" name="delete"></m3e-icon>
+            </m3e-icon-button>
+        `;
+        taskItem.querySelector('.task-delete-button').dataset.taskId = taskId;
+        const importantButton = taskItem.querySelector('.task-important-button');
+        importantButton.addEventListener('beforeinput', (event) => {
+            if (importantButton.hasAttribute('aria-busy')) event.preventDefault();
+        });
+        importantButton.addEventListener('change', async () => {
+            importantButton.setAttribute('aria-busy', 'true');
+            try {
+                await appState.setTaskImportant(taskId, importantButton.selected);
+            } catch (error) {
+                console.error('保存任务星标失败', error);
+                this.showSnackbar('无法保存任务星标，请重试。');
+            } finally {
+                importantButton.removeAttribute('aria-busy');
+                this.renderTasks();
+            }
+        });
         return taskItem;
     }
 
-    updateTaskListOption(taskItem, task) {
-        taskItem.setAttribute('data-task-id', task.id);
-        const textNode = Array.from(taskItem.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
-        if (textNode) {
-            if (textNode.textContent !== task.name) {
-                textNode.textContent = task.name;
-            }
+    updateTaskListItem(taskItem, task, active) {
+        taskItem.toggleAttribute('data-active', active);
+        const start = taskItem.querySelector('.task-start-button');
+        const label = start.querySelector('span');
+        if (label.textContent !== task.name) label.textContent = task.name;
+        if (active) {
+            start.setAttribute('aria-current', 'true');
         } else {
-            taskItem.prepend(document.createTextNode(task.name));
+            start.removeAttribute('aria-current');
         }
 
-        const deleteButton = taskItem.querySelector('.task-delete-button');
-        if (deleteButton) {
-            deleteButton.setAttribute('data-task-id', task.id);
-            deleteButton.setAttribute('aria-label', `删除任务 ${task.name}`);
-        }
+        const important = taskItem.querySelector('.task-important-button');
+        if (!important.hasAttribute('aria-busy')) important.selected = task.important === true;
+        important.setAttribute('aria-label', `标记重要任务 ${task.name}`);
+        important.title = important.selected ? '取消星标' : '添加星标';
+        taskItem.querySelector('.task-delete-button').setAttribute('aria-label', `删除任务 ${task.name}`);
     }
 
     async loadMoreHistory() {
@@ -922,9 +933,6 @@ class UI {
                 const chips = Array.from(this.taskChips.querySelectorAll('m3e-filter-chip'));
                 await Promise.all(chips.map(chip => chip.updateComplete));
                 this.fullscreenChipUpdatePending = false;
-                // The chip set resets selection indicators when its slots change.
-                const restChip = this.taskChips.querySelector('.rest-chip');
-                if (restChip) setCustomState(restChip, '--hide-selection', true);
                 this.animateFullscreenChipWidths(previousWidths);
             });
         }
@@ -966,7 +974,7 @@ class UI {
                 if (id === REST_ID) {
                     chip.className = 'rest-chip';
                     const icon = document.createElement('m3e-icon');
-                    icon.setAttribute('slot', 'icon');
+                    icon.setAttribute('slot', 'trailing-icon');
                     icon.setAttribute('variant', 'rounded');
                     icon.setAttribute('name', 'coffee');
                     chip.appendChild(icon);
@@ -1010,13 +1018,15 @@ class UI {
             body.classList.add('fullscreen-active', 'fullscreen-entering');
             this.fullscreenMode.classList.remove('leaving');
             this.fullscreenMode.classList.add('active');
-            this.fullscreenToggle.querySelector('.material-symbols-rounded').textContent = 'fullscreen_exit';
+            this.fullscreenToggle.querySelector('m3e-icon').name = 'fullscreen_exit';
+            this.fullscreenToggle.setAttribute('aria-label', '退出全屏专注模式');
             this.renderTaskChips();
             this.updateFullscreenDisplay();
         } else {
             body.classList.add('fullscreen-leaving');
             this.fullscreenMode.classList.add('leaving');
-            this.fullscreenToggle.querySelector('.material-symbols-rounded').textContent = 'fullscreen';
+            this.fullscreenToggle.querySelector('m3e-icon').name = 'fullscreen';
+            this.fullscreenToggle.setAttribute('aria-label', '进入全屏专注模式');
             if (this.fullscreenMode.contains(document.activeElement)) {
                 this.fullscreenToggle.focus({ preventScroll: true });
             }
@@ -1058,6 +1068,21 @@ class UI {
         alert(message);
     }
 
+    async confirmAction(title, message, action) {
+        const dialog = document.querySelector('#confirmationDialog');
+        if (dialog.open) return false;
+
+        dialog.querySelector('[slot="header"]').textContent = title;
+        dialog.querySelector('.confirmation-message').textContent = message;
+        dialog.querySelector('[return-value="confirm"]').textContent = action;
+        dialog.returnValue = '';
+
+        return new Promise((resolve) => {
+            dialog.addEventListener('closed', () => resolve(dialog.returnValue === 'confirm'), { once: true });
+            dialog.open = true;
+        });
+    }
+
     showNotification(title, message) {
         console.log(`发送通知: ${title} - ${message}`);
 
@@ -1072,7 +1097,7 @@ class UI {
         try {
             // 检查浏览器是否支持File System Access API
             if (!('showDirectoryPicker' in window)) {
-                alert('您的浏览器不支持文件系统访问功能。请使用最新版本的Chrome、Edge或其他支持的浏览器。');
+                this.showSnackbar('此浏览器无法选择本地文件夹。', { duration: 5000 });
                 return;
             }
 
@@ -1098,14 +1123,14 @@ class UI {
                 return;
             }
             console.error('选择数据文件夹时出错:', error);
-            alert('选择文件夹时出现错误，请重试。');
+            this.showSnackbar('选择文件夹时出现错误，请重试。');
         }
     }
 
     async clearSelectedFolder() {
         try {
             // 询问用户确认
-            if (!confirm('确定要恢复默认存储吗？这将切换回浏览器内部存储，但不会删除现有的本地文件。')) {
+            if (!await this.confirmAction('恢复默认存储？', '应用将使用浏览器内部存储。现有的本地文件会保留。', '恢复默认')) {
                 return;
             }
 
@@ -1119,9 +1144,11 @@ class UI {
             this.showNotification('存储设置', '已恢复到浏览器内部存储');
         } catch (error) {
             console.error('恢复默认存储时出错:', error);
-            alert('恢复默认存储时出现错误，请重试。');
+            this.showSnackbar('恢复默认存储时出现错误，请重试。');
         }
-    } updateStorageStatus() {
+    }
+
+    updateStorageStatus() {
         const folderHandle = appState.getDataFolderHandle();
 
         if (folderHandle) {
@@ -1142,9 +1169,7 @@ class UI {
     // Theme management methods
     initializeThemeState() {
         const themeInfo = themeManager.getThemeInfo();
-        this.autoThemeSwitch.checked = themeInfo.themeMode === 'auto';
         this.updateThemeStatus({ theme: themeInfo.currentTheme, mode: themeInfo.themeMode });
-        this.updateManualThemeSelection();
     }
 
     toggleThemeMode(isAuto) {
@@ -1156,15 +1181,11 @@ class UI {
     selectManualTheme(themeId) {
         if (!this.autoThemeSwitch.checked) {
             themeManager.setManualTheme(themeId);
-            this.updateSelectedThemeOption(themeId);
         }
-    } updateThemeStatus(detail) {
-        const { theme, mode } = detail;
+    }
 
-        // 更新主题预览颜色
-        const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const colorScheme = isDark ? 'dark' : 'light';
-        this.themeColorPreview.style.backgroundColor = theme.colors[colorScheme].primary;
+    updateThemeStatus(detail) {
+        const { theme, mode } = detail;
 
         // 更新主题名称和描述
         this.currentThemeNameText.textContent = theme.name;
@@ -1186,20 +1207,12 @@ class UI {
         const isAuto = this.autoThemeSwitch.checked;
         this.manualThemeSelection.classList.toggle('is-hidden', isAuto);
         this.manualThemeSelection.setAttribute('aria-hidden', isAuto ? 'true' : 'false');
+        this.manualThemeSelection.inert = isAuto;
     }
 
     updateSelectedThemeOption(themeId) {
-        this.themeOptions.forEach(option => {
-            const optionThemeId = option.getAttribute('data-theme');
-            if (optionThemeId === themeId) {
-                option.classList.add('selected');
-                option.style.backgroundColor = 'var(--md-sys-color-primary-container)';
-                option.style.borderColor = 'var(--md-sys-color-primary)';
-            } else {
-                option.classList.remove('selected');
-                option.style.backgroundColor = '';
-                option.style.borderColor = '';
-            }
+        this.themeOptions.forEach(radio => {
+            radio.checked = radio.value === themeId;
         });
     }
 
@@ -1215,15 +1228,16 @@ class UI {
         const notification = document.createElement('div');
         notification.className = 'update-notification fixed top-4 left-1/2 transform -translate-x-1/2 z-[2000] bg-primary dark:bg-primary-dark text-on-primary dark:text-on-primary-dark px-6 py-4 rounded-lg shadow-lg flex items-center gap-3';
         notification.innerHTML = `
-            <span class="material-symbols-rounded">system_update</span>
-            <span class="text-sm font-medium">${message}</span>
-            <button class="refresh-button bg-on-primary dark:bg-on-primary-dark text-primary dark:text-primary-dark px-3 py-1 rounded text-sm font-medium hover:opacity-90 transition-opacity">
+            <m3e-icon variant="rounded" name="system_update"></m3e-icon>
+            <span class="update-message text-sm font-medium" role="status"></span>
+            <m3e-button variant="tonal" size="small" class="refresh-button">
                 刷新
-            </button>
-            <button class="close-button text-on-primary dark:text-on-primary-dark hover:opacity-70 transition-opacity">
-                <span class="material-symbols-rounded text-sm">close</span>
-            </button>
+            </m3e-button>
+            <m3e-icon-button variant="standard" size="small" class="close-button" aria-label="关闭更新提示">
+                <m3e-icon variant="rounded" name="close"></m3e-icon>
+            </m3e-icon-button>
         `;
+        notification.querySelector('.update-message').textContent = message;
 
         document.body.appendChild(notification);
 
